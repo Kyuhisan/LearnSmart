@@ -1,6 +1,6 @@
 # LearnSmart
 
-# Git Workflow & Navodila za Prispevanje
+## Git Workflow & Navodila za Prispevanje
 
 ## Struktura vej
  
