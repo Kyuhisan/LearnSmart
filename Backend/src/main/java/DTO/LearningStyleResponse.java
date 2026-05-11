@@ -7,5 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class LearningStyleResponse {
     private String learningStyle;
-    private int confidence;
+    private double confidence;
 }
