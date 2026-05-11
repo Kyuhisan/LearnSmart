@@ -1,6 +1,6 @@
-package Service;
+package com.learnSmart.learnSmart.Service;
 
-import DTO.LearningStyleResponse;
+import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;

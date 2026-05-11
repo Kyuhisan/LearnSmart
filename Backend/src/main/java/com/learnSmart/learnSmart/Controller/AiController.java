@@ -1,7 +1,7 @@
-package Controller;
+package com.learnSmart.learnSmart.Controller;
 
-import DTO.LearningStyleResponse;
-import Service.GeminiService;
+import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
+import com.learnSmart.learnSmart.Service.GeminiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

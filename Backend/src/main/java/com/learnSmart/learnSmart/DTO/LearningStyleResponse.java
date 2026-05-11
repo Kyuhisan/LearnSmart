@@ -1,4 +1,4 @@
-package DTO;
+package com.learnSmart.learnSmart.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
