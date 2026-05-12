@@ -96,7 +96,7 @@ export const R = {
 // Usage: mkShadow() → '2px 2px 0 #2d2a26'
 export function mkShadow(
   size: 'sm' | 'base' | 'lg' | 'xl' = 'base',
-  color = C.ink,
+  color: string = C.ink,
 ): string {
   const offsets = { sm: '1px', base: '2px', lg: '3px', xl: '4px' } as const
   const o = offsets[size]
