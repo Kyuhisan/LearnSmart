@@ -15,9 +15,12 @@ interface QuestionnaireWizardProps {
   onComplete?: (style: LearningStyle) => void
 }
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+// Only defined when explicitly set — never falls back to localhost so a
+// deployed build never triggers Chrome's Private Network Access prompt.
+const API_BASE: string | undefined = import.meta.env.VITE_API_URL
 
 async function classifyStyle(answers: LearningStyle[]): Promise<LearningStyle> {
+  if (!API_BASE) throw new Error('VITE_API_URL not configured')
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 5000)
   try {
