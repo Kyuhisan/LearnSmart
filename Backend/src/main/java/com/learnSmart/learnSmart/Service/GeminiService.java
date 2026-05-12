@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -10,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 
 @Service
+@Slf4j
 public class GeminiService {
 
     @Value("${gemini.api.key}")
@@ -18,6 +20,8 @@ public class GeminiService {
     private final RestTemplate restTemplate = buildRestTemplate();
 
     public LearningStyleResponse classify(List<String> answers) {
+        log.info("GeminiService classify answers: {}", answers.size());
+
         try {
             String prompt = "Na podlagi teh odgovorov na VARK vprašalnik klasificiraj učni tip. " +
                     "Odgovori SAMO z enim od: VISUAL, AUDITORY, READING, KINESTHETIC. " +
@@ -46,7 +50,7 @@ public class GeminiService {
             return new LearningStyleResponse(result.trim(), 0.87); // <---- confidence hardcoded for now, change later
 
         } catch (Exception e) {
-            System.err.println("Gemini API failed: " + e.getMessage());
+            log.error("Gemini API failed: {}", e.getMessage());
             return new LearningStyleResponse("UNCATEGORIZED", 0.0);
         }
     }
