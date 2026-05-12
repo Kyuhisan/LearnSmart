@@ -23,9 +23,9 @@ public class GeminiService {
         log.info("GeminiService classify answers: {}", answers.size());
 
         try {
-            String prompt = "Na podlagi teh odgovorov na VARK vprašalnik klasificiraj učni tip. " +
-                    "Odgovori SAMO z enim od: VISUAL, AUDITORY, READING, KINESTHETIC. " +
-                    "Odgovori: " + answers;
+            String prompt = "Based on these VARK questionnaire answers, classify the learning style. " +
+                    "Reply ONLY with one of: VISUAL, AUDITORY, READING, KINESTHETIC. " +
+                    "Answers: " + answers;
 
             Map<String, Object> body = Map.of(
                     "contents", List.of(
