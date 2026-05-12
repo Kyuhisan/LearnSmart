@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Callback } from './pages/Callback'
 import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { QuestionnaireWizard } from './features/questionnaire/QuestionnaireWizard'
 import type { LearningStyle } from './styles/tokens'
 
@@ -23,24 +25,6 @@ function QuestionnairePage() {
   return <QuestionnaireWizard onComplete={handleComplete} />
 }
 
-function DashboardPage() {
-  const { session, signOut } = useAuth()
-  const navigate = useNavigate()
-
-  const handleLogout = async () => {
-    await signOut()
-    navigate('/')
-  }
-
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Dashboard</h1>
-      <p>Dobrodošel, {session?.user.email}!</p>
-      <button onClick={handleLogout}>Odjava</button>
-    </div>
-  )
-}
-
 function App() {
   return (
     <AuthProvider>
@@ -48,6 +32,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/callback" element={<Callback />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/questionnaire" element={<QuestionnairePage />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
