@@ -12,10 +12,13 @@ public class AuthControler {
 
     @GetMapping("/me")
     public Map<String, Object> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
+        Map<String, Object> userMetadata = jwt.getClaimAsMap("user_metadata");
+        String fullName = userMetadata != null ? (String) userMetadata.get("full_name") : null;
+
         return Map.of(
                 "id", jwt.getSubject(),
-                "email", jwt.getClaimAsString("email"),
-                "name", jwt.getClaimAsString("full_name")
+                "email", jwt.getClaimAsString("email") != null ? jwt.getClaimAsString("email") : "",
+                "name", fullName != null ? fullName : ""
         );
     }
 }
