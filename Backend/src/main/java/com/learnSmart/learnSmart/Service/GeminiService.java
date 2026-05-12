@@ -3,6 +3,7 @@ package com.learnSmart.learnSmart.Service;
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,7 +15,7 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = buildRestTemplate();
 
     public LearningStyleResponse classify(List<String> answers) {
         try {
@@ -42,7 +43,7 @@ public class GeminiService {
             );
             
             String result = extractText(response.getBody());
-            return new LearningStyleResponse(result.trim(), 0.87); // <---- confidence zaenkrat hardcoded
+            return new LearningStyleResponse(result.trim(), 0.87); // <---- confidence hardcoded for now, change later
 
         } catch (Exception e) {
             System.err.println("Gemini API failed: " + e.getMessage());
@@ -59,5 +60,12 @@ public class GeminiService {
         } catch (Exception e) {
             return "UNCATEGORIZED";
         }
+    }
+
+    private RestTemplate buildRestTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(10000);
+        requestFactory.setReadTimeout(10000);
+        return new RestTemplate(requestFactory);
     }
 }
