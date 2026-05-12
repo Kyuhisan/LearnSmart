@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: learnsmart-backend
+    runtime: docker
+    rootDir: Backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_JWK_URI
+        sync: false
+      - key: FRONT_URL
+        sync: false
