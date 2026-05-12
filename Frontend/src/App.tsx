@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { LoginButton } from './components/LoginButton'
 import { Callback } from './pages/Callback'
+import { LoginPage } from './pages/LoginPage'
 import { QuestionnaireWizard } from './features/questionnaire/QuestionnaireWizard'
 import type { LearningStyle } from './styles/tokens'
 
@@ -12,31 +12,31 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function HomePage() {
-  const { session } = useAuth()
-  if (session) return <Navigate to="/dashboard" />
-  return (
-    <div>
-      <h1>LearnSmart</h1>
-      <LoginButton />
-    </div>
-  )
-}
-
 function QuestionnairePage() {
   const navigate = useNavigate()
+
   const handleComplete = (style: LearningStyle) => {
     console.log('Learning style determined:', style)
     navigate('/dashboard')
   }
+
   return <QuestionnaireWizard onComplete={handleComplete} />
 }
 
 function DashboardPage() {
+  const { session, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await signOut()
+    navigate('/')
+  }
+
   return (
-    <div>
-      <h1>Coming soon</h1>
-      <p>Welcome to your dashboard!</p>
+    <div style={{ padding: '2rem' }}>
+      <h1>Dashboard</h1>
+      <p>Dobrodošel, {session?.user.email}!</p>
+      <button onClick={handleLogout}>Odjava</button>
     </div>
   )
 }
@@ -46,13 +46,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/callback" element={<Callback />} />
-          <Route path="/questionnaire" element={
-            <ProtectedRoute>
-              <QuestionnairePage />
-            </ProtectedRoute>
-          } />
+          <Route path="/questionnaire" element={<QuestionnairePage />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <DashboardPage />
