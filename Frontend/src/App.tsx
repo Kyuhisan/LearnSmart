@@ -1,24 +1,23 @@
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { LoginButton } from './components/LoginButton'
+import { BrowserRouter, Routes, Route, useNavigate, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { Callback } from './pages/Callback'
+import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { QuestionnaireWizard } from './features/questionnaire/QuestionnaireWizard'
 import type { LearningStyle } from './styles/tokens'
 
-function HomePage() {
-  return (
-    <div>
-      <h1>LearnSmart</h1>
-      <LoginButton />
-    </div>
-  )
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { session, loading } = useAuth()
+  if (loading) return <p>Loading...</p>
+  if (!session) return <Navigate to="/" />
+  return <>{children}</>
 }
 
 function QuestionnairePage() {
   const navigate = useNavigate()
 
   const handleComplete = (style: LearningStyle) => {
-    // TODO: persist style to user profile, then navigate to dashboard
     console.log('Learning style determined:', style)
     navigate('/dashboard')
   }
@@ -31,9 +30,15 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/callback" element={<Callback />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/questionnaire" element={<QuestionnairePage />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,26 +1,32 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class GeminiService {
 
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = buildRestTemplate();
 
     public LearningStyleResponse classify(List<String> answers) {
+        log.info("GeminiService classify answers: {}", answers.size());
+
         try {
-            String prompt = "Na podlagi teh odgovorov na VARK vprašalnik klasificiraj učni tip. " +
-                    "Odgovori SAMO z enim od: VISUAL, AUDITORY, READING, KINESTHETIC. " +
-                    "Odgovori: " + answers;
+            String prompt = "Based on these VARK questionnaire answers, classify the learning style. " +
+                    "Reply ONLY with one of: VISUAL, AUDITORY, READING, KINESTHETIC. " +
+                    "Answers: " + answers;
 
             Map<String, Object> body = Map.of(
                     "contents", List.of(
@@ -41,13 +47,28 @@ public class GeminiService {
                     Map.class
             );
             
-            String result = extractText(response.getBody());
-            return new LearningStyleResponse(result.trim(), 0.87); // <---- confidence zaenkrat hardcoded
+            String result = extractText(response.getBody()).trim().toLowerCase();
+            return new LearningStyleResponse(result, 0.87); // <---- confidence hardcoded for now, change later
 
         } catch (Exception e) {
-            System.err.println("Gemini API failed: " + e.getMessage());
-            return new LearningStyleResponse("UNCATEGORIZED", 0.0);
+            log.warn("Gemini unavailable, using count-based fallback: {}", e.getMessage());
+            return countFallback(answers);
         }
+    }
+
+    private LearningStyleResponse countFallback(List<String> answers) {
+        Map<String, Long> counts = answers.stream()
+                .collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()));
+        long total = answers.size();
+        String dominant = counts.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("visual");
+        double confidence = total > 0
+                ? (double) counts.getOrDefault(dominant, 0L) / total
+                : 0.0;
+        log.info("Count fallback result: {} (confidence: {})", dominant, confidence);
+        return new LearningStyleResponse(dominant, confidence);
     }
 
     public String extractText(Map body) {
@@ -59,5 +80,12 @@ public class GeminiService {
         } catch (Exception e) {
             return "UNCATEGORIZED";
         }
+    }
+
+    private RestTemplate buildRestTemplate() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(10000);
+        requestFactory.setReadTimeout(10000);
+        return new RestTemplate(requestFactory);
     }
 }
