@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { C, S, FS } from '../styles/tokens'
+import { C, S } from '../styles/tokens'
 import { BitMascot } from '../components/ui/BitMascot'
 import { ComicBox } from '../components/ui/ComicBox'
 import { ComicBtn } from '../components/ui/ComicBtn'
 import { Tag } from '../components/ui/Tag'
+import "../styles/pages.css"
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -26,10 +27,7 @@ export function DashboardPage() {
         headers: { 'Authorization': `Bearer ${session?.access_token}` }
       })
       const data = await response.json()
-      setProfil({
-        username: data.username,
-        vloga: data.vloga
-      })
+      setProfil({ username: data.username, vloga: data.vloga })
       setLoading(false)
     }
     if (session) fetchProfil()
@@ -41,57 +39,33 @@ export function DashboardPage() {
   }
 
   if (loading) return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: C.cream,
-    }}>
+    <div className="page-loader">
       <BitMascot size={80} mood="thinking" float />
     </div>
   )
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: C.cream,
-      backgroundImage: `radial-gradient(${C.divider} 1px, transparent 1px)`,
-      backgroundSize: '20px 20px',
-      padding: S[8],
-    }}>
+    <div className="dashboard-page">
       <ComicBox bg={C.paper} shadowSize="lg" p={S[6]} style={{ maxWidth: '480px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: S[5] }}>
+        <div className="dashboard-card-inner">
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: S[4] }}>
+          <div className="dashboard-profile-header">
             <BitMascot size={60} mood="happy" />
             <div>
-              <div style={{ display: 'inline-block', marginBottom: S[1] }}>
+              <div className="dashboard-tag-wrapper">
                 <Tag
                   label={profil?.vloga === 'ucitelj' ? 'Teacher' : 'Student'}
                   bg={profil?.vloga === 'ucitelj' ? C.purpleLt : C.cyanLt}
                 />
               </div>
-              <div style={{
-                fontFamily: "'Archivo Black', sans-serif",
-                fontSize: FS['3xl'],
-                color: C.ink,
-              }}>
-                Hey, {profil?.username}!
-              </div>
+              <div className="dashboard-username">Hey, {profil?.username}!</div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-            <div style={{ fontSize: FS.md, color: C.muted }}>
-              📧 {session?.user.email}
-            </div>
-            <div style={{ fontSize: FS.md, color: C.muted }}>
-              👤 @{profil?.username}
-            </div>
-            <div style={{ fontSize: FS.md, color: C.muted }}>
-              🎓 {profil?.vloga === 'ucitelj' ? 'Teacher' : 'Student'}
-            </div>
+          <div className="dashboard-info-list">
+            <div className="dashboard-info-item">📧 {session?.user.email}</div>
+            <div className="dashboard-info-item">👤 @{profil?.username}</div>
+            <div className="dashboard-info-item">🎓 {profil?.vloga === 'ucitelj' ? 'Teacher' : 'Student'}</div>
           </div>
 
           <ComicBtn
