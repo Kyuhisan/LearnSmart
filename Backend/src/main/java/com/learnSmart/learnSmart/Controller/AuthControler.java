@@ -80,10 +80,9 @@ public class AuthControler {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Prefer", "return=minimal");
 
-        Map<String, String> updateBody = Map.of(
-                "username", username,
-                "vloga", vloga
-        );
+        Map<String, String> updateBody = "ucitelj".equals(vloga)
+                ? Map.of("username", username, "vloga", vloga, "ucni_tip", "uncategorized")
+                : Map.of("username", username, "vloga", vloga);
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(updateBody, headers);
 
@@ -94,6 +93,6 @@ public class AuthControler {
                 Void.class
         );
 
-        return ResponseEntity.ok(Map.of("success", true));
+        return ResponseEntity.ok(Map.of("success", true, "vloga", vloga));
     }
 }

@@ -61,7 +61,8 @@ export function RegisterPage() {
         return
       }
 
-      navigate('/questionnaire')
+      const result = await response.json()
+      navigate(result.vloga === 'ucitelj' ? '/dashboard' : '/questionnaire')
     } catch (e) {
       setError('Something went wrong. Please try again.')
     } finally {

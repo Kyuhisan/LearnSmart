@@ -3,6 +3,7 @@ package com.learnSmart.learnSmart.Controller;
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
 import com.learnSmart.learnSmart.Service.GeminiService;
 import com.learnSmart.learnSmart.Service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("ai/")
 public class AiController {
@@ -30,8 +32,13 @@ public class AiController {
         List<String> answers = request.get("answers");
         LearningStyleResponse response = geminiService.classify(answers);
 
-        String userId = jwt.getSubject();
-        userService.updateLearningStyle(userId, response.getLearningStyle());
+        if (jwt != null) {
+            try {
+                userService.updateLearningStyle(jwt.getSubject(), response.getLearningStyle());
+            } catch (Exception e) {
+                log.warn("Could not persist learning style for {}: {}", jwt.getSubject(), e.getMessage());
+            }
+        }
 
         return ResponseEntity.ok(response);
     }

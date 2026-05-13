@@ -1,4 +1,4 @@
-import { useNavigate, Navigate } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { C, S } from "../styles/tokens"
 import { BitMascot } from "../components/ui/BitMascot"
 import { SpeechBubble } from "../components/ui/SpeechBubble"
@@ -10,7 +10,6 @@ import "../styles/pages.css"
 
 export function LoginPage() {
   const { signInWithGoogle, session } = useAuth()
-  const navigate = useNavigate()
 
   if (session) return <Navigate to="/dashboard" />
 
@@ -77,12 +76,11 @@ export function LoginPage() {
             bg={C.yellowLt}
             shadowSize="sm"
             p={S[3]}
-            onClick={() => navigate("/questionnaire")}
             style={{ width: '100%' }}
           >
             <div className="login-new-here-title">NEW HERE?</div>
             <p className="login-new-here-text">
-              Take a 5-question quiz so we can match content to your brain. ✨
+              Take a short quiz so we can match content to your brain. ✨
             </p>
           </ComicBox>
         </div>

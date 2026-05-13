@@ -31,7 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/callback` }
+      options: {
+        redirectTo: `${window.location.origin}/callback`,
+        queryParams: {
+          prompt: 'select_account'  // ← vedno pokaže account picker
+        }
+      }
     })
   }
 
