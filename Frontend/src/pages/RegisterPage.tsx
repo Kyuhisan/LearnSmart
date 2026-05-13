@@ -80,7 +80,7 @@ export function RegisterPage() {
         return
       }
 
-      navigate('/dashboard')
+      navigate('/questionnaire')
     } catch (e) {
       setError('Something went wrong. Please try again.')
     } finally {
