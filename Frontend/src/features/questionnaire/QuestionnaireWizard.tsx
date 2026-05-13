@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useAuth } from '../../context/AuthContext'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { SpeechBubble } from '../../components/ui/SpeechBubble'
@@ -19,20 +20,22 @@ interface QuestionnaireWizardProps {
 // deployed build never triggers Chrome's Private Network Access prompt.
 const API_BASE: string | undefined = import.meta.env.VITE_API_URL
 
-async function classifyStyle(answers: LearningStyle[]): Promise<LearningStyle> {
+async function classifyStyle(answers: LearningStyle[], token: string | null): Promise<LearningStyle | 'uncategorized'> {
   if (!API_BASE) throw new Error('VITE_API_URL not configured')
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 5000)
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = `Bearer ${token}`
     const res = await fetch(`${API_BASE}/ai/classify-style`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ answers }),
       signal: controller.signal,
     })
     if (!res.ok) throw new Error('Classification failed')
-    const data = await res.json() as { style: LearningStyle }
-    return data.style
+    const data = await res.json() as { learningStyle: LearningStyle | 'uncategorized' }
+    return data.learningStyle
   } finally {
     clearTimeout(timeout)
   }
@@ -47,6 +50,7 @@ function getDominantStyle(answers: LearningStyle[]): LearningStyle {
 }
 
 export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
+  const { session } = useAuth()
   const [step, setStep]                   = useState<WizardStep>('intro')
   const [questionIndex, setQuestionIndex] = useState(0)
   // Flat list of all chosen styles across all questions (multi-select means
@@ -54,7 +58,7 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
   const [answers, setAnswers]             = useState<LearningStyle[]>([])
   // Selections for the current question only (reset on advance)
   const [selected, setSelected]           = useState<LearningStyle[]>([])
-  const [dominantStyle, setDominantStyle] = useState<LearningStyle | null>(null)
+  const [dominantStyle, setDominantStyle] = useState<LearningStyle | 'uncategorized' | null>(null)
   const [visible, setVisible]             = useState(true)
   const [submitting, setSubmitting]       = useState(false)
   const [isMobile, setIsMobile]           = useState(window.innerWidth < 640)
@@ -103,9 +107,9 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
       // Last question — classify and show results
       setSubmitting(true)
       void (async () => {
-        let result: LearningStyle
+        let result: LearningStyle | 'uncategorized'
         try {
-          result = await classifyStyle(merged)
+          result = await classifyStyle(merged, session?.access_token ?? null)
         } catch {
           result = getDominantStyle(merged)
         }
@@ -118,7 +122,8 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
   }
 
   const handleContinue = () => {
-    if (dominantStyle) onComplete?.(dominantStyle)
+    if (dominantStyle && dominantStyle !== 'uncategorized') onComplete?.(dominantStyle)
+    else onComplete?.('visual') // uncategorized — proceed to dashboard with neutral default
   }
 
   return (
@@ -339,7 +344,29 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
           )}
 
           {/* ── RESULT ── */}
-          {step === 'result' && dominantStyle && (
+          {step === 'result' && dominantStyle === 'uncategorized' && (
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[5] }}>
+              <div style={{ fontSize: FS['6xl'] }}>⚠️</div>
+              <div>
+                <Tag label="CLASSIFICATION UNAVAILABLE" bg={C.orangeLt} />
+                <h2 style={{
+                  fontFamily: "'Archivo Black', sans-serif",
+                  fontSize: FS['4xl'],
+                  marginTop: S[2.5], lineHeight: 1.2,
+                  letterSpacing: '-0.03em', color: C.ink,
+                }}>
+                  Couldn't classify your style
+                </h2>
+                <p style={{ fontSize: FS.lg, color: C.muted, marginTop: S[2.5], fontWeight: 600, lineHeight: 1.6, maxWidth: '24rem' }}>
+                  Our AI is temporarily unavailable. Your answers were saved — please try again later from your profile settings.
+                </p>
+              </div>
+              <ComicBtn onClick={handleContinue} color={C.yellow}>
+                GO TO DASHBOARD →
+              </ComicBtn>
+            </div>
+          )}
+          {step === 'result' && dominantStyle && dominantStyle !== 'uncategorized' && (
             <ResultCard
               answers={answers}
               dominantStyle={dominantStyle}
