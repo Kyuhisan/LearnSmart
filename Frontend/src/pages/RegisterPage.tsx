@@ -60,7 +60,7 @@ export function RegisterPage() {
         setError(err.message || 'Registration failed. Please try again.')
         return
       }
-      navigate('/dashboard')
+      navigate('/questionnaire')
     } catch (e) {
       setError('Something went wrong. Please try again.')
     } finally {
