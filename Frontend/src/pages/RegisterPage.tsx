@@ -1,11 +1,12 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { C, S, FS, BW } from '../styles/tokens'
+import { C, S } from '../styles/tokens'
 import { ComicBox } from '../components/ui/ComicBox'
 import { ComicBtn } from '../components/ui/ComicBtn'
 import { Tag } from '../components/ui/Tag'
 import { BitMascot } from '../components/ui/BitMascot'
 import { supabase } from '../lib/supabaseClient'
-import { useState, useEffect } from 'react'
+import '../styles/pages.css'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -14,56 +15,36 @@ export function RegisterPage() {
   const [username, setUsername] = useState('')
   const [vloga, setVloga] = useState<'ucenec' | 'ucitelj'>('ucenec')
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
- useEffect(() => {
+  useEffect(() => {
     const checkStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        navigate('/')
-        return
-      }
+      if (!session) { navigate('/'); return }
       const response = await fetch(`${API_URL}/api/me/status`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
       const status = await response.json()
-      if (!status.isNewUser) {
-        navigate('/dashboard')
-      }
+      if (!status.isNewUser) { navigate('/dashboard'); return }
+      setChecking(false)
     }
     checkStatus()
-  }, []);
-  
-  const handleSubmit = async () => {
-     if (!username.trim()) {
-    setError('Please enter a username!')
-    return
-  }
-  if (username.length < 3) {
-    setError('Username must be at least 3 characters!')
-    return
-  }
-  if (username.length > 20) {
-    setError('Username must be less than 20 characters!')
-    return
-  }
+  }, [])
 
-  // Samo alfanumerični znaki in podčrtaj
-  const usernameRegex = /^[a-zA-Z0-9_]+$/
-  if (!usernameRegex.test(username)) {
-    setError('Username can only contain letters, numbers and underscores!')
-    return
-  }
+  const handleSubmit = async () => {
+    if (!username.trim()) { setError('Please enter a username!'); return }
+    if (username.length < 3) { setError('Username must be at least 3 characters!'); return }
+    if (username.length > 20) { setError('Username must be less than 20 characters!'); return }
+    const usernameRegex = /^[a-zA-Z0-9_]+$/
+    if (!usernameRegex.test(username)) { setError('Username can only contain letters, numbers and underscores!'); return }
 
     setLoading(true)
     setError(null)
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        navigate('/')
-        return
-      }
+      if (!session) { navigate('/'); return }
 
       const response = await fetch(`${API_URL}/api/me/complete-registration`, {
         method: 'POST',
@@ -79,7 +60,6 @@ export function RegisterPage() {
         setError(err.message || 'Registration failed. Please try again.')
         return
       }
-
       navigate('/dashboard')
     } catch (e) {
       setError('Something went wrong. Please try again.')
@@ -88,78 +68,42 @@ export function RegisterPage() {
     }
   }
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100%',
-      background: C.cream,
-      backgroundImage: `radial-gradient(${C.divider} 1px, transparent 1px)`,
-      backgroundSize: '20px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: S[6],
-    }}>
-      <ComicBox bg={C.paper} shadowSize="xl" p={S[8]} style={{ width: '420px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: S[5] }}>
+  if (checking) return (
+    <div className="page-loader">
+      <BitMascot size={80} mood="thinking" float />
+    </div>
+  )
 
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
+  return (
+    <div className="register-page">
+      <ComicBox bg={C.paper} shadowSize="xl" p={S[8]} style={{ width: '420px' }}>
+        <div className="register-card-inner">
+
+          <div className="register-header">
             <BitMascot size={60} mood="wink" />
             <div>
-              <div style={{ display: 'inline-block', marginBottom: S[1] }}>
+              <div className="register-tag-wrapper">
                 <Tag label="Welcome!" bg={C.yellow} />
               </div>
-              <div style={{
-                fontFamily: "'Archivo Black', sans-serif",
-                fontSize: FS['3xl'],
-                color: C.ink,
-                lineHeight: 1.2,
-              }}>
-                Complete your profile
-              </div>
+              <div className="register-title">Complete your profile</div>
             </div>
           </div>
 
-          {/* Username */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-            <label style={{
-              fontFamily: "'Archivo Black', sans-serif",
-              fontSize: FS.sm,
-              color: C.ink,
-              letterSpacing: '0.05em',
-            }}>
-              USERNAME
-            </label>
+          <div className="register-field-group">
+            <label className="register-label">USERNAME</label>
             <input
               type="text"
               value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="e.g. RobotPeter"
+              onChange={e => setUsername(e.target.value.toLowerCase())}
+              placeholder="e.g. johndoe"
               maxLength={20}
-              style={{
-                padding: `${S[2.5]} ${S[3]}`,
-                fontSize: FS.md,
-                border: `${BW.base} solid ${C.ink}`,
-                borderRadius: '0.375rem',
-                fontFamily: 'inherit',
-                outline: 'none',
-                background: C.paper,
-              }}
+              className="register-input"
             />
           </div>
 
-          {/* Role */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-            <label style={{
-              fontFamily: "'Archivo Black', sans-serif",
-              fontSize: FS.sm,
-              color: C.ink,
-              letterSpacing: '0.05em',
-            }}>
-              I AM A...
-            </label>
-            <div style={{ display: 'flex', gap: S[3] }}>
+          <div className="register-field-group">
+            <label className="register-label">I AM A...</label>
+            <div className="register-role-row">
               <ComicBox
                 bg={vloga === 'ucenec' ? C.cyanLt : C.paper}
                 shadowSize="sm"
@@ -168,14 +112,8 @@ export function RegisterPage() {
                 borderColor={vloga === 'ucenec' ? C.cyan : C.ink}
                 style={{ flex: 1, cursor: 'pointer', textAlign: 'center' }}
               >
-                <div style={{ fontSize: '1.5rem', marginBottom: S[1] }}>🎓</div>
-                <div style={{
-                  fontFamily: "'Archivo Black', sans-serif",
-                  fontSize: FS.sm,
-                  color: C.ink,
-                }}>
-                  STUDENT
-                </div>
+                <div className="register-role-emoji">🎓</div>
+                <div className="register-role-label">STUDENT</div>
               </ComicBox>
 
               <ComicBox
@@ -186,33 +124,14 @@ export function RegisterPage() {
                 borderColor={vloga === 'ucitelj' ? C.purple : C.ink}
                 style={{ flex: 1, cursor: 'pointer', textAlign: 'center' }}
               >
-                <div style={{ fontSize: '1.5rem', marginBottom: S[1] }}>👨‍🏫</div>
-                <div style={{
-                  fontFamily: "'Archivo Black', sans-serif",
-                  fontSize: FS.sm,
-                  color: C.ink,
-                }}>
-                  PROFESSOR
-                </div>
+                <div className="register-role-emoji">👨‍🏫</div>
+                <div className="register-role-label">TEACHER</div>
               </ComicBox>
             </div>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div style={{
-              padding: S[3],
-              background: C.redLt,
-              border: `${BW.base} solid ${C.red}`,
-              borderRadius: '0.375rem',
-              fontSize: FS.md,
-              color: C.red,
-            }}>
-              {error}
-            </div>
-          )}
+          {error && <div className="register-error">{error}</div>}
 
-          {/* Submit */}
           <ComicBtn
             onClick={handleSubmit}
             color={C.yellow}

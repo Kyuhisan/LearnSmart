@@ -1,0 +1,286 @@
+/* ─── SHARED ─────────────────────────────────────────────────── */
+.page-bg {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #fbf6ee;
+  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.page-loader {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fbf6ee;
+}
+
+/* ─── LOGIN PAGE ──────────────────────────────────────────────── */
+.login-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #fbf6ee;
+  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
+  background-size: 20px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  gap: 4rem;
+  flex-wrap: wrap;
+}
+
+.login-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+  max-width: 480px;
+  flex: 1 1 340px;
+}
+
+.login-mascot-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.login-powered-by {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.login-powered-by-icon {
+  color: #d97a6c;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.login-powered-by-text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.6875rem;
+  color: #d97a6c;
+  letter-spacing: 0.08em;
+}
+
+.login-headline {
+  text-align: left;
+  width: 100%;
+}
+
+.login-headline-learn {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 3.5rem;
+  color: #2d2a26;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.login-headline-smarter {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 3.5rem;
+  color: #2d2a26;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  background: #e8b948;
+  border: 3px solid #2d2a26;
+  box-shadow: 6px 6px 0 #2d2a26;
+  padding: 0.25rem 0.75rem;
+  display: inline-block;
+  margin-top: 0.25rem;
+  transform: rotate(1.5deg);
+  transform-origin: left center;
+}
+
+.login-subtitle {
+  font-size: 0.75rem;
+  color: #7d7872;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 380px;
+  text-align: left;
+  width: 100%;
+}
+
+.login-card {
+  width: 420px;
+  flex: 0 0 420px;
+}
+
+.login-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.login-tag-wrapper {
+  display: inline-block;
+}
+
+.login-welcome-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.5rem;
+  color: #2d2a26;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.login-welcome-subtitle {
+  font-size: 0.875rem;
+  color: #7d7872;
+  margin: 0.375rem 0 0;
+  text-align: left;
+}
+
+.login-divider {
+  height: 2px;
+  background: #e8dfd0;
+  width: 100%;
+}
+
+.login-new-here-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.6875rem;
+  color: #2d2a26;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.05em;
+  text-align: left;
+}
+
+.login-new-here-text {
+  font-size: 0.75rem;
+  color: #2d2a26;
+  margin: 0;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* ─── REGISTER PAGE ───────────────────────────────────────────── */
+.register-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #fbf6ee;
+  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
+  background-size: 20px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.register-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.register-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.register-tag-wrapper {
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+.register-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.3125rem;
+  color: #2d2a26;
+  line-height: 1.2;
+}
+
+.register-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.register-label {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.6875rem;
+  color: #2d2a26;
+  letter-spacing: 0.05em;
+}
+
+.register-input {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8125rem;
+  border: 2px solid #2d2a26;
+  border-radius: 0.375rem;
+  font-family: inherit;
+  outline: none;
+  background: #fffdf9;
+}
+
+.register-role-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.register-role-emoji {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.register-role-label {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.6875rem;
+  color: #2d2a26;
+}
+
+.register-error {
+  padding: 0.75rem;
+  background: #fae3df;
+  border: 2px solid #d97a6c;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  color: #d97a6c;
+}
+
+/* ─── DASHBOARD PAGE ──────────────────────────────────────────── */
+.dashboard-page {
+  min-height: 100vh;
+  background-color: #fbf6ee;
+  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 2rem;
+}
+
+.dashboard-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.dashboard-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-tag-wrapper {
+  display: inline-block;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-username {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.3125rem;
+  color: #2d2a26;
+}
+
+.dashboard-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-info-item {
+  font-size: 0.8125rem;
+  color: #7d7872;
+}
