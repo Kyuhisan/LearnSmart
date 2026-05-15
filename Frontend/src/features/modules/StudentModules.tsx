@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
-import { ComicBtn } from '../../components/ui/ComicBtn'
-import { C, S } from '../../styles/tokens'
+import { C } from '../../styles/tokens'
 import '../../styles/moduleLibrary.css'
 
 interface Module {

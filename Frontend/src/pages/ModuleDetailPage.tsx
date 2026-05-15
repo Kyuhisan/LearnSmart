@@ -1,6 +1,5 @@
 import { useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
 import { StudentModuleDetail } from '../features/moduleDetail/StudentModuleDetail'
 import { ProfessorModuleDetail } from '../features/moduleDetail/ProfessorModuleDetail'
