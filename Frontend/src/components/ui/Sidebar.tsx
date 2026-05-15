@@ -11,24 +11,24 @@ interface SidebarItem {
 }
 
 const studentItems: SidebarItem[] = [
-  { label: 'Home Base', path: '/dashboard', icon: '🏠' },
-  { label: 'Modules', path: '/modules', icon: '📚' },
-  { label: 'Quizzes', path: '/quizzes', icon: '⚡' },
-  { label: 'Leaderboard', path: '/leaderboard', icon: '🏆' },
-  { label: 'My Progress', path: '/progress', icon: '📊' },
-  { label: 'Inbox', path: '/inbox', icon: '🔔' },
-  { label: 'Profile', path: '/profile', icon: '👤' },
+  { label: 'Home Base',    path: '/dashboard',    icon: '🏠' },
+  { label: 'Modules',      path: '/modules',       icon: '📚' },
+  { label: 'Quizzes',      path: '/quiz',          icon: '⚡' },
+  { label: 'Leaderboard',  path: '/leaderboard',   icon: '🏆' },
+  { label: 'My Progress',  path: '/progress',      icon: '📈' },
+  { label: 'Notifications',path: '/notifications', icon: '🔔' },
+  { label: 'Profile',      path: '/profile',       icon: '👤' },
 ]
 
 const teacherItems: SidebarItem[] = [
-  { label: 'Home Base', path: '/dashboard', icon: '🏠' },
-  { label: 'Modules', path: '/modules', icon: '📚' },
-  { label: 'Upload', path: '/upload', icon: '📤' },
-  { label: 'AI Quiz', path: '/ai-quiz', icon: '⚡' },
-  { label: 'Analytics', path: '/analytics', icon: '📊' },
-  { label: 'Students', path: '/students', icon: '👥' },
-  { label: 'Inbox', path: '/inbox', icon: '🔔' },
-  { label: 'Profile', path: '/profile', icon: '👤' },
+  { label: 'Home Base',    path: '/dashboard',       icon: '🏠' },
+  { label: 'Modules',      path: '/modules',          icon: '📚' },
+  { label: 'Upload',       path: '/upload',           icon: '📤' },
+  { label: 'AI Quiz',      path: '/ai-quiz-builder',  icon: '✨' },
+  { label: 'Analytics',    path: '/analytics',        icon: '📊' },
+  { label: 'Students',     path: '/students',         icon: '👥' },
+  { label: 'Notifications',path: '/notifications',    icon: '🔔' },
+  { label: 'Profile',      path: '/profile',          icon: '👤' },
 ]
 
 interface SidebarProps {

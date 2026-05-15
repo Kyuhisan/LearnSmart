@@ -1,0 +1,56 @@
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
+import { StatCard } from '../../components/ui/StatCard'
+import { ProfHero } from '../../components/professor/ProfHero'
+import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
+import { C } from '../../styles/tokens'
+import '../../styles/profile.css'
+
+const ACTIVITY: ActivityItem[] = [
+  { icon: '✨', iconBg: C.purpleLt, title: 'AI generated: 8 quiz questions', time: '1H AGO', badge: 'PENDING' },
+  { icon: '📤', iconBg: C.yellowLt, title: 'Uploaded: Lecture 7 slides.pdf',  time: '3H AGO', badge: '12 MB'  },
+  { icon: '👥', iconBg: C.cyanLt,   title: '32 students started Quiz #14',    time: 'TODAY',  badge: 'LIVE'   },
+  { icon: '📊', iconBg: C.greenLt,  title: 'Weekly report exported',          time: '2D AGO', badge: 'CSV'    },
+]
+
+export function ProfessorProfile() {
+  const { profil, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  if (!profil) return null
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/')
+  }
+
+  return (
+    <div className="dashboard-main" style={{ padding: 0 }}>
+      <div className="prof-topbar">
+        <div>
+          <div className="prof-topbar-title">PROFESSOR PROFILE</div>
+          <div className="prof-topbar-sub">Account · teaching activity · stats</div>
+        </div>
+        <div className="prof-topbar-actions">
+          <div className="prof-topbar-btn">
+            🔔<span className="prof-topbar-badge">3</span>
+          </div>
+          <div className="prof-topbar-avatar">{profil.username?.[0]?.toUpperCase()}</div>
+        </div>
+      </div>
+
+      <div className="prof-content">
+        <ProfHero username={profil.username} isTeacher onSignOut={handleSignOut} />
+
+        <div className="prof-stats-row">
+          <StatCard label="STUDENTS"  value="248" sub="134 active today"   bg={C.yellowLt} style={{ flex: 1 }} />
+          <StatCard label="MODULES"   value="12"  sub="4 published"        bg={C.greenLt}  style={{ flex: 1 }} />
+          <StatCard label="QUIZZES"   value="89"  sub="11 AI-pending"      bg={C.pinkLt}   style={{ flex: 1 }} />
+          <StatCard label="AVG SCORE" value="78%" sub="↑ 4% vs last term"  bg={C.purpleLt} style={{ flex: 1 }} />
+        </div>
+
+        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" />
+      </div>
+    </div>
+  )
+}

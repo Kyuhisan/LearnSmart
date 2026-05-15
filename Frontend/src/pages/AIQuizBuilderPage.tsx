@@ -1,10 +1,9 @@
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
-import { StudentDashboard } from '../features/dashboard/StudentDashboard'
-import { ProfessorDashboard } from '../features/dashboard/ProfessorDashboard'
+import { ProfessorAIQuizBuilder } from '../features/aiQuizBuilder/ProfessorAIQuizBuilder'
 
-export function DashboardPage() {
+export function AIQuizBuilderPage() {
   const { profil } = useAuth()
 
   if (!profil) return (
@@ -16,7 +15,7 @@ export function DashboardPage() {
   return (
     <div className="dashboard-layout">
       <Sidebar vloga={profil.vloga} username={profil.username} />
-      {profil.vloga === 'ucitelj' ? <ProfessorDashboard /> : <StudentDashboard />}
+      <ProfessorAIQuizBuilder />
     </div>
   )
 }

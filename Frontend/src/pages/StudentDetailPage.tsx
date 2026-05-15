@@ -1,10 +1,11 @@
+import { useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
-import { StudentDashboard } from '../features/dashboard/StudentDashboard'
-import { ProfessorDashboard } from '../features/dashboard/ProfessorDashboard'
+import { ProfessorStudentDetail } from '../features/studentDetail/ProfessorStudentDetail'
 
-export function DashboardPage() {
+export function StudentDetailPage() {
+  useParams() // will use { id } when implemented
   const { profil } = useAuth()
 
   if (!profil) return (
@@ -16,7 +17,7 @@ export function DashboardPage() {
   return (
     <div className="dashboard-layout">
       <Sidebar vloga={profil.vloga} username={profil.username} />
-      {profil.vloga === 'ucitelj' ? <ProfessorDashboard /> : <StudentDashboard />}
+      <ProfessorStudentDetail />
     </div>
   )
 }
