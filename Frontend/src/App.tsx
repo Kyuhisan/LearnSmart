@@ -14,11 +14,30 @@ import { QuestionnaireWizard } from "./features/questionnaire/QuestionnaireWizar
 import type { LearningStyle } from "./styles/tokens";
 import { ModuleLibrary } from "./pages/ModuleLibrary";
 import { ModuleDetailPage } from "./pages/ModuleDetailPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { QuizPage } from "./pages/QuizPage";
+import { QuizHistoryPage } from "./pages/QuizHistoryPage";
+import { LeaderboardPage } from "./pages/LeaderboardPage";
+import { ProgressPage } from "./pages/ProgressPage";
+import { NotificationsPage } from "./pages/NotificationsPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { StudentDetailPage } from "./pages/StudentDetailPage";
+import { StudentsPage } from "./pages/StudentsPage";
+import { UploadPage } from "./pages/UploadPage";
+import { AIQuizBuilderPage } from "./pages/AIQuizBuilderPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
+function ProtectedRoute({
+  children,
+  role,
+}: {
+  children: React.ReactNode
+  role?: 'ucenec' | 'ucitelj'
+}) {
+  const { session, loading, profil } = useAuth();
   if (loading) return <p>Loading...</p>;
   if (!session) return <Navigate to="/" />;
+  if (role && profil && profil.vloga !== role) return <Navigate to="/dashboard" />;
   return <>{children}</>;
 }
 
@@ -63,6 +82,107 @@ function App() {
             element={
               <ProtectedRoute>
                 <ModuleDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          {/* ── Student only ── */}
+          <Route
+            path="/quiz"
+            element={
+              <ProtectedRoute role="ucenec">
+                <QuizPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/quiz/history"
+            element={
+              <ProtectedRoute role="ucenec">
+                <QuizHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute role="ucenec">
+                <LeaderboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute role="ucenec">
+                <ProgressPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── Both roles ── */}
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ── Professor only ── */}
+          <Route
+            path="/students"
+            element={
+              <ProtectedRoute role="ucitelj">
+                <StudentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/students/:id"
+            element={
+              <ProtectedRoute role="ucitelj">
+                <StudentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <ProtectedRoute role="ucitelj">
+                <UploadPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-quiz-builder"
+            element={
+              <ProtectedRoute role="ucitelj">
+                <AIQuizBuilderPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute role="ucitelj">
+                <AnalyticsPage />
               </ProtectedRoute>
             }
           />
