@@ -1,5 +1,4 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { C } from '../../styles/tokens'
 import { BitMascot } from './BitMascot'
 import { useAuth } from '../../context/AuthContext'
 import "../../styles/sidebar.css";

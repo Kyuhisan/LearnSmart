@@ -196,7 +196,7 @@ function KinestheticContent() {
 }
 
 export function ModuleDetailPage() {
-  const { id } = useParams()
+  useParams()
   const navigate = useNavigate()
   const { profil } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('visual')
