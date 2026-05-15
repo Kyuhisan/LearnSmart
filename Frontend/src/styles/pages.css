@@ -180,18 +180,20 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  justify-content: flex-start;
+  margin-right: 70px;
 }
-
-.register-tag-wrapper {
-  display: inline-block;
-  margin-bottom: 0.25rem;
-}
-
 .register-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 1.3125rem;
   color: #2d2a26;
   line-height: 1.2;
+  text-align: center;
+  
+}
+.register-tag-wrapper {
+  display: inline-block;
+  margin-bottom: 0.25rem;
 }
 
 .register-field-group {
@@ -242,46 +244,75 @@
   font-size: 0.8125rem;
   color: #d97a6c;
 }
+.register-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+ 
+}
+.register-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 
 /* ─── DASHBOARD PAGE ──────────────────────────────────────────── */
-.dashboard-page {
+.dashboard-layout {
+  display: flex;
   min-height: 100vh;
+}
+
+.dashboard-main {
+  flex: 1;
   background-color: #fbf6ee;
   background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
   background-size: 20px 20px;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
-.dashboard-card-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.dashboard-header {
+  margin-bottom: 1.5rem;
 }
 
-.dashboard-profile-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.dashboard-tag-wrapper {
-  display: inline-block;
-  margin-bottom: 0.25rem;
-}
-
-.dashboard-username {
+.dashboard-header-title {
   font-family: 'Archivo Black', sans-serif;
-  font-size: 1.3125rem;
+  font-size: 1.5rem;
   color: #2d2a26;
 }
 
-.dashboard-info-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.dashboard-info-item {
+.dashboard-header-sub {
   font-size: 0.8125rem;
   color: #7d7872;
+}
+
+.dashboard-bit-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-bit-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.6875rem;
+  color: #2d2a26;
+  margin-bottom: 0.25rem;
+}
+
+.dashboard-bit-text {
+  font-size: 0.8125rem;
+  color: #2d2a26;
+}
+
+.dashboard-placeholder {
+  background: #fffdf9;
+  border: 2px solid #2d2a26;
+  border-radius: 0.375rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: #7d7872;
+  font-size: 0.8125rem;
 }
