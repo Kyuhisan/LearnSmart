@@ -2,9 +2,17 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import type { Session } from '@supabase/supabase-js'
 
+const API_URL = import.meta.env.VITE_API_URL
+
+interface Profil {
+  username: string
+  vloga: string
+}
+
 interface AuthContextType {
   session: Session | null
   loading: boolean
+  profil: Profil | null
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -14,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profil, setProfil] = useState<Profil | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,14 +37,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // tukaj pridobimo profil uporabnika (username in vloga) da lahko potem prilagodis pages in sidebar glede na vlogo
+  useEffect(() => {
+    const fetchProfil = async () => {
+      if (!session) { setProfil(null); return }
+      const response = await fetch(`${API_URL}/api/me/status`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      })
+      const data = await response.json()
+      setProfil({ username: data.username, vloga: data.vloga })
+    }
+    fetchProfil()
+  }, [session])
+
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/callback`,
-        queryParams: {
-          prompt: 'select_account'  // ← vedno pokaže account picker
-        }
+        queryParams: { prompt: 'select_account' }
       }
     })
   }
@@ -43,10 +63,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut()
     setSession(null)
+    setProfil(null)
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ session, loading, profil, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )
