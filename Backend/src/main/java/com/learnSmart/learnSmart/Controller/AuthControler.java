@@ -1,5 +1,10 @@
 package com.learnSmart.learnSmart.Controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -7,11 +12,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@Tag(name = "Auth", description = "User identity and registration endpoints — JWT Bearer required")
 public class AuthControler {
 
     @Value("${SUPABASE_URL}")
@@ -21,6 +26,9 @@ public class AuthControler {
     private String supabaseServiceKey;
 
     @GetMapping("/me")
+    @Operation(summary = "Get current user", description = "Returns basic identity claims from the Supabase JWT (id, email, full name).")
+    @ApiResponse(responseCode = "200", description = "User info returned", content = @Content(schema = @Schema(example = "{\"id\": \"uuid\", \"email\": \"user@example.com\", \"name\": \"Jane Doe\"}")))
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     public Map<String, Object> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         Map<String, Object> userMetadata = jwt.getClaimAsMap("user_metadata");
         String fullName = userMetadata != null ? (String) userMetadata.get("full_name") : null;
@@ -32,6 +40,9 @@ public class AuthControler {
     }
 
     @GetMapping("/me/status")
+    @Operation(summary = "Get user registration status", description = "Checks Supabase whether the user has completed registration (set username + role). " + "Returns isNewUser=true if the profile is incomplete.")
+    @ApiResponse(responseCode = "200", description = "Status returned", content = @Content(schema = @Schema(example = "{\"isNewUser\": false, \"vloga\": \"ucenec\", \"username\": \"janez\"}")))
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     public ResponseEntity<Map<String, Object>> getUserStatus(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
 
@@ -60,13 +71,19 @@ public class AuthControler {
                     "username", profil.get("username") != null ? profil.get("username") : ""
             ));
         }
-
         return ResponseEntity.ok(Map.of("isNewUser", true, "vloga", "ucenec", "username", ""));
     }
 
     @PostMapping("/me/complete-registration")
+    @Operation(summary = "Complete user registration", description = "Sets the username and role (ucenec/ucitelj) on the user's Supabase profile. " + "Called once after first Google OAuth login.")
+    @ApiResponse(responseCode = "200", description = "Registration completed", content = @Content(schema = @Schema(example = "{\"success\": true, \"vloga\": \"ucenec\"}")))
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     public ResponseEntity<Map<String, Object>> completeRegistration(
             @AuthenticationPrincipal Jwt jwt,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Username and role selection",
+                content = @Content(schema = @Schema(example = "{\"username\": \"janez\", \"vloga\": \"ucenec\"}"))
+            )
             @RequestBody Map<String, String> body) {
 
         String userId = jwt.getSubject();
@@ -92,7 +109,6 @@ public class AuthControler {
                 entity,
                 Void.class
         );
-
         return ResponseEntity.ok(Map.of("success", true, "vloga", vloga));
     }
 }
