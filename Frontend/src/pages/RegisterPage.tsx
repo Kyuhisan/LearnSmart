@@ -6,7 +6,7 @@ import { ComicBtn } from "../components/ui/ComicBtn";
 import { Tag } from "../components/ui/Tag";
 import { BitMascot } from "../components/ui/BitMascot";
 import { supabase } from "../lib/supabaseClient";
-import "../styles/pages.css";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 

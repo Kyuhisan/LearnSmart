@@ -5,20 +5,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: #fffdf9;
-  border-bottom: 2px solid #2d2a26;
+  background: var(--ls-paper);
+  border-bottom: 2px solid var(--ls-ink);
 }
 
 .prof-topbar-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 1.25rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   line-height: 1;
 }
 
 .prof-topbar-sub {
   font-size: 0.75rem;
-  color: #7d7872;
+  color: var(--ls-muted);
   margin-top: 0.25rem;
 }
 
@@ -32,10 +32,10 @@
   position: relative;
   width: 36px;
   height: 36px;
-  border: 2px solid #2d2a26;
+  border: 2px solid var(--ls-ink);
   border-radius: 0.375rem;
-  box-shadow: 2px 2px 0 #2d2a26;
-  background: #fffdf9;
+  box-shadow: 2px 2px 0 var(--ls-ink);
+  background: var(--ls-paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,8 +47,8 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background: #d97a6c;
-  color: #fff;
+  background: var(--ls-red);
+  color: var(--ls-paper);
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.5625rem;
   width: 14px;
@@ -57,20 +57,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid #2d2a26;
+  border: 1.5px solid var(--ls-ink);
 }
 
 .prof-topbar-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #2d2a26;
-  border: 2px solid #2d2a26;
-  box-shadow: 2px 2px 0 #2d2a26;
+  background: var(--ls-ink);
+  border: 2px solid var(--ls-ink);
+  box-shadow: 2px 2px 0 var(--ls-ink);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #e8b948;
+  color: var(--ls-yellow);
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.875rem;
   cursor: pointer;
