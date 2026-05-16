@@ -12,9 +12,8 @@
 .students-header {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid var(--color-ink);
+  margin-bottom: 1.5rem;
 }
 
 .students-title {

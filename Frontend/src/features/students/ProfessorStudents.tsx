@@ -50,7 +50,7 @@ export function ProfessorStudents() {
       <div className="students-page">
 
         {/* Header */}
-        <div className="students-header">
+        <div className="students-header" style={{borderBottom: `${BW.base} solid ${C.ink}`}}>
           <h1 className="students-title">STUDENTS</h1>
           <p className="students-subtitle">
             {filtered.length} of {STUDENTS_STATS.total} students · {STUDENTS_STATS.activeToday} active today
@@ -99,7 +99,7 @@ export function ProfessorStudents() {
           <div
             className="students-card-header"
             style={{
-              background: C.cream,
+              background: C.yellowLt,
               borderBottom: `${BW.base} solid ${C.ink}`,
               color: C.ink,
             }}
