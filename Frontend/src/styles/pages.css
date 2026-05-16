@@ -2,9 +2,9 @@
 .page-bg {
   min-height: 100vh;
   width: 100%;
-  background-color: #fbf6ee;
-  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--ls-cream);
+  background-image: var(--ls-dot-bg);
+  background-size: var(--ls-dot-size);
 }
 
 .page-loader {
@@ -12,16 +12,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fbf6ee;
+  background: var(--ls-cream);
 }
 
 /* ─── LOGIN PAGE ──────────────────────────────────────────────── */
 .login-page {
   min-height: 100vh;
   width: 100%;
-  background-color: #fbf6ee;
-  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--ls-cream);
+  background-image: var(--ls-dot-bg);
+  background-size: var(--ls-dot-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,7 +52,7 @@
 }
 
 .login-powered-by-icon {
-  color: #d97a6c;
+  color: var(--ls-red);
   font-size: 0.75rem;
   font-weight: 800;
 }
@@ -60,7 +60,7 @@
 .login-powered-by-text {
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.6875rem;
-  color: #d97a6c;
+  color: var(--ls-red);
   letter-spacing: 0.08em;
 }
 
@@ -72,7 +72,7 @@
 .login-headline-learn {
   font-family: 'Archivo Black', sans-serif;
   font-size: 3.5rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -80,12 +80,12 @@
 .login-headline-smarter {
   font-family: 'Archivo Black', sans-serif;
   font-size: 3.5rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   line-height: 1;
   letter-spacing: -0.02em;
-  background: #e8b948;
-  border: 3px solid #2d2a26;
-  box-shadow: 6px 6px 0 #2d2a26;
+  background: var(--ls-yellow);
+  border: 3px solid var(--ls-ink);
+  box-shadow: 6px 6px 0 var(--ls-ink);
   padding: 0.25rem 0.75rem;
   display: inline-block;
   margin-top: 0.25rem;
@@ -95,7 +95,7 @@
 
 .login-subtitle {
   font-size: 0.75rem;
-  color: #7d7872;
+  color: var(--ls-muted);
   line-height: 1.6;
   margin: 0;
   max-width: 380px;
@@ -122,28 +122,28 @@
 .login-welcome-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 1.5rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   line-height: 1.2;
   text-align: left;
 }
 
 .login-welcome-subtitle {
   font-size: 0.875rem;
-  color: #7d7872;
+  color: var(--ls-muted);
   margin: 0.375rem 0 0;
   text-align: left;
 }
 
 .login-divider {
   height: 2px;
-  background: #e8dfd0;
+  background: var(--ls-divider);
   width: 100%;
 }
 
 .login-new-here-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.6875rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   margin-bottom: 0.25rem;
   letter-spacing: 0.05em;
   text-align: left;
@@ -151,7 +151,7 @@
 
 .login-new-here-text {
   font-size: 0.75rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   margin: 0;
   line-height: 1.5;
   text-align: left;
@@ -161,9 +161,9 @@
 .register-page {
   min-height: 100vh;
   width: 100%;
-  background-color: #fbf6ee;
-  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--ls-cream);
+  background-image: var(--ls-dot-bg);
+  background-size: var(--ls-dot-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,14 +183,15 @@
   justify-content: flex-start;
   margin-right: 70px;
 }
+
 .register-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 1.3125rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   line-height: 1.2;
   text-align: center;
-  
 }
+
 .register-tag-wrapper {
   display: inline-block;
   margin-bottom: 0.25rem;
@@ -205,19 +206,19 @@
 .register-label {
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.6875rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   letter-spacing: 0.05em;
 }
 
 .register-input {
-  color: #2d2a26;
+  color: var(--ls-ink);
   padding: 0.625rem 0.75rem;
   font-size: 0.8125rem;
-  border: 2px solid #2d2a26;
+  border: 2px solid var(--ls-ink);
   border-radius: 0.375rem;
   font-family: inherit;
   outline: none;
-  background: #fffdf9;
+  background: var(--ls-paper);
 }
 
 .register-role-row {
@@ -233,24 +234,25 @@
 .register-role-label {
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.6875rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
 }
 
 .register-error {
   padding: 0.75rem;
-  background: #fae3df;
-  border: 2px solid #d97a6c;
+  background: var(--ls-redLt);
+  border: 2px solid var(--ls-red);
   border-radius: 0.375rem;
   font-size: 0.8125rem;
-  color: #d97a6c;
+  color: var(--ls-red);
 }
+
 .register-top {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.25rem;
- 
 }
+
 .register-bottom {
   display: flex;
   flex-direction: column;
@@ -258,8 +260,7 @@
   gap: 0.25rem;
 }
 
-
-/* ─── DASHBOARD PAGE ──────────────────────────────────────────── */
+/* ─── DASHBOARD / SHARED LAYOUT ──────────────────────────────── */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
@@ -267,9 +268,9 @@
 
 .dashboard-main {
   flex: 1;
-  background-color: #fbf6ee;
-  background-image: radial-gradient(#e8dfd0 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: var(--ls-cream);
+  background-image: var(--ls-dot-bg);
+  background-size: var(--ls-dot-size);
   padding: 1.5rem;
 }
 
@@ -280,12 +281,12 @@
 .dashboard-header-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 1.5rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
 }
 
 .dashboard-header-sub {
   font-size: 0.8125rem;
-  color: #7d7872;
+  color: var(--ls-muted);
 }
 
 .dashboard-bit-row {
@@ -298,21 +299,21 @@
 .dashboard-bit-title {
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.6875rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
   margin-bottom: 0.25rem;
 }
 
 .dashboard-bit-text {
   font-size: 0.8125rem;
-  color: #2d2a26;
+  color: var(--ls-ink);
 }
 
 .dashboard-placeholder {
-  background: #fffdf9;
-  border: 2px solid #2d2a26;
+  background: var(--ls-paper);
+  border: 2px solid var(--ls-ink);
   border-radius: 0.375rem;
   padding: 1.5rem;
   text-align: center;
-  color: #7d7872;
+  color: var(--ls-muted);
   font-size: 0.8125rem;
 }

@@ -1,11 +1,9 @@
-import { useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Sidebar } from '../components/ui/Sidebar'
 import { StudentModuleDetail } from '../features/moduleDetail/StudentModuleDetail'
 import { ProfessorModuleDetail } from '../features/moduleDetail/ProfessorModuleDetail'
 
 export function ModuleDetailPage() {
-  useParams()
   const { profil } = useAuth()
 
   return (

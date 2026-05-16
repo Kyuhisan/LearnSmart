@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { BitMascot } from "./components/ui/BitMascot";
 import { Callback } from "./pages/Callback";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -35,7 +36,7 @@ function ProtectedRoute({
   role?: 'ucenec' | 'ucitelj'
 }) {
   const { session, loading, profil } = useAuth();
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <div className="page-loader"><BitMascot size={80} mood="thinking" float /></div>;
   if (!session) return <Navigate to="/" />;
   if (role && profil && profil.vloga !== role) return <Navigate to="/dashboard" />;
   return <>{children}</>;

@@ -6,6 +6,7 @@ import { ComicBtn } from '../../components/ui/ComicBtn'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
 import { C, S } from '../../styles/tokens'
+import { MODULE, CHECKLIST_TASKS, PRACTICE_PROBLEMS, AUDIO_HIGHLIGHTS, GLOSSARY } from './mockData'
 import '../../styles/moduleDetailPage.css'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
@@ -17,13 +18,6 @@ const tabConfig = {
   kinesthetic: { label: 'KINESTHETIC', icon: '🤸', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go! 💪"' },
 }
 
-const dummyModule = {
-  id: '1',
-  title: 'Binary Trees',
-  subject: 'Algorithms',
-  progress: 72,
-  professor: 'Prof. Novak',
-}
 
 function VisualContent() {
   return (
@@ -86,18 +80,12 @@ function ReadingContent() {
       <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <Tag label="Glossary" bg={C.cyan} />
         <div className="module-detail-glossary">
-          <div className="module-detail-glossary-row">
-            <span className="module-detail-glossary-term">NODE</span>
-            <span className="module-detail-glossary-def">Basic unit with value + child pointers</span>
-          </div>
-          <div className="module-detail-glossary-row">
-            <span className="module-detail-glossary-term">ROOT</span>
-            <span className="module-detail-glossary-def">Topmost node with no parent</span>
-          </div>
-          <div className="module-detail-glossary-row">
-            <span className="module-detail-glossary-term">LEAF</span>
-            <span className="module-detail-glossary-def">Node with no children</span>
-          </div>
+          {GLOSSARY.map(g => (
+            <div key={g.term} className="module-detail-glossary-row">
+              <span className="module-detail-glossary-term">{g.term}</span>
+              <span className="module-detail-glossary-def">{g.def}</span>
+            </div>
+          ))}
         </div>
       </ComicBox>
     </div>
@@ -128,11 +116,7 @@ function AuditoryContent() {
       <ComicBox bg={C.greenLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <Tag label="Highlights" bg={C.green} />
         <div className="module-detail-highlights">
-          {[
-            { time: '1:24', quote: '"Think of a binary tree like a family tree — every parent has at most two children."' },
-            { time: '4:50', quote: '"The BST property is everything. Left is smaller, right is larger. Always."' },
-            { time: '9:15', quote: '"In-order traversal on a BST gives you a sorted sequence. That\'s the magic."' },
-          ].map((h, i) => (
+          {AUDIO_HIGHLIGHTS.map((h, i) => (
             <div key={i} className="module-detail-highlight-row">
               <Tag label={`@ ${h.time}`} bg={C.green} />
               <span className="module-detail-highlight-text">{h.quote}</span>
@@ -149,23 +133,16 @@ function KinestheticContent() {
   const toggle = (i: number) => setChecked(prev =>
     prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
   )
-  const tasks = [
-    'Understand what a node is',
-    'Draw a binary tree with 7 nodes by hand',
-    'Trace an insertion into a BST step by step',
-    'Write the in-order traversal of a sample tree',
-    'Implement a BST insert function',
-  ]
 
   return (
     <div className="module-detail-content">
       <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <div className="module-detail-checklist-header">
           <Tag label="Checklist" bg={C.red} />
-          <span className="module-detail-checklist-count">{checked.length}/{tasks.length} DONE</span>
+          <span className="module-detail-checklist-count">{checked.length}/{CHECKLIST_TASKS.length} DONE</span>
         </div>
         <div className="module-detail-checklist">
-          {tasks.map((task, i) => (
+          {CHECKLIST_TASKS.map((task, i) => (
             <div key={i} className={`module-detail-check-row ${checked.includes(i) ? 'checked' : ''}`}
               onClick={() => toggle(i)}>
               <div className="module-detail-checkbox">{checked.includes(i) && '✓'}</div>
@@ -175,16 +152,13 @@ function KinestheticContent() {
           ))}
         </div>
       </ComicBox>
-      <ComicBox bg={C.redLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Problem 01" bg={C.red} />
-        <p className="module-detail-problem-text">Insert value 5 into BST: root=8, left=3, right=10</p>
-        <div className="module-detail-hint">▶ SHOW HINT 💡</div>
-      </ComicBox>
-      <ComicBox bg={C.redLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Problem 02" bg={C.red} />
-        <p className="module-detail-problem-text">In-order traversal of: root=4, left=2, right=6?</p>
-        <div className="module-detail-hint">▶ SHOW HINT 💡</div>
-      </ComicBox>
+      {PRACTICE_PROBLEMS.map(p => (
+        <ComicBox key={p.label} bg={C.redLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
+          <Tag label={p.label} bg={C.red} />
+          <p className="module-detail-problem-text">{p.text}</p>
+          <div className="module-detail-hint">▶ SHOW HINT 💡</div>
+        </ComicBox>
+      ))}
     </div>
   )
 }
@@ -207,8 +181,8 @@ export function StudentModuleDetail() {
         <div className="module-detail-topbar-left">
           <ComicBtn sm color={C.paper} onClick={() => navigate('/modules')}>← BACK</ComicBtn>
           <div>
-            <div className="module-detail-topbar-title">{dummyModule.title}</div>
-            <div className="module-detail-topbar-sub">{dummyModule.subject} · {dummyModule.progress}% complete</div>
+            <div className="module-detail-topbar-title">{MODULE.title}</div>
+            <div className="module-detail-topbar-sub">{MODULE.subject} · {MODULE.progress}% complete</div>
           </div>
         </div>
         <ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>
@@ -229,7 +203,7 @@ export function StudentModuleDetail() {
           ))}
         </div>
         <div className="module-detail-tabbar-right">
-          <div className="module-detail-progress-tag">{dummyModule.progress}% DONE</div>
+          <div className="module-detail-progress-tag">{MODULE.progress}% DONE</div>
           <ComicBtn color={C.red} sm>QUIZ ME →</ComicBtn>
         </div>
       </div>
