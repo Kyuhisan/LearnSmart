@@ -36,6 +36,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Make mvnw executable
+        working-directory: Backend
+        run: chmod +x mvnw
+
       - name: Run backend tests
         working-directory: Backend
         env:
