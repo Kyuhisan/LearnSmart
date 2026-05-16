@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.projectKey>2b787145105e3fb31cfc53038ca84efd3efcb7fa</sonar.projectKey>
+		<sonar.organization>kyuhisan</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 	<dependencies>
 		<dependency>
