@@ -6,7 +6,7 @@ import { ComicBox } from "../components/ui/ComicBox"
 import { ComicBtn } from "../components/ui/ComicBtn"
 import { Tag } from "../components/ui/Tag"
 import { useAuth } from "../context/AuthContext"
-import "../styles/pages.css"
+
 
 export function LoginPage() {
   const { signInWithGoogle, session } = useAuth()

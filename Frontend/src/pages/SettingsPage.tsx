@@ -1,10 +1,10 @@
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
-import { StudentDashboard } from '../features/dashboard/StudentDashboard'
-import { ProfessorDashboard } from '../features/dashboard/ProfessorDashboard'
+import { StudentSettings } from '../features/settings/StudentSettings'
+import { ProfessorSettings } from '../features/settings/ProfessorSettings'
 
-export function DashboardPage() {
+export function SettingsPage() {
   const { profil } = useAuth()
 
   if (!profil) return (
@@ -16,7 +16,7 @@ export function DashboardPage() {
   return (
     <div className="dashboard-layout">
       <Sidebar vloga={profil.vloga} username={profil.username} />
-      {profil.vloga === 'ucitelj' ? <ProfessorDashboard /> : <StudentDashboard />}
+      {profil.vloga === 'ucitelj' ? <ProfessorSettings /> : <StudentSettings />}
     </div>
   )
 }
