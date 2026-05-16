@@ -92,6 +92,8 @@ function ReadingContent() {
   )
 }
 
+const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
+
 function AuditoryContent() {
   return (
     <div className="module-detail-content">
@@ -100,9 +102,9 @@ function AuditoryContent() {
         <div className="module-detail-audio-title">BINARY TREES — FULL LECTURE</div>
         <div className="module-detail-audio-sub">Prof. Novak · 14 min</div>
         <div className="module-detail-waveform">
-          {Array.from({ length: 60 }).map((_, i) => (
+          {WAVEFORM_HEIGHTS.map((h, i) => (
             <div key={i} className="module-detail-waveform-bar"
-              style={{ height: `${Math.random() * 24 + 8}px` }} />
+              style={{ height: `${h}px` }} />
           ))}
         </div>
         <div className="module-detail-audio-controls">

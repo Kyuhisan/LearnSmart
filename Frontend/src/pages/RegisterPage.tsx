@@ -38,7 +38,7 @@ export function RegisterPage() {
       setChecking(false);
     };
     checkStatus();
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async () => {
     if (!username.trim()) {
@@ -88,7 +88,7 @@ export function RegisterPage() {
 
       const result = await response.json();
       navigate(result.vloga === "ucitelj" ? "/dashboard" : "/questionnaire");
-    } catch (e) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
