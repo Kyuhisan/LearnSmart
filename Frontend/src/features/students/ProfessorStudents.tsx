@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
-import { C, BW } from '../../styles/tokens'
+import { C, BW, STYLE_INFO } from '../../styles/tokens'
 import { STUDENTS, STUDENTS_STATS, type Student } from './mockData'
 import '../../styles/studentPage.css'
 
@@ -21,25 +21,8 @@ const FILTER_LABELS: Record<string, string> = {
   KINESTHETIC: '⚡ Kinesthetic',
 }
 
-const STYLE_ICONS: Record<LearningStyle, string> = {
-  VISUAL:      '👁',
-  AUDITORY:    '🎧',
-  READING:     '📖',
-  KINESTHETIC: '⚡',
-}
-
-const STYLE_LABELS: Record<LearningStyle, string> = {
-  VISUAL:      'Visual',
-  AUDITORY:    'Auditory',
-  READING:     'Reading',
-  KINESTHETIC: 'Kinesthetic',
-}
-
-const STYLE_COLORS: Record<LearningStyle, string> = {
-  VISUAL:      C.cyanLt,
-  AUDITORY:    C.greenLt,
-  READING:     C.purpleLt,
-  KINESTHETIC: C.yellowLt,
+function styleInfo(style: LearningStyle) {
+  return STYLE_INFO[style.toLowerCase() as keyof typeof STYLE_INFO]
 }
 
 function isAtRisk(student: Student): boolean {
@@ -143,7 +126,7 @@ export function ProfessorStudents() {
                         className="student-avatar"
                         style={{
                           border: `${BW.base} solid ${C.ink}`,
-                          background: STYLE_COLORS[student.learningStyle],
+                          background: styleInfo(student.learningStyle).bg,
                           color: C.ink,
                         }}
                       >
@@ -159,7 +142,7 @@ export function ProfessorStudents() {
                           {atRisk && <Tag label="⚠ AT RISK" bg={C.red} />}
                         </div>
                         <p className="student-meta" style={{ color: C.muted }}>
-                          Last active {student.lastActive} · {STYLE_ICONS[student.learningStyle]} {STYLE_LABELS[student.learningStyle]}
+                          Last active {student.lastActive} · {styleInfo(student.learningStyle).icon} {styleInfo(student.learningStyle).label}
                         </p>
                       </div>
 
