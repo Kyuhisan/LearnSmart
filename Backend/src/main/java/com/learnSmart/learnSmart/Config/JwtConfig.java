@@ -18,11 +18,8 @@ public class JwtConfig {
                 .build();
 
         OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(
-                JwtValidators.createDefaultWithIssuer(
-                        "https://xwymzxvwnneooojzouxq.supabase.co/auth/v1"
-                )
+                JwtValidators.createDefaultWithIssuer("https://xwymzxvwnneooojzouxq.supabase.co/auth/v1")
         );
-
         jwtDecoder.setJwtValidator(validator);
         return jwtDecoder;
     }
