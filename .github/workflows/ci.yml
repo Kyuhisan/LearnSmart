@@ -68,7 +68,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           FRONT_URL: http://localhost:5173
-        run: ./mvnw sonar:sonar
+        run: ./mvnw sonar:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }}
 
   frontend:
     name: frontend
@@ -109,3 +109,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: Frontend
+          args: -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }}
