@@ -4,7 +4,7 @@ on:
   push:
     branches: [development]
   pull_request:
-    branches: [main]
+    types: [opened, synchronize, reopened]
 
 jobs:
   backend:
@@ -38,6 +38,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: Make mvnw executable
         working-directory: Backend
         run: chmod +x mvnw
@@ -58,8 +65,8 @@ jobs:
       - name: SonarCloud Scan (backend)
         working-directory: Backend
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
           DB_URL: jdbc:postgresql://localhost:5432/learnsmart_test
           DB_USERNAME: test
           DB_PASSWORD: test
@@ -103,10 +110,10 @@ jobs:
         run: npm run build
 
       - name: SonarCloud Scan (frontend)
-        uses: SonarSource/sonarcloud-github-action@v3
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
         with:
           projectBaseDir: Frontend
           args: -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }}
