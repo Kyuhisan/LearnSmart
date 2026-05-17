@@ -137,7 +137,7 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
       background: C.cream,
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: "'Manrope', sans-serif",
+      fontFamily: "'Space Mono', monospace",
       zIndex: 50,
     }}>
       {/* Halftone dot background */}
@@ -401,13 +401,13 @@ function OptionButton({ letter, label, selected, onClick, disabled }: OptionButt
       onMouseEnter={() => !disabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: S[3],
+        display: 'flex', alignItems: 'center', gap: S[3],
         padding: `${S[3]} ${S[3.5]}`,
         background: active ? C.yellowLt : C.paper,
         border: `${selected ? BW.medium : BW.base} solid ${selected ? C.yellow : C.ink}`,
         boxShadow: active ? mkShadow('lg') : mkShadow(),
         fontSize: FS.md, fontWeight: 600,
-        fontFamily: "'Manrope', sans-serif",
+        fontFamily: "'Space Mono', monospace",
         textAlign: 'left',
         cursor: disabled ? 'not-allowed' : 'pointer',
         transform: hovered && !disabled && !selected ? 'translate(-0.125rem, -0.125rem)' : 'none',

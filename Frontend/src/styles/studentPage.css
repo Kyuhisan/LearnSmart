@@ -23,7 +23,7 @@
 }
 
 .students-subtitle {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.8125rem;
 }
 
@@ -138,7 +138,7 @@
 }
 
 .student-meta {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.8125rem;
   font-weight: 700;
   margin: 0;

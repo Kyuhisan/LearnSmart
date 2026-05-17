@@ -30,7 +30,7 @@
 }
 
 .student-detail-topbar-meta {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.8125rem;
   margin: 0.2rem 0 0;
 }
@@ -74,7 +74,7 @@
 }
 
 .student-detail-stats-line {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.8125rem;
   margin: 0;
 }
@@ -142,7 +142,7 @@
 }
 
 .student-detail-quiz-meta {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.75rem;
 }
 
@@ -162,7 +162,7 @@
 }
 
 .student-detail-bit-msg {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.875rem;
   margin: 0;
   line-height: 1.5;
@@ -181,7 +181,7 @@
 }
 
 .student-detail-insight-label {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Space Mono', monospace;
   font-size: 0.8125rem;
   font-weight: 700;
 }

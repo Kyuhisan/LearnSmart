@@ -6,12 +6,14 @@ import { ComicBtn } from "../components/ui/ComicBtn";
 import { Tag } from "../components/ui/Tag";
 import { BitMascot } from "../components/ui/BitMascot";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../context/AuthContext";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { refreshProfil } = useAuth();
   const [username, setUsername] = useState("");
   const [vloga, setVloga] = useState<"ucenec" | "ucitelj">("ucenec");
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,7 @@ export function RegisterPage() {
       }
 
       const result = await response.json();
+      await refreshProfil();
       navigate(result.vloga === "ucitelj" ? "/dashboard" : "/questionnaire");
     } catch {
       setError("Something went wrong. Please try again.");
@@ -170,7 +173,7 @@ export function RegisterPage() {
             disabled={loading}
             style={{ width: "100%", justifyContent: "center" }}
           >
-            {loading ? "Saving..." : "Start Learning →"}
+            {loading ? "Saving..." : vloga === "ucitelj" ? "Start Teaching →" : "Start Learning →"}
           </ComicBtn>
         </div>
       </ComicBox>

@@ -20,7 +20,7 @@ export function GhostBtn({ children, onClick }: GhostBtnProps) {
         padding: `${S[1]} ${S[3]}`,
         fontSize: FS.xs,
         fontWeight: 700,
-        fontFamily: "'Manrope', sans-serif",
+        fontFamily: "'Archivo Black', sans-serif",
         cursor: 'pointer',
         transition: 'background 0.12s',
       }}
