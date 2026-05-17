@@ -28,6 +28,11 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+<<<<<<< HEAD
+=======
+		<sonar.organization>kyuhisan</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+>>>>>>> a995196 (Added sonarcloud config)
 	</properties>
 	<dependencies>
 		<dependency>
