@@ -3,6 +3,7 @@ import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, BW, STYLE_INFO, mkShadow } from '../../styles/tokens'
 
 import {
@@ -35,20 +36,12 @@ export function ProfessorStudentDetail() {
 
   return (
     <div className="dashboard-main">
+      <Topbar
+        title={student.fullName.toUpperCase()}
+        subtitle={`Student profile · last active ${student.lastActive.toLowerCase()}`}
+        back={() => navigate('/students')}
+      />
       <div className="student-detail-page">
-
-        {/* Topbar */}
-        <div className="student-detail-topbar" style={{backgroundColor: C.paper ,borderBottom: `${BW.base} solid ${C.ink}`}}>
-          <div className="student-detail-topbar-left">
-            <ComicBtn sm color={C.paper} onClick={() => navigate("/students")}>← BACK</ComicBtn>
-            <div>
-              <div className="student-detail-topbar-name">{student.fullName.toUpperCase()}</div>
-              <div className="student-detail-topbar-meta" style={{ color: C.muted }}>
-                Student profile · last active {student.lastActive.toLowerCase()}
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Hero card */}
         <ComicBox bg={info.bg} p={0}>

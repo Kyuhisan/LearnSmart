@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C } from '../../styles/tokens'
 import { type Module, MODULES, CATEGORIES, CATEGORY_COUNT } from './mockData'
 import '../../styles/moduleLibrary.css'
@@ -47,10 +48,7 @@ export function StudentModules() {
 
   return (
     <div className="dashboard-main">
-      <div className="modules-header">
-        <div className="modules-header-title">MODULE LIBRARY</div>
-        <div className="modules-header-sub">{MODULES.length} modules · 3 in progress</div>
-      </div>
+      <Topbar title="MODULE LIBRARY" subtitle={`${MODULES.length} modules · 3 in progress`} />
 
       <div className="modules-toolbar">
         <div className="modules-search-row">
