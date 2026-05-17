@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBox } from '../../components/ui/ComicBox'
-import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 import '../../styles/moduleDetailPage.css'
 
@@ -11,15 +11,12 @@ export function ProfessorModuleDetail() {
 
   return (
     <div className="module-detail-page">
-      <div className="module-detail-topbar">
-        <div className="module-detail-topbar-left">
-          <ComicBtn sm color={C.paper} onClick={() => navigate('/modules')}>← BACK</ComicBtn>
-          <div>
-            <div className="module-detail-topbar-title">MODULE DETAIL</div>
-            <div className="module-detail-topbar-sub">Professor view</div>
-          </div>
-        </div>
-      </div>
+      <Topbar
+        escape={false}
+        title="MODULE DETAIL — PROF"
+        subtitle="Professor view"
+        back={() => navigate('/modules')}
+      />
 
       <div style={{ padding: S[6] }}>
         <ComicBox bg={C.yellowLt} p={S[6]} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3] }}>

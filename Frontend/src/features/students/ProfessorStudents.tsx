@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, BW, STYLE_INFO } from '../../styles/tokens'
 import { STUDENTS, STUDENTS_STATS, type Student } from './mockData'
 import '../../styles/studentPage.css'
@@ -47,15 +48,11 @@ export function ProfessorStudents() {
 
   return (
     <div className="dashboard-main">
+      <Topbar
+        title="STUDENTS — PROF"
+        subtitle={`${STUDENTS_STATS.total} students · ${STUDENTS_STATS.activeToday} active today`}
+      />
       <div className="students-page">
-
-        {/* Header */}
-        <div className="students-header" style={{borderBottom: `${BW.base} solid ${C.ink}`}}>
-          <h1 className="students-title">STUDENTS</h1>
-          <p className="students-subtitle">
-            {filtered.length} of {STUDENTS_STATS.total} students · {STUDENTS_STATS.activeToday} active today
-          </p>
-        </div>
 
         {/* Toolbar */}
         <div className="students-toolbar">

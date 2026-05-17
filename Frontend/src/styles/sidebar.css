@@ -1,11 +1,14 @@
 .sidebar {
   width: 220px;
-  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
   background-color: var(--ls-yellow);
   border-right: 3px solid var(--ls-ink);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .sidebar-logo {

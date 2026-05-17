@@ -1,11 +1,15 @@
+import { useNavigate } from 'react-router-dom'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 
 export function StudentQuizHistory() {
+  const navigate = useNavigate()
   return (
     <div className="dashboard-main">
+      <Topbar title="QUIZ HISTORY" subtitle="Review your past results" back={() => navigate('/quiz')} />
       <ComicBox bg={C.cyanLt} p={S[6]} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3] }}>
         <BitMascot size={60} mood="happy" float />
         <Tag label="STUDENT" bg={C.cyan} />

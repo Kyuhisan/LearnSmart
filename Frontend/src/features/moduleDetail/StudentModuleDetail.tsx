@@ -5,6 +5,7 @@ import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 import { MODULE, CHECKLIST_TASKS, PRACTICE_PROBLEMS, AUDIO_HIGHLIGHTS, GLOSSARY } from './mockData'
 import '../../styles/moduleDetailPage.css'
@@ -179,16 +180,13 @@ export function StudentModuleDetail() {
 
   return (
     <div className="module-detail-page">
-      <div className="module-detail-topbar">
-        <div className="module-detail-topbar-left">
-          <ComicBtn sm color={C.paper} onClick={() => navigate('/modules')}>← BACK</ComicBtn>
-          <div>
-            <div className="module-detail-topbar-title">{MODULE.title}</div>
-            <div className="module-detail-topbar-sub">{MODULE.subject} · {MODULE.progress}% complete</div>
-          </div>
-        </div>
-        <ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>
-      </div>
+      <Topbar
+        escape={false}
+        title={MODULE.title}
+        subtitle={`${MODULE.subject} · ${MODULE.progress}% complete`}
+        back={() => navigate('/modules')}
+        actions={<ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>}
+      />
 
       <div className="module-detail-tabbar">
         <div className="module-detail-tabs">

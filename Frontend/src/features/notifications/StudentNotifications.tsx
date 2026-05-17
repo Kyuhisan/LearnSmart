@@ -1,11 +1,13 @@
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 
 export function StudentNotifications() {
   return (
     <div className="dashboard-main">
+      <Topbar title="NOTIFICATIONS" subtitle="Quiz alerts, module updates, announcements" />
       <ComicBox bg={C.cyanLt} p={S[6]} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3] }}>
         <BitMascot size={60} mood="thinking" float />
         <Tag label="STUDENT" bg={C.cyan} />

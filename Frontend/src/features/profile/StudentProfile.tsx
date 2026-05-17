@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
+import { ComicBtn } from '../../components/ui/ComicBtn'
+import { Topbar } from '../../components/ui/Topbar'
 import { C } from '../../styles/tokens'
 import '../../styles/profile.css'
 
@@ -26,18 +28,12 @@ export function StudentProfile() {
 
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>
-      <div className="prof-topbar">
-        <div>
-          <div className="prof-topbar-title">MY PROFILE</div>
-          <div className="prof-topbar-sub">Account · learning style · activity</div>
-        </div>
-        <div className="prof-topbar-actions">
-          <div className="prof-topbar-btn">
-            🔔<span className="prof-topbar-badge">2</span>
-          </div>
-          <div className="prof-topbar-avatar">{profil.username?.[0]?.toUpperCase()}</div>
-        </div>
-      </div>
+      <Topbar
+        escape={false}
+        title="MY PROFILE"
+        subtitle="Account · learning style · activity"
+        actions={<ComicBtn sm color={C.cyan}>🔔 2</ComicBtn>}
+      />
 
       <div className="prof-content">
         <ProfHero username={profil.username} isTeacher={false} onSignOut={handleSignOut} />

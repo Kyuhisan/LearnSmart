@@ -15,6 +15,7 @@ interface AuthContextType {
   profil: Profil | null
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
+  refreshProfil: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -60,6 +61,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
+  const refreshProfil = async () => {
+    const { data: { session: current } } = await supabase.auth.getSession()
+    if (!current) return
+    const response = await fetch(`${API_URL}/api/me/status`, {
+      headers: { 'Authorization': `Bearer ${current.access_token}` }
+    })
+    const data = await response.json()
+    setProfil({ username: data.username, vloga: data.vloga })
+  }
+
   const signOut = async () => {
     await supabase.auth.signOut()
     setSession(null)
@@ -67,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, profil, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ session, loading, profil, signInWithGoogle, signOut, refreshProfil }}>
       {children}
     </AuthContext.Provider>
   )
