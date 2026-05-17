@@ -82,6 +82,7 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
   const shuffledOptions = useMemo(() => {
     const opts = [...(currentQuestion?.options ?? [])]
     for (let i = opts.length - 1; i > 0; i--) {
+      // eslint-disable-next-line react-hooks/purity
       const j = Math.floor(Math.random() * (i + 1));
       [opts[i], opts[j]] = [opts[j], opts[i]]
     }
