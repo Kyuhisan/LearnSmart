@@ -48,7 +48,7 @@
 
 .modules-search {
   width: 100%;
-  padding: 0.625rem 0.75rem 0.625rem 2.25rem;
+  padding: 0.625rem 0.75rem;
   border: 2px solid var(--ls-ink);
   border-radius: 0.1875rem;
   font-size: 0.8125rem;
@@ -130,7 +130,6 @@
   flex-direction: column;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
   cursor: pointer;
-  overflow: hidden;
 }
 
 .module-card:hover {

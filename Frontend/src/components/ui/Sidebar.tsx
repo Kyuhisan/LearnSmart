@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { BitMascot } from './BitMascot'
+import { IconBox } from './IconBox'
 import { useAuth } from '../../context/AuthContext'
 import "../../styles/sidebar.css";
 
@@ -7,28 +8,27 @@ import "../../styles/sidebar.css";
 interface SidebarItem {
   label: string
   path: string
-  icon: string
 }
 
 const studentItems: SidebarItem[] = [
-  { label: 'Home Base',    path: '/dashboard',    icon: '🏠' },
-  { label: 'Modules',      path: '/modules',       icon: '📚' },
-  { label: 'Quizzes',      path: '/quiz',          icon: '⚡' },
-  { label: 'Leaderboard',  path: '/leaderboard',   icon: '🏆' },
-  { label: 'My Progress',  path: '/progress',      icon: '📈' },
-  { label: 'Notifications',path: '/notifications', icon: '🔔' },
-  { label: 'Profile',      path: '/profile',       icon: '👤' },
+  { label: 'Home Base',     path: '/dashboard'    },
+  { label: 'Modules',       path: '/modules'      },
+  { label: 'Quizzes',       path: '/quiz'         },
+  { label: 'Leaderboard',   path: '/leaderboard'  },
+  { label: 'My Progress',   path: '/progress'     },
+  { label: 'Notifications', path: '/notifications'},
+  { label: 'Profile',       path: '/profile'      },
 ]
 
 const teacherItems: SidebarItem[] = [
-  { label: 'Home Base',    path: '/dashboard',       icon: '🏠' },
-  { label: 'Modules',      path: '/modules',          icon: '📚' },
-  { label: 'Upload',       path: '/upload',           icon: '📤' },
-  { label: 'AI Quiz',      path: '/ai-quiz-builder',  icon: '✨' },
-  { label: 'Analytics',    path: '/analytics',        icon: '📊' },
-  { label: 'Students',     path: '/students',         icon: '👥' },
-  { label: 'Notifications',path: '/notifications',    icon: '🔔' },
-  { label: 'Profile',      path: '/profile',          icon: '👤' },
+  { label: 'Home Base',     path: '/dashboard'      },
+  { label: 'Modules',       path: '/modules'        },
+  { label: 'Upload',        path: '/upload'         },
+  { label: 'AI Quiz',       path: '/ai-quiz-builder'},
+  { label: 'Analytics',     path: '/analytics'      },
+  { label: 'Students',      path: '/students'       },
+  { label: 'Notifications', path: '/notifications'  },
+  { label: 'Profile',       path: '/profile'        },
 ]
 
 interface SidebarProps {
@@ -55,7 +55,7 @@ export function Sidebar({ vloga, username }: SidebarProps) {
         <BitMascot size={32} mood="happy" />
         <div>
           <div className="sidebar-logo-text">LEARNSMART</div>
-          <div className="sidebar-logo-sub">w/ BIT 🤖</div>
+          <div className="sidebar-logo-sub">w/ BIT</div>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export function Sidebar({ vloga, username }: SidebarProps) {
             onClick={() => navigate(item.path)}
             className={`sidebar-nav-item ${location.pathname === item.path ? 'active' : ''}`}
           >
-            <span>{item.icon}</span>
+            <IconBox size={14} />
             <span>{item.label}</span>
           </div>
         ))}

@@ -105,10 +105,10 @@ export function mkShadow(
 
 // ── VARK style metadata ───────────────────────────────────────────────────────
 export const STYLE_INFO = {
-  visual:      { icon: '👁',  label: 'Visual',      color: C.purple, bg: C.purpleLt, desc: 'Charts, diagrams, flowcharts & symbolic representations' },
-  reading:     { icon: '📖', label: 'Read / Write', color: C.cyan,   bg: C.cyanLt,   desc: 'Written text, notes, lists & structured summaries' },
-  auditory:    { icon: '🎧', label: 'Aural',        color: C.green,  bg: C.greenLt,  desc: 'Discussions, lectures, talking & verbal explanation' },
-  kinesthetic: { icon: '🤸', label: 'Kinesthetic',  color: C.red,    bg: C.redLt,    desc: 'Real examples, case studies, practice & lived experience' },
+  visual:      { label: 'Visual',      color: C.purple, bg: C.purpleLt, desc: 'Charts, diagrams, flowcharts & symbolic representations' },
+  reading:     { label: 'Read / Write', color: C.cyan,   bg: C.cyanLt,   desc: 'Written text, notes, lists & structured summaries' },
+  auditory:    { label: 'Aural',        color: C.green,  bg: C.greenLt,  desc: 'Discussions, lectures, talking & verbal explanation' },
+  kinesthetic: { label: 'Kinesthetic',  color: C.red,    bg: C.redLt,    desc: 'Real examples, case studies, practice & lived experience' },
 } as const
 
 export type LearningStyle = keyof typeof STYLE_INFO

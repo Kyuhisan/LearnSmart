@@ -63,7 +63,7 @@ export function ProfessorStudentDetail() {
             {/* Info */}
             <div className="student-detail-hero-info">
               <div className="student-detail-hero-tags">
-                <Tag label={`${info.icon} ${info.label.toUpperCase()}`} bg={info.bg} />
+                <Tag label={info.label.toUpperCase()} bg={info.bg} />
                 <Tag label="ML FUNDAMENTALS" bg={C.paper} />
               </div>
               <h2 className="student-detail-name" style={{ color: C.ink }}>
@@ -74,10 +74,10 @@ export function ProfessorStudentDetail() {
               </p>
               <div className="student-detail-hero-actions">
                 <ComicBtn color={C.paper} sm onClick={() => {}}>
-                  ✉ MESSAGE
+                  MESSAGE
                 </ComicBtn>
                 <ComicBtn color={C.pink} sm onClick={() => {}}>
-                  ✦ ASSIGN BIT TUTOR
+                  ASSIGN BIT TUTOR
                 </ComicBtn>
               </div>
             </div>
@@ -139,14 +139,14 @@ export function ProfessorStudentDetail() {
               {/* Insight rows */}
               <div className="student-detail-insight-list">
                 {[
-                  { icon: '📗', label: 'Strongest',    value: 'Gradient Descent (98%)' },
-                  { icon: '⚠',  label: 'Struggles with', value: 'Regularization (58%)' },
-                  { icon: '🕐', label: 'Most active',   value: 'Tue/Thu evenings' },
-                  { icon: '🎯', label: 'Avg session',   value: '24 min · 8 questions' },
+                  { label: 'Strongest',     value: 'Gradient Descent (98%)' },
+                  { label: 'Struggles with', value: 'Regularization (58%)' },
+                  { label: 'Most active',    value: 'Tue/Thu evenings' },
+                  { label: 'Avg session',    value: '24 min · 8 questions' },
                 ].map((item) => (
                   <div key={item.label} className="student-detail-insight-row" style={{ borderBottom: `1.5px dashed ${C.divider}` }}>
                     <span className="student-detail-insight-label" style={{ color: C.muted }}>
-                      {item.icon} {item.label}
+                      {item.label}
                     </span>
                     <span className="student-detail-insight-value" style={{ color: C.ink }}>
                       {item.value}

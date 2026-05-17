@@ -28,9 +28,7 @@ export function LoginPage() {
         </div>
 
         <div className="login-powered-by">
-          <span className="login-powered-by-icon">✦</span>
           <span className="login-powered-by-text">POWERED BY AI</span>
-          <span className="login-powered-by-icon">✦</span>
         </div>
 
         <div className="login-headline">
@@ -80,7 +78,7 @@ export function LoginPage() {
           >
             <div className="login-new-here-title">NEW HERE?</div>
             <p className="login-new-here-text">
-              Take a short quiz so we can match content to your brain. ✨
+              Take a short quiz so we can match content to your brain.
             </p>
           </ComicBox>
         </div>

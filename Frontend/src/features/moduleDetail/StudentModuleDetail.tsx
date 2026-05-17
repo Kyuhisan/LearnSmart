@@ -13,10 +13,10 @@ import '../../styles/moduleDetailPage.css'
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
 const tabConfig = {
-  visual:      { label: 'VISUAL',      icon: '👁',  color: C.purpleLt, bitMsg: '"Visual mode engaged! Diagrams incoming. 🎨"' },
-  reading:     { label: 'READING',     icon: '📖', color: C.cyanLt,   bitMsg: '"Reading mode active. Loading notes... 📋"' },
-  auditory:    { label: 'AUDITORY',    icon: '🎧', color: C.greenLt,  bitMsg: '"Audio mode online. Press play. 🎵"' },
-  kinesthetic: { label: 'KINESTHETIC', icon: '🤸', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go! 💪"' },
+  visual:      { label: 'VISUAL',      color: C.purpleLt, bitMsg: '"Visual mode engaged. Diagrams incoming."' },
+  reading:     { label: 'READING',     color: C.cyanLt,   bitMsg: '"Reading mode active. Loading notes."' },
+  auditory:    { label: 'AUDITORY',    color: C.greenLt,  bitMsg: '"Audio mode online. Press play."' },
+  kinesthetic: { label: 'KINESTHETIC', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go."' },
 }
 
 
@@ -29,7 +29,7 @@ function VisualContent() {
       </div>
       <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <Tag label="Concept Map" bg={C.purpleLt} />
-        <div className="module-detail-concept-placeholder">🌳 Concept map diagram here</div>
+        <div className="module-detail-concept-placeholder">Concept map diagram here</div>
       </ComicBox>
       <div className="module-detail-grid">
         <ComicBox bg={C.purpleLt} p={S[4]}>
@@ -159,7 +159,7 @@ function KinestheticContent() {
         <ComicBox key={p.label} bg={C.redLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
           <Tag label={p.label} bg={C.red} />
           <p className="module-detail-problem-text">{p.text}</p>
-          <div className="module-detail-hint">▶ SHOW HINT 💡</div>
+          <div className="module-detail-hint">▶ SHOW HINT</div>
         </ComicBox>
       ))}
     </div>
@@ -198,7 +198,7 @@ export function StudentModuleDetail() {
               className={`module-detail-tab ${activeTab === t ? 'active' : ''}`}
               style={activeTab === t ? { background: tabConfig[t].color } : {}}
             >
-              {tabConfig[t].icon} {tabConfig[t].label}
+              {tabConfig[t].label}
             </button>
           ))}
         </div>
