@@ -42,31 +42,29 @@ export const STUDENT_UPCOMING_QUIZZES: UpcomingQuiz[] = [
 export interface ProfStatCard {
   value: string
   label: string
-  emoji: string
   bg: string
   dark?: boolean
 }
 
 export const PROFESSOR_STATS: ProfStatCard[] = [
-  { value: '134', label: 'STUDENTS',   emoji: '👥', bg: C.purple, dark: true  },
-  { value: '4',   label: 'MODULES',    emoji: '📚', bg: C.yellow               },
-  { value: '3',   label: 'PENDING',    emoji: '⏳', bg: C.red,    dark: true  },
-  { value: '71%', label: 'COMPLETION', emoji: '📈', bg: C.green                },
+  { value: '134', label: 'STUDENTS',   bg: C.purple, dark: true },
+  { value: '4',   label: 'MODULES',    bg: C.yellow             },
+  { value: '3',   label: 'PENDING',    bg: C.red,    dark: true },
+  { value: '71%', label: 'COMPLETION', bg: C.green              },
 ]
 
 export interface ProfModule {
   title: string
   students: number
   completion: number
-  mascot: string
   draft?: boolean
 }
 
 export const PROFESSOR_MODULES: ProfModule[] = [
-  { title: 'Algorithms',        students: 42, completion: 74, mascot: '🤖'              },
-  { title: 'Web Dev',           students: 61, completion: 89, mascot: '🐸'              },
-  { title: 'Databases',         students: 38, completion: 51, mascot: '🦊'              },
-  { title: 'Operating Systems', students: 29, completion: 0,  mascot: '🐻', draft: true },
+  { title: 'Algorithms',        students: 42, completion: 74             },
+  { title: 'Web Dev',           students: 61, completion: 89             },
+  { title: 'Databases',         students: 38, completion: 51             },
+  { title: 'Operating Systems', students: 29, completion: 0,  draft: true},
 ]
 
 export interface PendingQuiz {
@@ -86,26 +84,24 @@ export interface StyleMix {
   count: number
   percent: number
   color: string
-  emoji: string
 }
 
 export const PROFESSOR_STYLE_MIX: StyleMix[] = [
-  { label: 'Visual',      count: 62, percent: 46, color: C.purple, emoji: '👁'  },
-  { label: 'Kinesthetic', count: 31, percent: 23, color: C.red,    emoji: '🤸' },
-  { label: 'Reading',     count: 25, percent: 19, color: C.cyan,   emoji: '📖' },
-  { label: 'Auditory',    count: 16, percent: 12, color: C.green,  emoji: '🎧' },
+  { label: 'Visual',      count: 62, percent: 46, color: C.purple },
+  { label: 'Kinesthetic', count: 31, percent: 23, color: C.red    },
+  { label: 'Reading',     count: 25, percent: 19, color: C.cyan   },
+  { label: 'Auditory',    count: 16, percent: 12, color: C.green  },
 ]
 
 export interface TopPerformer {
   name: string
   style: LearningStyle
   score: string
-  emoji: string
 }
 
 export const PROFESSOR_TOP_PERFORMERS: TopPerformer[] = [
-  { name: 'Sara Horvat', style: 'visual',      score: '96%', emoji: '🤖' },
-  { name: 'Matic Kuhar', style: 'visual',      score: '92%', emoji: '🤖' },
-  { name: 'Jure Kovač',  style: 'auditory',    score: '84%', emoji: '🐸' },
-  { name: 'Nina Žagar',  style: 'kinesthetic', score: '78%', emoji: '🐻' },
+  { name: 'Sara Horvat', style: 'visual',      score: '96%' },
+  { name: 'Matic Kuhar', style: 'visual',      score: '92%' },
+  { name: 'Jure Kovač',  style: 'auditory',    score: '84%' },
+  { name: 'Nina Žagar',  style: 'kinesthetic', score: '78%' },
 ]

@@ -10,8 +10,8 @@ export function StudentDashboard() {
     <div className="dashboard-main">
       <Topbar
         title="HOME BASE"
-        subtitle="Keep up the streak! Your modules await 🔥"
-        actions={<><ComicBtn sm color={C.cyan}>🔔 2</ComicBtn><ComicBtn sm color={C.pink}>⌕</ComicBtn></>}
+        subtitle="Keep up the streak! Your modules await."
+        actions={<><ComicBtn sm color={C.cyan}>2 NEW</ComicBtn><ComicBtn sm color={C.paper}>SEARCH</ComicBtn></>}
       />
       <ComicBox bg={C.cyanLt} p={S[6]} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3] }}>
         <BitMascot size={60} mood="happy" float />

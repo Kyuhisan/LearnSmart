@@ -1,8 +1,8 @@
 import { ComicBox } from '../ui/ComicBox'
+import { IconBox } from '../ui/IconBox'
 import { C, S, FS, BW, R } from '../../styles/tokens'
 
 export interface ActivityItem {
-  icon: string
   iconBg: string
   title: string
   time: string
@@ -50,7 +50,7 @@ export function ActivityPanel({ items, title = 'TEACHING ACTIVITY' }: ActivityPa
               fontSize: FS.xl,
               flexShrink: 0,
             }}>
-              {item.icon}
+              <IconBox size={18} />
             </div>
 
             <div style={{ flex: 1 }}>

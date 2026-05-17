@@ -15,11 +15,11 @@ const FILTERS: Filter[] = ['All', 'At risk', 'VISUAL', 'AUDITORY', 'READING', 'K
 
 const FILTER_LABELS: Record<string, string> = {
   All:         'All',
-  'At risk':   '⚠ At risk',
-  VISUAL:      '👁 Visual',
-  AUDITORY:    '🎧 Auditory',
-  READING:     '📖 Reading',
-  KINESTHETIC: '⚡ Kinesthetic',
+  'At risk':   'At risk',
+  VISUAL:      'Visual',
+  AUDITORY:    'Auditory',
+  READING:     'Reading',
+  KINESTHETIC: 'Kinesthetic',
 }
 
 function styleInfo(style: LearningStyle) {
@@ -84,7 +84,7 @@ export function ProfessorStudents() {
             ))}
 
             <ComicBtn color={C.cyan} sm onClick={() => {}}>
-              📤 EXPORT
+              EXPORT
             </ComicBtn>
           </div>
         </div>
@@ -136,10 +136,10 @@ export function ProfessorStudents() {
                           <span className="student-name" style={{ color: C.ink }}>
                             {student.fullName}
                           </span>
-                          {atRisk && <Tag label="⚠ AT RISK" bg={C.red} />}
+                          {atRisk && <Tag label="AT RISK" bg={C.red} />}
                         </div>
                         <p className="student-meta" style={{ color: C.muted }}>
-                          Last active {student.lastActive} · {styleInfo(student.learningStyle).icon} {styleInfo(student.learningStyle).label}
+                          Last active {student.lastActive} · {styleInfo(student.learningStyle).label}
                         </p>
                       </div>
 

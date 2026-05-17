@@ -245,7 +245,7 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                       letterSpacing: '0.03125rem',
                       borderRadius: R.sm,
                     }}>
-                      {meta.icon} {meta.label.toUpperCase()}
+                      {meta.label.toUpperCase()}
                     </div>
                   )
                 )}

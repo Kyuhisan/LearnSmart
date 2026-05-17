@@ -9,10 +9,10 @@ import { C } from '../../styles/tokens'
 import '../../styles/profile.css'
 
 const ACTIVITY: ActivityItem[] = [
-  { icon: '⚡', iconBg: C.cyanLt,   title: 'Completed Quiz #12 — Binary Trees', time: '2H AGO',  badge: '84%'     },
-  { icon: '📚', iconBg: C.yellowLt, title: 'Resumed: Machine Learning Fundamentals', time: '4H AGO',  badge: 'CH. 3'   },
-  { icon: '🏆', iconBg: C.greenLt,  title: 'Moved to rank #4 on leaderboard',   time: 'TODAY',  badge: '+150 XP' },
-  { icon: '✅', iconBg: C.purpleLt, title: 'Completed module: Linear Algebra',   time: '2D AGO', badge: 'DONE'    },
+  { iconBg: C.cyanLt,   title: 'Completed Quiz #12 — Binary Trees',       time: '2H AGO', badge: '84%'     },
+  { iconBg: C.yellowLt, title: 'Resumed: Machine Learning Fundamentals',   time: '4H AGO', badge: 'CH. 3'   },
+  { iconBg: C.greenLt,  title: 'Moved to rank #4 on leaderboard',          time: 'TODAY',  badge: '+150 XP' },
+  { iconBg: C.purpleLt, title: 'Completed module: Linear Algebra',         time: '2D AGO', badge: 'DONE'    },
 ]
 
 export function StudentProfile() {
@@ -32,7 +32,7 @@ export function StudentProfile() {
         escape={false}
         title="MY PROFILE"
         subtitle="Account · learning style · activity"
-        actions={<ComicBtn sm color={C.cyan}>🔔 2</ComicBtn>}
+        actions={<ComicBtn sm color={C.cyan}>2 NEW</ComicBtn>}
       />
 
       <div className="prof-content">

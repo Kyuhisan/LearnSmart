@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, S } from "../styles/tokens";
+import { IconBox } from "../components/ui/IconBox";
 import { ComicBox } from "../components/ui/ComicBox";
 import { ComicBtn } from "../components/ui/ComicBtn";
 import { Tag } from "../components/ui/Tag";
@@ -147,7 +148,7 @@ export function RegisterPage() {
                 borderColor={vloga === "ucenec" ? C.cyan : C.ink}
                 style={{ flex: 1, cursor: "pointer", textAlign: "center" }}
               >
-                <div className="register-role-emoji">🎓</div>
+                <div className="register-role-emoji"><IconBox size={24} /></div>
                 <div className="register-role-label">STUDENT</div>
               </ComicBox>
 
@@ -159,7 +160,7 @@ export function RegisterPage() {
                 borderColor={vloga === "ucitelj" ? C.purple : C.ink}
                 style={{ flex: 1, cursor: "pointer", textAlign: "center" }}
               >
-                <div className="register-role-emoji">👨‍🏫</div>
+                <div className="register-role-emoji"><IconBox size={24} /></div>
                 <div className="register-role-label">TEACHER</div>
               </ComicBox>
             </div>

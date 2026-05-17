@@ -49,8 +49,8 @@ export function ProfHero({ username, isTeacher, onSignOut }: ProfHeroProps) {
             {username}@uni-lj.si · Faculty of Informatics
           </div>
           <div style={{ display: 'flex', gap: S[2], marginTop: S[1] }}>
-            <ComicBtn color={C.paper}>⚙ SETTINGS</ComicBtn>
-            <ComicBtn color={C.red} dark onClick={onSignOut}>↪ SIGN OUT</ComicBtn>
+            <ComicBtn color={C.paper}>SETTINGS</ComicBtn>
+            <ComicBtn color={C.red} dark onClick={onSignOut}>SIGN OUT</ComicBtn>
           </div>
         </div>
 

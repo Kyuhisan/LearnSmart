@@ -38,11 +38,14 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
       padding: isMobile ? `0 ${S[1]}` : 0,
     }}>
 
-      {/* Big icon */}
+      {/* Style icon placeholder */}
       <div style={{ position: 'relative' }}>
-        <div style={{ fontSize: FS['8xl'], animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275)' }}>
-          {info.icon}
-        </div>
+        <div style={{
+          width: 80, height: 80,
+          border: '3px solid currentColor',
+          borderRadius: 8,
+          animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
+        }} />
         <div style={{ position: 'absolute', top: `-${S[2.5]}`, right: `-${S[6]}`, transform: 'rotate(20deg)' }}>
           <Tag label="YOU!" bg={C.red} color="#fff" />
         </div>
@@ -73,7 +76,7 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
           {(Object.entries(STYLE_INFO) as [LearningStyle, typeof STYLE_INFO[LearningStyle]][]).map(
             ([key, meta]) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: S[2.5] }}>
-                <span style={{ fontSize: FS['2xl'], width: S[6] }}>{meta.icon}</span>
+                <span style={{ display: 'inline-block', width: 18, height: 18, border: '2px solid currentColor', borderRadius: 2, flexShrink: 0 }} />
                 <span style={{
                   width: S[24],
                   fontSize: FS.sm,
