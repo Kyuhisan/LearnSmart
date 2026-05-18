@@ -111,14 +111,13 @@ export function ProfessorModules() {
 
   const nalozi = useCallback(async () => {
     if (!session?.access_token) return;
-    setLoading(true);
     const data = await getModuliUcitelj(session.access_token);
     setModuli(data);
-    setLoading(false);
   }, [session]);
 
   useEffect(() => {
-    nalozi();
+    setLoading(true);
+    nalozi().finally(() => setLoading(false));
   }, [nalozi]);
 
   const handleIzbrisi = (e: React.MouseEvent, id: string) => {
