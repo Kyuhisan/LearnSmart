@@ -117,6 +117,7 @@ export function ProfessorModules() {
   }, [session]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     nalozi();
   }, [nalozi]);
 
