@@ -1,9 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { C } from '../../styles/tokens'
+import { getModuliJavni } from './moduleApi'
+import '../../styles/moduleLibrary.css'
+
+const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
+
+interface BackendModul {
+  id: string
+  naziv: string
+  opis: string
+  jeObjavljen: boolean
+  tezavnost: number
+  ustvarjenOb: string
+  uciteljImePriimek: string
+}
 
 function DifficultyIcons({ value }: { value: number }) {
   return (
@@ -28,53 +42,52 @@ function DifficultyIcons({ value }: { value: number }) {
     </span>
   )
 }
-import { type Module, MODULES, CATEGORIES, CATEGORY_COUNT } from './mockData'
-import '../../styles/moduleLibrary.css'
 
-function ModuleCard({ mod }: { mod: Module }) {
+function ModuleCard({ mod, color }: { mod: BackendModul, color: string }) {
   const navigate = useNavigate()
-  const statusLabel = mod.status === 'complete' ? '✓ COMPLETE'
-    : mod.status === 'in-progress' ? 'IN PROGRESS'
-    : 'NOT STARTED'
-  const barColor = mod.status === 'complete' ? C.green
-    : mod.status === 'in-progress' ? mod.color
-    : C.mutedLt
 
   return (
-    <div className="module-card" style={{ background: mod.color }} onClick={() => navigate(`/modules/${mod.id}`)}>
-      {mod.isNew && <div className="module-card-new">NEW!</div>}
+    <div className="module-card" style={{ background: color }} onClick={() => navigate(`/modules/${mod.id}`)}>
       <div className="module-card-top">
-        <Tag label={mod.category} bg="rgba(255,255,255,0.5)" />
-        <div className="module-card-title">{mod.title}</div>
+        <Tag label={mod.jeObjavljen ? 'LIVE' : 'DRAFT'} bg="rgba(255,255,255,0.5)" />
+        <div className="module-card-title">{mod.naziv}</div>
         <div className="module-card-meta" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {mod.professor} · {mod.hours}h · <DifficultyIcons value={mod.difficulty} />
+          {mod.uciteljImePriimek} · 0h · 
+          <DifficultyIcons value={mod.tezavnost ?? 0} />
         </div>
       </div>
       <div className="module-card-bottom">
         <div className="module-card-status-row">
-          <span className="module-card-status">{statusLabel}</span>
-          <span className="module-card-percent">{mod.progress}%</span>
+          <span className="module-card-status">NOT STARTED</span>
+          <span className="module-card-percent">0%</span>
         </div>
-        <Bar value={mod.progress} color={barColor} />
+        <Bar value={0} color={C.mutedLt} />
       </div>
     </div>
   )
 }
 
 export function StudentModules() {
-  const [activeCategory, setActiveCategory] = useState('ALL')
+  const [moduli, setModuli] = useState<BackendModul[]>([])
   const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  const filtered = MODULES.filter(m => {
-    const matchCat = activeCategory === 'ALL' || m.category === activeCategory
-    const matchSearch = m.title.toLowerCase().includes(search.toLowerCase()) ||
-      m.professor.toLowerCase().includes(search.toLowerCase())
-    return matchCat && matchSearch
-  })
+  useEffect(() => {
+    getModuliJavni().then(data => {
+      setModuli(data)
+      setLoading(false)
+    })
+  }, [])
+
+  const filtered = moduli.filter(m =>
+    m.naziv.toLowerCase().includes(search.toLowerCase())
+  )
+
+  if (loading) return <div>loading...</div>
 
   return (
     <div className="dashboard-main">
-      <Topbar title="MODULE LIBRARY" subtitle={`${MODULES.length} modules · 3 in progress`} />
+      <Topbar title="MODULE LIBRARY" subtitle={`${moduli.length} modules`} />
 
       <div className="modules-toolbar">
         <div className="modules-search-row">
@@ -88,17 +101,6 @@ export function StudentModules() {
           </div>
         </div>
         <div className="modules-filter-row">
-          <div className="modules-filters">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`modules-filter-btn ${activeCategory === cat ? 'active' : ''}`}
-              >
-                {cat} {CATEGORY_COUNT[cat] ?? ''}
-              </button>
-            ))}
-          </div>
           <div className="modules-view-toggle">
             <button className="modules-view-btn active">▪</button>
             <button className="modules-view-btn">≡</button>
@@ -107,8 +109,8 @@ export function StudentModules() {
       </div>
 
       <div className="modules-grid">
-        {filtered.map(mod => (
-          <ModuleCard key={mod.id} mod={mod} />
+        {filtered.map((mod, i) => (
+          <ModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} />
         ))}
       </div>
     </div>

@@ -3,11 +3,13 @@ package com.learnSmart.learnSmart.Mapper;
 import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
+import com.learnSmart.learnSmart.Model.Profil;
+
 import java.util.UUID;
 
 public class PredmetMapper {
 
-    public static PredmetResponseDTO toResponse(Predmet predmet) {
+    public static PredmetResponseDTO toResponse(Predmet predmet, Profil profil) {
         PredmetResponseDTO dto = new PredmetResponseDTO();
         dto.setId(predmet.getId());
         dto.setNaziv(predmet.getNaziv());
@@ -17,6 +19,7 @@ public class PredmetMapper {
         dto.setTezavnost(predmet.getTezavnost());
         dto.setUstvarjenOb(predmet.getUstvarjenOb());
         dto.setUciteljId(predmet.getUciteljId());
+        dto.setUciteljImePriimek(profil != null ? profil.getImePriimek() : "Neznan");
         return dto;
     }
 
@@ -25,7 +28,7 @@ public class PredmetMapper {
         predmet.setNaziv(dto.getNaziv());
         predmet.setOpis(dto.getOpis());
         predmet.setKodaVpisa(dto.getKodaVpisa());
-        predmet.setJeObjavljen(dto.isJeObjavljen());
+        predmet.setJeObjavljen(dto.getJeObjavljen() != null && dto.getJeObjavljen());
         predmet.setTezavnost(dto.getTezavnost());
         predmet.setUciteljId(uciteljId);
         predmet.setUstvarjenOb(java.time.OffsetDateTime.now());

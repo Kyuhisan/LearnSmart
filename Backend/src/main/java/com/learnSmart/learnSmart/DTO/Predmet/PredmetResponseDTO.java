@@ -17,4 +17,5 @@ public class PredmetResponseDTO {
     private Integer tezavnost;
     private OffsetDateTime ustvarjenOb;
     private UUID uciteljId;
+    private String uciteljImePriimek;
 }
