@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tag } from "../../components/ui/Tag";
 import { ComicBtn } from "../../components/ui/ComicBtn";
@@ -35,27 +35,17 @@ function ConfirmDialog({
 }) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
-      <div
-        className="modal"
-        style={{ maxWidth: 360 }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal" style={{ maxWidth: 360 }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <span className="modal-title">⚠ CONFIRM</span>
-          <button className="modal-close" onClick={onCancel}>
-            ✕
-          </button>
+          <button className="modal-close" onClick={onCancel}>✕</button>
         </div>
         <p style={{ fontFamily: "inherit", fontSize: "0.875rem", margin: 0 }}>
           {message}
         </p>
         <div className="modal-actions">
-          <ComicBtn color={C.muted} onClick={onCancel}>
-            CANCEL
-          </ComicBtn>
-          <ComicBtn color={C.red} onClick={onConfirm}>
-            DELETE
-          </ComicBtn>
+          <ComicBtn color={C.muted} onClick={onCancel}>CANCEL</ComicBtn>
+          <ComicBtn color={C.red} onClick={onConfirm}>DELETE</ComicBtn>
         </div>
       </div>
     </div>
@@ -63,11 +53,7 @@ function ConfirmDialog({
 }
 
 function ProfModuleCard({
-  mod,
-  color,
-  onIzbrisi,
-  onObjavi,
-  onUredi,
+  mod, color, onIzbrisi, onObjavi, onUredi,
 }: {
   mod: BackendModul;
   color: string;
@@ -78,24 +64,11 @@ function ProfModuleCard({
   const navigate = useNavigate();
 
   return (
-    <div
-      className="module-card"
-      style={{ background: color }}
-      onClick={() => navigate(`/modules/${mod.id}`)}
-    >
+    <div className="module-card" style={{ background: color }}
+      onClick={() => navigate(`/modules/${mod.id}`)}>
       <div className="module-card-top">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: S[2],
-          }}
-        >
-          <Tag
-            label={`⭐ ${mod.tezavnost ?? "-"}`}
-            bg="rgba(255,255,255,0.5)"
-          />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: S[2] }}>
+          <Tag label={`⭐ ${mod.tezavnost ?? "-"}`} bg="rgba(255,255,255,0.5)" />
           <Tag
             label={mod.jeObjavljen ? "● LIVE" : "○ DRAFT"}
             bg={mod.jeObjavljen ? C.green : C.muted}
@@ -107,27 +80,18 @@ function ProfModuleCard({
           {mod.uciteljImePriimek}
         </div>
       </div>
-      <div
-        className="module-card-bottom"
-        style={{ display: "flex", flexDirection: "column", gap: S[2] }}
-      >
+      <div className="module-card-bottom" style={{ display: "flex", flexDirection: "column", gap: S[2] }}>
         <div style={{ display: "flex", alignItems: "center", gap: S[2] }}>
           <div onClick={(e) => onUredi(e, mod)}>
-            <ComicBtn sm color={C.yellow}>
-              EDIT
-            </ComicBtn>
+            <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
           </div>
           {!mod.jeObjavljen && (
             <div onClick={(e) => onObjavi(e, mod.id)}>
-              <ComicBtn sm color={C.green}>
-                PUBLISH
-              </ComicBtn>
+              <ComicBtn sm color={C.green}>PUBLISH</ComicBtn>
             </div>
           )}
           <div onClick={(e) => onIzbrisi(e, mod.id)}>
-            <ComicBtn sm color={C.red}>
-              DELETE
-            </ComicBtn>
+            <ComicBtn sm color={C.red}>DELETE</ComicBtn>
           </div>
         </div>
       </div>
@@ -145,17 +109,17 @@ export function ProfessorModules() {
   const [editMod, setEditMod] = useState<BackendModul | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const nalozi = async () => {
+  const nalozi = useCallback(async () => {
     if (!session?.access_token) return;
     setLoading(true);
     const data = await getModuliUcitelj(session.access_token);
     setModuli(data);
     setLoading(false);
-  };
+  }, [session]);
 
   useEffect(() => {
     nalozi();
-  }, [session]);
+  }, [nalozi]);
 
   const handleIzbrisi = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -181,7 +145,7 @@ export function ProfessorModules() {
   };
 
   const filtered = moduli.filter((m) =>
-    m.naziv.toLowerCase().includes(search.toLowerCase()),
+    m.naziv.toLowerCase().includes(search.toLowerCase())
   );
 
   const published = moduli.filter((m) => m.jeObjavljen).length;
@@ -231,10 +195,7 @@ export function ProfessorModules() {
         {filtered.length === 0 ? (
           <div className="modules-empty">
             NO MODULES YET —{" "}
-            <span
-              className="modules-empty-link"
-              onClick={() => setNewModul(true)}
-            >
+            <span className="modules-empty-link" onClick={() => setNewModul(true)}>
               CREATE NEW MODULE
             </span>
           </div>
