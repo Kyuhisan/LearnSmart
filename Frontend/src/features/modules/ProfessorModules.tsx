@@ -105,7 +105,7 @@ export function ProfessorModules() {
   const [newModul, setNewModul] = useState(false);
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const [editMod, setEditMod] = useState<BackendModul | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
@@ -113,11 +113,11 @@ export function ProfessorModules() {
     if (!session?.access_token) return;
     const data = await getModuliUcitelj(session.access_token);
     setModuli(data);
+    setInitialized(true);
   }, [session]);
 
   useEffect(() => {
-    setLoading(true);
-    nalozi().finally(() => setLoading(false));
+    nalozi();
   }, [nalozi]);
 
   const handleIzbrisi = (e: React.MouseEvent, id: string) => {
@@ -150,7 +150,7 @@ export function ProfessorModules() {
   const published = moduli.filter((m) => m.jeObjavljen).length;
   const draft = moduli.filter((m) => !m.jeObjavljen).length;
 
-  if (loading) return <div>Nalagam...</div>;
+  if (!initialized) return <div>Nalagam...</div>;
 
   return (
     <div className="dashboard-main">
