@@ -1,12 +1,15 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.Model.Predmet;
+import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
+import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
 import com.learnSmart.learnSmart.Mapper.PredmetMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -15,67 +18,71 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PredmetService {
 
-    private final PredmetRepository predmetRepository;
+    private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
+    private static final String NI_DOVOLJENJA = "You do not have permission";
 
-    // GET vse objavljene (javno)
+    private final PredmetRepository predmetRepository;
+    private final ProfilRepository profilRepository;
+
+    private PredmetResponseDTO toResponseWithProfil(Predmet predmet) {
+        Profil profil = profilRepository.findById(predmet.getUciteljId()).orElse(null);
+        return PredmetMapper.toResponse(predmet, profil);
+    }
+
     public List<PredmetResponseDTO> getObjavljene() {
         return predmetRepository.findAll().stream()
                 .filter(Predmet::isJeObjavljen)
-                .map(PredmetMapper::toResponse)
+                .map(this::toResponseWithProfil)
                 .toList();
     }
 
-    // GET po id
     public PredmetResponseDTO getById(UUID id) {
         Predmet predmet = predmetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Module does not exist"));
-        return PredmetMapper.toResponse(predmet);
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
+        return toResponseWithProfil(predmet);
     }
 
-    // POST - ustvari
     public PredmetResponseDTO ustvari(PredmetRequestDTO dto, UUID uciteljId) {
         Predmet predmet = PredmetMapper.toEntity(dto, uciteljId);
-        return PredmetMapper.toResponse(predmetRepository.save(predmet));
+        return toResponseWithProfil(predmetRepository.save(predmet));
     }
 
-    // PUT - uredi (samo lastnik)
     public PredmetResponseDTO uredi(UUID id, PredmetRequestDTO dto, UUID uciteljId) {
         Predmet predmet = predmetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Module does not exist"));
-
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
         if (!predmet.getUciteljId().equals(uciteljId)) {
-            throw new RuntimeException("You do not have permission to edit this item");
+            throw new RuntimeException(NI_DOVOLJENJA);
         }
-
         predmet.setNaziv(dto.getNaziv());
         predmet.setOpis(dto.getOpis());
         predmet.setKodaVpisa(dto.getKodaVpisa());
         predmet.setTezavnost(dto.getTezavnost());
-        return PredmetMapper.toResponse(predmetRepository.save(predmet));
+        return toResponseWithProfil(predmetRepository.save(predmet));
     }
 
-    // DELETE (samo lastnik)
     public void izbrisi(UUID id, UUID uciteljId) {
         Predmet predmet = predmetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Module does not exist"));
-
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
         if (!predmet.getUciteljId().equals(uciteljId)) {
-            throw new RuntimeException("You do not have permission to edit this item");
+            throw new RuntimeException(NI_DOVOLJENJA);
         }
-
         predmetRepository.delete(predmet);
     }
 
-    // PATCH - objavi
     public PredmetResponseDTO objavi(UUID id, UUID uciteljId) {
         Predmet predmet = predmetRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Module does not exist"));
-
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
         if (!predmet.getUciteljId().equals(uciteljId)) {
-            throw new RuntimeException("You do not have permission");
+            throw new RuntimeException(NI_DOVOLJENJA);
         }
-
         predmet.setJeObjavljen(true);
-        return PredmetMapper.toResponse(predmetRepository.save(predmet));
+        return toResponseWithProfil(predmetRepository.save(predmet));
+    }
+
+    public List<PredmetResponseDTO> getMoji(UUID uciteljId) {
+        return predmetRepository.findAll().stream()
+                .filter(p -> p.getUciteljId().equals(uciteljId))
+                .map(this::toResponseWithProfil)
+                .toList();
     }
 }

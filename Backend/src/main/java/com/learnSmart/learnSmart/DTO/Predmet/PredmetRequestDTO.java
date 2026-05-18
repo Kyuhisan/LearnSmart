@@ -10,7 +10,7 @@ import lombok.*;
 public class PredmetRequestDTO {
 
     @NotBlank(message = "Title can not be empty")
-    @Size(min = 3, max = 45, message = "Title must be between 3 and 45 characters")
+    @Size(min = 1, max = 45, message = "Title must be between 1 and 45 characters")
     private String naziv;
 
     private String opis;
@@ -18,7 +18,7 @@ public class PredmetRequestDTO {
     @NotBlank(message = "The login code cannot be empty")
     private String kodaVpisa;
 
-    private boolean jeObjavljen = false;
+    private Boolean jeObjavljen = false;
 
     @Min(1) @Max(5)
     private Integer tezavnost;

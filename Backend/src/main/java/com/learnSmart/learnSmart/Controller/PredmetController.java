@@ -1,12 +1,13 @@
 package com.learnSmart.learnSmart.Controller;
 
+import com.learnSmart.learnSmart.Model.Profil;
+import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import com.learnSmart.learnSmart.Service.PredmetService;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,16 @@ import java.util.UUID;
 public class PredmetController {
 
     private final PredmetService predmetService;
+    private final ProfilRepository profilRepository;
+
+    private static final String VLOGA_UCITELJ = "ucitelj";
+    private static final String DOSTOP_ZAVRNJEN = "Dostop zavrnjen";
+
+    private String getVloga(UUID userId) {
+        return profilRepository.findById(userId)
+                .map(Profil::getVloga)
+                .orElse("");
+    }
 
     @GetMapping
     public ResponseEntity<List<PredmetResponseDTO>> getObjavljene() {
@@ -31,41 +42,58 @@ public class PredmetController {
         return ResponseEntity.ok(predmetService.getById(id));
     }
 
+    @GetMapping("/moji")
+    public ResponseEntity<?> getMoji(@AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
+        return ResponseEntity.ok(predmetService.getMoji(uciteljId));
+    }
+
     @PostMapping
-    @PreAuthorize("hasAuthority('ucitelj')")
-    public ResponseEntity<PredmetResponseDTO> ustvari(
+    public ResponseEntity<?> ustvari(
             @Valid @RequestBody PredmetRequestDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
         return ResponseEntity.ok(predmetService.ustvari(dto, uciteljId));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ucitelj')")
-    public ResponseEntity<PredmetResponseDTO> uredi(
+    public ResponseEntity<?> uredi(
             @PathVariable UUID id,
             @Valid @RequestBody PredmetRequestDTO dto,
             @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
         return ResponseEntity.ok(predmetService.uredi(id, dto, uciteljId));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ucitelj')")
-    public ResponseEntity<Void> izbrisi(
+    public ResponseEntity<?> izbrisi(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
         predmetService.izbrisi(id, uciteljId);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/objavi")
-    @PreAuthorize("hasAuthority('ucitelj')")
-    public ResponseEntity<PredmetResponseDTO> objavi(
+    public ResponseEntity<?> objavi(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
         return ResponseEntity.ok(predmetService.objavi(id, uciteljId));
     }
 }
