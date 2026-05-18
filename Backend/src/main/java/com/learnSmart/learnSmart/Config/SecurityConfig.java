@@ -3,6 +3,7 @@ package com.learnSmart.learnSmart.Config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -10,10 +11,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${FRONT_URL}")
@@ -28,6 +31,11 @@ public class SecurityConfig {
                 .requestMatchers("/ai/classify-style").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/moduli", "/moduli/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/moduli").hasAuthority("ucitelj")
+                .requestMatchers(HttpMethod.PUT, "/moduli/**").hasAuthority("ucitelj")
+                .requestMatchers(HttpMethod.DELETE, "/moduli/**").hasAuthority("ucitelj")
+                .requestMatchers(HttpMethod.PATCH, "/moduli/**").hasAuthority("ucitelj")
                 .anyRequest().authenticated()
         )
         .oauth2ResourceServer(oauth2 -> oauth2
