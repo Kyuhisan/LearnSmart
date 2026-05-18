@@ -2,10 +2,11 @@ package com.learnSmart.learnSmart.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 @Getter
 @Setter
 @NoArgsConstructor
