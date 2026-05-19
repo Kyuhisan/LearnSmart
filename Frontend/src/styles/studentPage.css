@@ -89,7 +89,7 @@
 
 .student-row-hover:hover > div {
   background: var(--hover-bg) !important;
-  box-shadow: 2px 4px 0 #2d2a26 !important;
+  box-shadow: 2px 4px 0 var(--ls-ink) !important;
 }
 
 /* STUDENT ROW INNER (ComicBox content) */

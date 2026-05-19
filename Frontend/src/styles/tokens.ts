@@ -81,23 +81,24 @@ export const BW = {
 } as const
 
 // ── Border radius ─────────────────────────────────────────────────────────────
-// Usage: R.base → '0.375rem' (6px)
+// Usage: R.base → 'var(--ls-radius-base)' — values defined in index.css :root
 export const R = {
-  sm:   '0.1875rem',  //  3px
-  base: '0.375rem',   //  6px
-  md:   '0.5rem',     //  8px
-  lg:   '0.75rem',    // 12px
-  xl:   '1rem',       // 16px
+  sm:   'var(--ls-radius-sm)',
+  base: 'var(--ls-radius-base)',
+  md:   'var(--ls-radius-md)',
+  lg:   'var(--ls-radius-lg)',
+  xl:   'var(--ls-radius-xl)',
   full: '9999px',
 } as const
 
 // ── Offset shadow helper ──────────────────────────────────────────────────────
 // The visual signature of the LearnSmart design: hard offset shadow.
-// Usage: mkShadow() → '2px 2px 0 #2d2a26'
+// Usage: mkShadow() → 'var(--ls-shadow-base)'  |  mkShadow('lg', C.yellow) → '3px 3px 0 #e8b948'
 export function mkShadow(
   size: 'sm' | 'base' | 'lg' | 'xl' = 'base',
   color: string = C.ink,
 ): string {
+  if (color === C.ink) return `var(--ls-shadow-${size})`
   const offsets = { sm: '1px', base: '2px', lg: '3px', xl: '4px' } as const
   const o = offsets[size]
   return `${o} ${o} 0 ${color}`

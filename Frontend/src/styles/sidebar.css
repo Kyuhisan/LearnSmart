@@ -53,23 +53,23 @@
   letter-spacing: 0.03em;
   color: var(--ls-ink);
   border: 2px solid var(--ls-ink);
-  border-radius: 0.1875rem;
+  border-radius: var(--ls-radius-base);
   background: var(--ls-paper);
   transition: all 0.1s ease;
-  box-shadow: 2px 2px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-base);
 }
 
 .sidebar-nav-item:hover {
   background: var(--ls-yellowLt);
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-lg);
 }
 
 .sidebar-nav-item.active {
   background: var(--ls-yellow);
   color: var(--ls-ink);
   border: 2px solid var(--ls-ink);
-  box-shadow: 2px 2px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-base);
 }
 
 .sidebar-user {

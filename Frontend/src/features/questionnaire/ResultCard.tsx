@@ -76,7 +76,7 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
           {(Object.entries(STYLE_INFO) as [LearningStyle, typeof STYLE_INFO[LearningStyle]][]).map(
             ([key, meta]) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: S[2.5] }}>
-                <span style={{ display: 'inline-block', width: 18, height: 18, border: '2px solid currentColor', borderRadius: 2, flexShrink: 0 }} />
+                <span style={{ display: 'inline-block', width: 18, height: 18, border: '2px solid currentColor', borderRadius: R.sm, flexShrink: 0 }} />
                 <span style={{
                   width: S[24],
                   fontSize: FS.sm,

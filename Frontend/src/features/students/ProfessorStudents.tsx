@@ -4,7 +4,7 @@ import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
-import { C, BW, STYLE_INFO } from '../../styles/tokens'
+import { C, BW, R, STYLE_INFO } from '../../styles/tokens'
 import { STUDENTS, STUDENTS_STATS, type Student } from './mockData'
 import '../../styles/studentPage.css'
 
@@ -64,7 +64,7 @@ export function ProfessorStudents() {
             className="students-search"
             style={{
               border: `${BW.base} solid ${C.ink}`,
-              borderRadius: 3,
+              borderRadius: R.sm,
               background: C.paper,
               boxShadow: `2px 2px 0 ${C.ink}`,
               color: C.ink,

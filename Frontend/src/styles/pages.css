@@ -86,8 +86,8 @@
   letter-spacing: -0.02em;
   background: var(--ls-yellow);
   border: 3px solid var(--ls-ink);
-  border-radius: 0.375rem;
-  box-shadow: 6px 6px 0 var(--ls-ink);
+  border-radius: var(--ls-radius-base);
+  box-shadow: var(--ls-shadow-2xl);
   padding: 0.25rem 0.75rem;
   display: inline-block;
   margin-top: 0.25rem;
@@ -220,7 +220,7 @@
   padding: 0.625rem 0.75rem;
   font-size: 0.8125rem;
   border: 2px solid var(--ls-ink);
-  border-radius: 0.375rem;
+  border-radius: var(--ls-radius-base);
   font-family: inherit;
   outline: none;
   background: var(--ls-paper);
@@ -246,7 +246,7 @@
   padding: 0.75rem;
   background: var(--ls-redLt);
   border: 2px solid var(--ls-red);
-  border-radius: 0.375rem;
+  border-radius: var(--ls-radius-base);
   font-size: 0.8125rem;
   color: var(--ls-red);
 }
@@ -316,7 +316,7 @@
 .dashboard-placeholder {
   background: var(--ls-paper);
   border: 2px solid var(--ls-ink);
-  border-radius: 0.375rem;
+  border-radius: var(--ls-radius-base);
   padding: 1.5rem;
   text-align: center;
   color: var(--ls-muted);

@@ -1,10 +1,22 @@
-import { C } from '../../styles/tokens'
+import { C, type LearningStyle } from '../../styles/tokens'
 import type { ActivityItem } from '../../components/professor/ActivityPanel'
 
 export const STUDENT_STATS = {
-  inProgress: 3,
-  completed: 4,
+  xp: 2450,
+  xpRankDelta: +3,
   quizzes: 12,
+  avgScore: 78,
+  streak: 7,
+  bestStreak: 14,
+  badges: 8,
+  badgesInProgress: 3,
+}
+
+export const STUDENT_PROFILE = {
+  level: 5,
+  learningStyle: 'visual' as LearningStyle,
+  streak: 7,
+  varkScores: { visual: 5, reading: 2, auditory: 1, kinesthetic: 0 } as Record<LearningStyle, number>,
 }
 
 export const STUDENT_ACTIVITY: ActivityItem[] = [
