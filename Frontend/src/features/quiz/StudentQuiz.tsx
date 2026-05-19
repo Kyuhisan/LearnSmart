@@ -1,4 +1,4 @@
-import { BitMascot } from '../../components/ui/BitMascot'
+    import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'

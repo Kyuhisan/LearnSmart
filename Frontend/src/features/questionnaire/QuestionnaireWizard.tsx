@@ -214,7 +214,14 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
               </div>
 
               <div>
-                <Tag label="VARK ASSESSMENT" bg={C.yellow} />
+                <div style={{
+                  display: 'inline-block',
+                  transform: 'scale(1.2)',
+                  transformOrigin: 'center top',
+                  marginBottom: S[3],
+                }}>
+                  <Tag label="VARK ASSESSMENT" bg={C.yellow} />
+                </div>
                 <h1 style={{
                   fontFamily: "'Archivo Black', sans-serif",
                   fontSize: isMobile ? FS['5xl'] : FS['7xl'],
@@ -240,6 +247,7 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                       padding: `${S[1.5]} ${S[3]}`,
                       background: meta.bg,
                       border: `${BW.base} solid ${C.ink}`,
+                      boxShadow: mkShadow(),
                       fontSize: FS.base, fontWeight: 800,
                       fontFamily: "'Archivo Black', sans-serif",
                       letterSpacing: '0.03125rem',
@@ -252,12 +260,15 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
               </div>
 
               <div style={{ fontSize: FS.base, color: C.muted, fontWeight: 600 }}>
-                You may select <strong style={{ color: C.ink }}>more than one answer</strong> per question —
-                most people are multimodal.
+                You may select <strong style={{ color: C.ink, fontFamily: "'Archivo Black', sans-serif" }}>more than one answer</strong> per question.<br />
+                Most people are multimodal.
               </div>
 
               <ComicBtn onClick={() => transition(() => setStep('question'))} color={C.red} dark>
-                START ASSESSMENT →
+                START ASSESSMENT
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </ComicBtn>
             </div>
           )}
@@ -337,7 +348,10 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                     color={selected.length > 0 ? C.yellow : C.divider}
                     disabled={selected.length === 0}
                   >
-                    {isLast ? 'FINISH →' : 'NEXT →'}
+                    {isLast ? 'FINISH' : 'NEXT'}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                   </ComicBtn>
                 )}
               </div>
@@ -363,7 +377,10 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                 </p>
               </div>
               <ComicBtn onClick={handleContinue} color={C.yellow}>
-                GO TO DASHBOARD →
+                GO TO DASHBOARD
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </ComicBtn>
             </div>
           )}
@@ -404,15 +421,15 @@ function OptionButton({ letter, label, selected, onClick, disabled }: OptionButt
         display: 'flex', alignItems: 'center', gap: S[3],
         padding: `${S[3]} ${S[3.5]}`,
         background: active ? C.yellowLt : C.paper,
-        border: `${selected ? BW.medium : BW.base} solid ${selected ? C.yellow : C.ink}`,
-        boxShadow: active ? mkShadow('lg') : mkShadow(),
+        border: `${BW.base} solid ${selected ? C.yellow : C.ink}`,
+        boxShadow: selected ? mkShadow(active ? 'lg' : 'base', C.yellow) : mkShadow(active ? 'lg' : 'base'),
         fontSize: FS.md, fontWeight: 600,
         fontFamily: "'Space Mono', monospace",
         textAlign: 'left',
         cursor: disabled ? 'not-allowed' : 'pointer',
         transform: hovered && !disabled && !selected ? 'translate(-0.125rem, -0.125rem)' : 'none',
         transition: 'all 0.12s ease',
-        borderRadius: R.sm,
+        borderRadius: R.base,
         color: C.ink,
         lineHeight: 1.5,
         opacity: disabled ? 0.6 : 1,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { C, S, FS, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { C, S, FS, R, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
@@ -43,7 +43,7 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
         <div style={{
           width: 80, height: 80,
           border: '3px solid currentColor',
-          borderRadius: 8,
+          borderRadius: R.base,
           animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
         }} />
         <div style={{ position: 'absolute', top: `-${S[2.5]}`, right: `-${S[6]}`, transform: 'rotate(20deg)' }}>
@@ -53,18 +53,18 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
 
       {/* Label + description */}
       <div style={{ textAlign: 'center' }}>
-        <Tag label="YOUR LEARNING CLASS" bg={C.yellow} />
+        <Tag label="YOUR LEARNING TYPE" bg={C.yellow} />
         <h2 style={{
           fontFamily: "'Archivo Black', sans-serif",
           fontSize: 'clamp(1.75rem, 6vw, 2.5rem)',
-          marginTop: S[2.5],
+            marginBottom: S[2.5],
           lineHeight: 1,
           letterSpacing: '-0.0625rem',
           color: C.ink,
         }}>
           {info.label.toUpperCase()}!
         </h2>
-        <p style={{ fontSize: FS.lg, color: C.muted, marginTop: S[2.5], fontWeight: 600, lineHeight: 1.5 }}>
+        <p style={{ fontSize: FS.lg, color: C.muted, marginTop: S[1], fontWeight: 600, lineHeight: 1.5 }}>
           {info.desc}
         </p>
       </div>
@@ -121,7 +121,10 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
       </ComicBox>
 
       <ComicBtn onClick={onContinue} color={C.green}>
-        ENTER DASHBOARD →
+        ENTER DASHBOARD
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+          <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </ComicBtn>
     </div>
   )

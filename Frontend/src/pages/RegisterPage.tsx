@@ -116,13 +116,13 @@ export function RegisterPage() {
       >
         <div className="register-card-inner">
           <div className="register-header">
-            <BitMascot size={60} mood="wink" />
             <div className="register-top">
-              <div className="register-tag-wrapper">
+              <div className="page-tag-wrapper">
                 <Tag label="Welcome!" bg={C.yellow} />
               </div>
-              <div className="register-title">Complete your profile</div>
+              <div className="register-title">Complete your profile!</div>
             </div>
+            <BitMascot size={60} mood="wink" />
           </div>
 
           <div className="register-field-group">
@@ -143,6 +143,7 @@ export function RegisterPage() {
               <ComicBox
                 bg={vloga === "ucenec" ? C.cyanLt : C.paper}
                 shadowSize="sm"
+                shadowColor={vloga === "ucenec" ? C.cyan : C.ink}
                 p={S[3]}
                 onClick={() => setVloga("ucenec")}
                 borderColor={vloga === "ucenec" ? C.cyan : C.ink}
@@ -155,6 +156,7 @@ export function RegisterPage() {
               <ComicBox
                 bg={vloga === "ucitelj" ? C.purpleLt : C.paper}
                 shadowSize="sm"
+                shadowColor={vloga === "ucitelj" ? C.purple : C.ink}
                 p={S[3]}
                 onClick={() => setVloga("ucitelj")}
                 borderColor={vloga === "ucitelj" ? C.purple : C.ink}
@@ -174,7 +176,14 @@ export function RegisterPage() {
             disabled={loading}
             style={{ width: "100%", justifyContent: "center" }}
           >
-            {loading ? "Saving..." : vloga === "ucitelj" ? "Start Teaching →" : "Start Learning →"}
+            {loading ? "Saving..." : (
+              <>
+                {vloga === "ucitelj" ? "Start Teaching" : "Start Learning"}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </>
+            )}
           </ComicBtn>
         </div>
       </ComicBox>
