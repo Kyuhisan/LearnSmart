@@ -33,7 +33,6 @@ export function StudentProfile() {
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>
       <Topbar
-        escape={false}
         title="MY PROFILE"
         subtitle="Account · learning style · activity"
         actions={<ComicBtn sm color={C.cyan}>2 NEW</ComicBtn>}

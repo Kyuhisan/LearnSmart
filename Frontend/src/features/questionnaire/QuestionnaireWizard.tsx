@@ -410,6 +410,12 @@ interface OptionButtonProps {
 function OptionButton({ letter, label, selected, onClick, disabled }: OptionButtonProps) {
   const [hovered, setHovered] = useState(false)
   const active = (hovered || selected) && !disabled
+  const shadowSize = active ? 'lg' : 'base' as const
+  const boxShadow = selected ? mkShadow(shadowSize, C.yellow) : mkShadow(shadowSize)
+  const transform = hovered && !disabled && !selected ? 'translate(-0.125rem, -0.125rem)' : 'none'
+  const badgeBgBase = hovered ? C.yellowLt : C.cream
+  const badgeBg = selected ? C.yellow : badgeBgBase
+  const borderColor = selected ? C.yellow : C.ink
 
   return (
     <button
@@ -421,13 +427,13 @@ function OptionButton({ letter, label, selected, onClick, disabled }: OptionButt
         display: 'flex', alignItems: 'center', gap: S[3],
         padding: `${S[3]} ${S[3.5]}`,
         background: active ? C.yellowLt : C.paper,
-        border: `${BW.base} solid ${selected ? C.yellow : C.ink}`,
-        boxShadow: selected ? mkShadow(active ? 'lg' : 'base', C.yellow) : mkShadow(active ? 'lg' : 'base'),
+        border: `${BW.base} solid ${borderColor}`,
+        boxShadow,
         fontSize: FS.md, fontWeight: 600,
         fontFamily: "'Space Mono', monospace",
         textAlign: 'left',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        transform: hovered && !disabled && !selected ? 'translate(-0.125rem, -0.125rem)' : 'none',
+        transform,
         transition: 'all 0.12s ease',
         borderRadius: R.base,
         color: C.ink,
@@ -439,8 +445,8 @@ function OptionButton({ letter, label, selected, onClick, disabled }: OptionButt
       {/* Letter badge / checkmark */}
       <span style={{
         width: S[5], height: S[5], minWidth: S[5],
-        background: selected ? C.yellow : (hovered ? C.yellowLt : C.cream),
-        border: `${BW.base} solid ${selected ? C.yellow : C.ink}`,
+        background: badgeBg,
+        border: `${BW.base} solid ${borderColor}`,
         borderRadius: R.sm,
         fontFamily: "'Archivo Black', sans-serif",
         fontSize: FS.sm,

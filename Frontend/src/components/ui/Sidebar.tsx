@@ -53,29 +53,37 @@ export function Sidebar({ vloga, username }: SidebarProps) {
       {/* Nav */}
       <div className="sidebar-nav">
         {items.map(item => (
-          <div
+          <button
             key={item.path}
             onClick={() => navigate(item.path)}
             className={`sidebar-nav-item ${location.pathname === item.path ? 'active' : ''}`}
           >
             <IconBox size={14} />
             <span>{item.label}</span>
-          </div>
+          </button>
         ))}
       </div>
 
       {/* User */}
-      <div className="sidebar-user" onClick={() => navigate('/profile')}>
-        <div className="sidebar-avatar">
-          {username?.[0]?.toUpperCase()}
-        </div>
-        <div className="sidebar-user-info">
-          <div className="sidebar-user-name">{username}</div>
-          <div className="sidebar-user-role">
-            {isTeacher ? 'PROFESSOR' : 'STUDENT'}
+      <div
+        className="sidebar-user"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate('/profile')}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/profile') }}
+      >
+        <div className="sidebar-user-profile">
+          <div className="sidebar-avatar">
+            {username?.[0]?.toUpperCase()}
+          </div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{username}</div>
+            <div className="sidebar-user-role">
+              {isTeacher ? 'PROFESSOR' : 'STUDENT'}
+            </div>
           </div>
         </div>
-        <div
+        <button
           className="sidebar-logout-icon"
           title="Sign out"
           onClick={(e) => { e.stopPropagation(); handleLogout() }}
@@ -85,7 +93,7 @@ export function Sidebar({ vloga, username }: SidebarProps) {
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-        </div>
+        </button>
       </div>
 
     </div>

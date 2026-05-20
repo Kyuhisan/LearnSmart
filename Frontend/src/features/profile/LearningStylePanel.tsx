@@ -4,8 +4,8 @@ import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
 
 interface LearningStylePanelProps {
-  learningStyle: LearningStyle
-  varkScores: Record<LearningStyle, number>
+  readonly learningStyle: LearningStyle
+  readonly varkScores: Record<LearningStyle, number>
 }
 
 const STYLE_EMOJI: Record<LearningStyle, string> = {

@@ -29,7 +29,6 @@ export function ProfessorProfile() {
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>
       <Topbar
-        escape={false}
         title="PROFESSOR PROFILE"
         subtitle="Account · teaching activity · stats"
         actions={<ComicBtn sm color={C.cyan}>3 NEW</ComicBtn>}

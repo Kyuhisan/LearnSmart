@@ -6,8 +6,6 @@ interface TopbarProps {
   subtitle?: string
   back?: () => void
   actions?: ReactNode
-  /** @deprecated no longer used — layout handled by AppHeader */
-  escape?: boolean
 }
 
 export function Topbar({ title, subtitle, back, actions }: TopbarProps) {

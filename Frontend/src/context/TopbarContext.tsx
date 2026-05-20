@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
 
 export interface TopbarConfig {
   title: string
@@ -17,11 +17,16 @@ const TopbarContext = createContext<TopbarContextValue>({
   setConfig: () => {},
 })
 
-export function TopbarProvider({ children }: { children: ReactNode }) {
-  const [config, setConfigState] = useState<TopbarConfig>({ title: '' })
-  const setConfig = useCallback((c: TopbarConfig) => setConfigState(c), [])
+interface TopbarProviderProps {
+  readonly children: ReactNode
+}
+
+export function TopbarProvider({ children }: TopbarProviderProps) {
+  const [config, setConfig] = useState<TopbarConfig>({ title: '' })
+  const setConfigStable = useCallback((c: TopbarConfig) => setConfig(c), [])
+  const value = useMemo(() => ({ config, setConfig: setConfigStable }), [config, setConfigStable])
   return (
-    <TopbarContext.Provider value={{ config, setConfig }}>
+    <TopbarContext.Provider value={value}>
       {children}
     </TopbarContext.Provider>
   )

@@ -179,7 +179,6 @@ export function ProfessorModuleDetail() {
   return (
     <div className="module-detail-page">
       <Topbar
-        escape={false}
         title={PROF_MODULE.title}
         subtitle={`${PROF_MODULE.subject} · ${PROF_MODULE.students} students enrolled`}
         back={() => navigate('/modules')}

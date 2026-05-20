@@ -10,9 +10,9 @@ export interface ActivityItem {
 }
 
 interface ActivityPanelProps {
-  items: ActivityItem[]
-  title?: string
-  accent?: string
+  readonly items: ActivityItem[]
+  readonly title?: string
+  readonly accent?: string
 }
 
 export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.yellow }: ActivityPanelProps) {

@@ -4,13 +4,13 @@ import { Tag } from '../ui/Tag'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 
 interface ProfHeroProps {
-  username: string
-  isTeacher: boolean
-  onSignOut: () => void
-  level?: number
-  learningType?: string
-  streak?: number
-  onRetakeVark?: () => void
+  readonly username: string
+  readonly isTeacher: boolean
+  readonly onSignOut: () => void
+  readonly level?: number
+  readonly learningType?: string
+  readonly streak?: number
+  readonly onRetakeVark?: () => void
 }
 
 
