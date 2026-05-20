@@ -58,7 +58,7 @@ public class VsebinaController {
     }
 
     @PostMapping(value = {"/upload"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> upload(
+    public ResponseEntity<Map<String, Object>> upload(
             @RequestParam("file") MultipartFile file,
             @RequestParam("predmetId") UUID predmetId,
             @RequestParam("naziv") String naziv,

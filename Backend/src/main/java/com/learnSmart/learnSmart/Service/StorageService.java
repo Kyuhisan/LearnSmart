@@ -6,16 +6,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Service
 public class StorageService {
 
     @Value("${SUPABASE_URL}")
-    private String SUPBASE_URL;
+    private String supabaseUrl;
 
     @Value("${SUPABASE_SERVICE_KEY}")
-    private String SUPABASE_SERVICE_KEY;
+    private String supabaseServiceKey;
 
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -55,13 +56,18 @@ public class StorageService {
         return "modules/" + predmetId + "/" + fileName;
     }
 
-    private void uploadToSupabase(MultipartFile file, String path, String bucket) throws Exception {
-        String uploadUrl = SUPBASE_URL + "/storage/v1/object/" + bucket + "/" + path;
+    private void uploadToSupabase(MultipartFile file, String path, String bucket) throws IOException {
+        String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
+        String contentType = file.getContentType();
+
+        if (contentType == null) {
+            throw new IOException("Cannot determine file type");
+        }
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", SUPABASE_SERVICE_KEY);
-        headers.set("Authorization", "Bearer " + SUPABASE_SERVICE_KEY);
-        headers.setContentType(MediaType.parseMediaType(file.getContentType()));
+        headers.set("apikey", supabaseServiceKey);
+        headers.set("Authorization", "Bearer " + supabaseServiceKey);
+        headers.setContentType(MediaType.parseMediaType(contentType));
 
         HttpEntity<byte[]> request = new HttpEntity<>(file.getBytes(), headers);
         restTemplate.exchange(
@@ -73,7 +79,7 @@ public class StorageService {
     }
 
     private String buildPublicURL(String bucket, String path) {
-        return SUPBASE_URL + "/storage/v1/object/" + bucket + "/" + path;
+        return supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
     }
 
     public String upload(MultipartFile file, UUID predmetId) throws Exception {
