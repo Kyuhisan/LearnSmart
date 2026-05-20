@@ -27,7 +27,6 @@ public class StorageService {
             throw new IllegalArgumentException("Unsupported file type: " + mimeType);
         }
 
-        boolean isPdf = mimeType.equals("application/pdf");
         boolean isVideo = mimeType.equals("video/mp4");
         long maxSize = isVideo ? 500L * 1024 * 1024 : 50L * 1024 * 1024;
 
