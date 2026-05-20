@@ -73,7 +73,7 @@ public class StorageService {
         );
     }
 
-    private String buildPublicURL(String bucket, String path) throws Exception {
+    private String buildPublicURL(String bucket, String path) {
         return SUPBASE_URL + "/storage/v1/object/" + bucket + "/" + path;
     }
 
