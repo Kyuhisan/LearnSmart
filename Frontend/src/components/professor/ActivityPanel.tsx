@@ -1,4 +1,4 @@
-import { ComicBox } from '../ui/ComicBox'
+import { Panel } from '../ui/Panel'
 import { IconBox } from '../ui/IconBox'
 import { C, S, FS, BW, R } from '../../styles/tokens'
 
@@ -10,23 +10,14 @@ export interface ActivityItem {
 }
 
 interface ActivityPanelProps {
-  items: ActivityItem[]
-  title?: string
+  readonly items: ActivityItem[]
+  readonly title?: string
+  readonly accent?: string
 }
 
-export function ActivityPanel({ items, title = 'TEACHING ACTIVITY' }: ActivityPanelProps) {
+export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.yellow }: ActivityPanelProps) {
   return (
-    <ComicBox bg={C.paper} p={S[5]}>
-      <div style={{
-        fontFamily: "'Archivo Black', sans-serif",
-        fontSize: FS.sm,
-        letterSpacing: '0.07em',
-        color: C.ink,
-        marginBottom: S[3],
-      }}>
-        {title}
-      </div>
-
+    <Panel title={title} accent={accent}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {items.map((item, i) => (
           <div key={i} style={{
@@ -83,6 +74,6 @@ export function ActivityPanel({ items, title = 'TEACHING ACTIVITY' }: ActivityPa
           </div>
         ))}
       </div>
-    </ComicBox>
+    </Panel>
   )
 }

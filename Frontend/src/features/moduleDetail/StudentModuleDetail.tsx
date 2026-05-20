@@ -181,7 +181,6 @@ export function StudentModuleDetail() {
   return (
     <div className="module-detail-page">
       <Topbar
-        escape={false}
         title={MODULE.title}
         subtitle={`${MODULE.subject} · ${MODULE.progress}% complete`}
         back={() => navigate('/modules')}

@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
+import { AppHeader } from '../components/ui/AppHeader'
 import { StudentQuiz } from '../features/quiz/StudentQuiz'
 
 export function QuizPage() {
@@ -13,9 +14,12 @@ export function QuizPage() {
   )
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar vloga={profil.vloga} username={profil.username} />
-      <StudentQuiz />
+    <div className="app-shell">
+      <AppHeader />
+      <div className="app-body">
+        <Sidebar vloga={profil.vloga} username={profil.username} />
+        <StudentQuiz />
+      </div>
     </div>
   )
 }

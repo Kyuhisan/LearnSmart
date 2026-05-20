@@ -7,6 +7,7 @@ export interface StudentDetailProfile {
   email: string
   learningStyle: 'VISUAL' | 'READING' | 'AUDITORY' | 'KINESTHETIC'
   xp: number
+  avgScore: number
   streak: number
   rank: number
   joinedDate: string
@@ -38,6 +39,7 @@ export const STUDENT_DETAIL: StudentDetailProfile = {
   email: 'ana.k@learnsmart.si',
   learningStyle: 'VISUAL',
   xp: 5820,
+  avgScore: 94,
   streak: 31,
   rank: 1,
   joinedDate: '2026-03-01',

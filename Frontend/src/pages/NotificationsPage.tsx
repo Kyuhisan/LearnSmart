@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
+import { AppHeader } from '../components/ui/AppHeader'
 import { StudentNotifications } from '../features/notifications/StudentNotifications'
 import { ProfessorNotifications } from '../features/notifications/ProfessorNotifications'
 
@@ -14,9 +15,12 @@ export function NotificationsPage() {
   )
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar vloga={profil.vloga} username={profil.username} />
-      {profil.vloga === 'ucitelj' ? <ProfessorNotifications /> : <StudentNotifications />}
+    <div className="app-shell">
+      <AppHeader />
+      <div className="app-body">
+        <Sidebar vloga={profil.vloga} username={profil.username} />
+        {profil.vloga === 'ucitelj' ? <ProfessorNotifications /> : <StudentNotifications />}
+      </div>
     </div>
   )
 }

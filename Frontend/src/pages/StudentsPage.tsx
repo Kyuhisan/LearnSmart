@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
+import { AppHeader } from '../components/ui/AppHeader'
 import { ProfessorStudents } from '../features/students/ProfessorStudents'
 
 export function StudentsPage() {
@@ -13,9 +14,12 @@ export function StudentsPage() {
   )
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar vloga={profil.vloga} username={profil.username} />
-      <ProfessorStudents />
+    <div className="app-shell">
+      <AppHeader />
+      <div className="app-body">
+        <Sidebar vloga={profil.vloga} username={profil.username} />
+        <ProfessorStudents />
+      </div>
     </div>
   )
 }

@@ -19,7 +19,7 @@
 .modules-toolbar {
   background: var(--ls-cyan);
   border: 2px solid var(--ls-ink);
-  border-radius: 0.375rem;
+  border-radius: var(--ls-radius-base);
   padding: 1rem;
   margin-bottom: 1.5rem;
   display: flex;
@@ -50,7 +50,7 @@
   width: 100%;
   padding: 0.625rem 0.75rem;
   border: 2px solid var(--ls-ink);
-  border-radius: 0.1875rem;
+  border-radius: var(--ls-radius-sm);
   font-size: 0.8125rem;
   font-family: inherit;
   background: var(--ls-paper);
@@ -74,17 +74,17 @@
   font-size: 0.625rem;
   padding: 0.375rem 0.625rem;
   border: 2px solid var(--ls-ink);
-  border-radius: 0.1875rem;
+  border-radius: var(--ls-radius-sm);
   background: var(--ls-paper);
   cursor: pointer;
   letter-spacing: 0.03em;
-  box-shadow: 2px 2px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-base);
   transition: all 0.1s ease;
 }
 
 .modules-filter-btn:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-lg);
 }
 
 .modules-filter-btn.active {
@@ -107,7 +107,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 2px 2px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-base);
 }
 
 .modules-view-btn.active {
@@ -123,8 +123,8 @@
 
 .module-card {
   border: 2px solid var(--ls-ink);
-  border-radius: 0.375rem;
-  box-shadow: 3px 3px 0 var(--ls-ink);
+  border-radius: var(--ls-radius-base);
+  box-shadow: var(--ls-shadow-lg);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -134,7 +134,7 @@
 
 .module-card:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-xl);
 }
 
 .module-card-new {
@@ -214,8 +214,8 @@
 .modal {
   background: var(--ls-paper);
   border: 2px solid var(--ls-ink);
-  border-radius: 0.375rem;
-  box-shadow: 4px 4px 0 var(--ls-ink);
+  border-radius: var(--ls-radius-base);
+  box-shadow: var(--ls-shadow-xl);
   padding: 1.5rem;
   width: 100%;
   max-width: 480px;
@@ -263,7 +263,7 @@
   width: 100%;
   padding: 0.625rem 0.75rem;
   border: 2px solid var(--ls-ink);
-  border-radius: 0.1875rem;
+  border-radius: var(--ls-radius-sm);
   font-size: 0.875rem;
   font-family: inherit;
   background: var(--ls-paper);
@@ -272,7 +272,7 @@
 }
 
 .modal-input:focus {
-  box-shadow: 2px 2px 0 var(--ls-ink);
+  box-shadow: var(--ls-shadow-base);
 }
 
 .modal-textarea {

@@ -20,9 +20,9 @@ export function LoginPage() {
         <div className="login-mascot-row">
           <BitMascot size={130} mood="happy" float />
           <SpeechBubble color={C.yellow} side="left">
-            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '0.75rem', color: C.ink, lineHeight: 1.4 }}>
-              BEEP! <br />
-              Ready to learn smarter?
+            <div style={{ fontSize: '0.75rem', lineHeight: 1.4 }}>
+              <span style={{ fontFamily: "'Archivo Black', sans-serif", color: C.ink }}>BEEP!</span><br />
+              <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, color: C.ink }}>Ready to learn smarter?</span>
             </div>
           </SpeechBubble>
         </div>
@@ -45,7 +45,7 @@ export function LoginPage() {
       {/* RIGHT */}
       <ComicBox bg={C.paper} shadowSize="xl" p={S[8]} style={{ width: '420px', flex: '0 0 420px' }}>
         <div className="login-card-inner">
-          <div className="login-tag-wrapper">
+          <div className="page-tag-wrapper">
             <Tag label="Sign In" bg={C.yellow} />
           </div>
 
@@ -71,8 +71,8 @@ export function LoginPage() {
           <div className="login-divider" />
 
           <ComicBox
-            bg={C.yellowLt}
-            shadowSize="sm"
+            bg={C.yellow}
+            shadowSize="base"
             p={S[3]}
             style={{ width: '100%' }}
           >

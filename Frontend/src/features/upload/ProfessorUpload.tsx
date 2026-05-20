@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
+import { Panel } from '../../components/ui/Panel'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { IconBox } from '../../components/ui/IconBox'
-import { C, S, FS, BW, R } from '../../styles/tokens'
+import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { UPLOADED_FILES, UPLOAD_MODULE_OPTIONS, ACCEPTED_FILE_TYPES, type UploadedFile } from './mockData'
 
 const TYPE_COLOR: Record<UploadedFile['type'], string> = {
@@ -16,28 +17,93 @@ const TYPE_COLOR: Record<UploadedFile['type'], string> = {
 }
 
 const STATUS_CONFIG: Record<UploadedFile['status'], { label: string; bg: string }> = {
-  ready:      { label: 'READY',       bg: C.green    },
-  processing: { label: 'PROCESSING',  bg: C.yellow   },
-  error:      { label: 'ERROR',       bg: C.red      },
+  ready:      { label: 'READY',      bg: C.green  },
+  processing: { label: 'PROCESSING', bg: C.yellow },
+  error:      { label: 'ERROR',      bg: C.red    },
+}
+
+function ModuleSelect({ value, options, onChange }: {
+  value: string
+  options: string[]
+  onChange: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: S[2],
+          padding: `${S[2.5]} ${S[3]}`,
+          border: `${BW.base} solid ${C.ink}`,
+          borderRadius: R.base,
+          background: C.paper,
+          cursor: 'pointer',
+          fontFamily: "'Archivo Black', sans-serif",
+          fontSize: FS.sm,
+          color: C.ink,
+          boxShadow: mkShadow(),
+          userSelect: 'none',
+        }}
+      >
+        <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {value}
+        </span>
+        <span style={{ fontSize: FS.xs, flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+      </div>
+
+      {open && (
+        <div style={{
+          position: 'absolute',
+          top: `calc(100% + ${S[1]})`,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: C.paper,
+          border: `${BW.base} solid ${C.ink}`,
+          borderRadius: R.base,
+          boxShadow: mkShadow('lg'),
+          overflow: 'hidden',
+        }}>
+          {options.map((opt, i) => (
+            <div
+              key={opt}
+              onClick={() => { onChange(opt); setOpen(false) }}
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              style={{
+                padding: `${S[2.5]} ${S[3]}`,
+                cursor: 'pointer',
+                fontFamily: "'Archivo Black', sans-serif",
+                fontSize: FS.sm,
+                color: C.ink,
+                background: opt === value ? C.yellow : hoveredIndex === i ? C.yellowLt : 'transparent',
+                borderBottom: i < options.length - 1 ? `1.5px solid ${C.divider}` : 'none',
+              }}
+            >
+              {opt}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function FileRow({ file }: { file: UploadedFile }) {
   const status = STATUS_CONFIG[file.status]
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: S[3],
-      padding: `${S[2]} ${S[3]}`,
-      background: C.cream,
-      border: `${BW.base} solid ${C.ink}`,
-      borderRadius: R.sm,
-    }}>
+    <ComicBox bg={C.cream} p={S[2]} style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
       <div style={{
         width: 36, height: 36,
         background: TYPE_COLOR[file.type],
         border: `${BW.base} solid ${C.ink}`,
-        borderRadius: R.sm,
+        borderRadius: R.base,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
       }}>
@@ -61,9 +127,9 @@ function FileRow({ file }: { file: UploadedFile }) {
       <Tag label={status.label} bg={status.bg} />
 
       <div onClick={e => e.stopPropagation()}>
-        <ComicBtn sm color={C.redLt}>✕</ComicBtn>
+        <ComicBtn sm color={C.redLt} style={{ width: '2rem', height: '2rem', padding: 0, justifyContent: 'center', fontSize: FS.md, lineHeight: 1 }}>✕</ComicBtn>
       </div>
-    </div>
+    </ComicBox>
   )
 }
 
@@ -76,7 +142,6 @@ export function ProfessorUpload() {
       <Topbar
         title="UPLOAD"
         subtitle={`${UPLOADED_FILES.length} files uploaded · add PDFs, videos or audio to your modules`}
-        actions={<Tag label={`ACCEPTED: ${ACCEPTED_FILE_TYPES.join(' ')}`} bg={C.cream} />}
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: S[4], alignItems: 'start' }}>
@@ -85,7 +150,11 @@ export function ProfessorUpload() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
           {/* Drop zone */}
-          <ComicBox bg={dragOver ? C.yellowLt : C.paper} p={S[6]}>
+          <Panel
+            title="DROP FILES HERE"
+            accent={C.yellow}
+            action={<Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} />}
+          >
             <div
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
@@ -94,6 +163,7 @@ export function ProfessorUpload() {
                 border: `2px dashed ${dragOver ? C.yellow : C.muted}`,
                 borderRadius: R.base,
                 padding: S[8],
+                background: dragOver ? C.yellowLt : 'transparent',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -120,75 +190,40 @@ export function ProfessorUpload() {
                 ))}
               </div>
             </div>
-          </ComicBox>
+          </Panel>
 
           {/* Module selector + submit */}
-          <ComicBox bg={C.paper} p={S[4]}>
+          <Panel
+            title="ASSIGN TO MODULE"
+            accent={C.cyan}
+            action={<Tag label="SELECT" bg={C.cyanLt} />}
+          >
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-              <div style={{
-                fontFamily: "'Archivo Black', sans-serif",
-                fontSize: FS.sm,
-                color: C.ink,
-                letterSpacing: '0.05em',
-              }}>
-                ASSIGN TO MODULE
-              </div>
-              <select
+              <ModuleSelect
                 value={selectedModule}
-                onChange={e => setSelectedModule(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: `${S[2]} ${S[3]}`,
-                  border: `${BW.base} solid ${C.ink}`,
-                  borderRadius: R.sm,
-                  background: C.cream,
-                  fontFamily: "'Archivo Black', sans-serif",
-                  fontSize: FS.sm,
-                  color: C.ink,
-                  outline: 'none',
-                  cursor: 'pointer',
-                  boxShadow: `2px 2px 0 ${C.ink}`,
-                }}
-              >
-                {UPLOAD_MODULE_OPTIONS.map(m => (
-                  <option key={m} value={m}>{m}</option>
-                ))}
-              </select>
+                options={UPLOAD_MODULE_OPTIONS}
+                onChange={setSelectedModule}
+              />
               <ComicBtn color={C.yellow} style={{ width: '100%', justifyContent: 'center' }}>
                 UPLOAD FILES
               </ComicBtn>
             </div>
-          </ComicBox>
+          </Panel>
 
         </div>
 
         {/* Right — recent uploads */}
-        <ComicBox bg={C.paper} p={S[4]}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: S[3],
-          }}>
-            <div style={{
-              fontFamily: "'Archivo Black', sans-serif",
-              fontSize: FS.sm,
-              letterSpacing: '0.05em',
-              color: C.ink,
-            }}>
-              RECENT UPLOADS
-            </div>
-            <div style={{ fontSize: FS.xs, color: C.muted, fontWeight: 700 }}>
-              {UPLOADED_FILES.length} files
-            </div>
-          </div>
-
+        <Panel
+          title="RECENT UPLOADS"
+          accent={C.purple}
+          action={<Tag label={`${UPLOADED_FILES.length} FILES`} bg={C.purpleLt} />}
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
             {UPLOADED_FILES.map(file => (
               <FileRow key={file.id} file={file} />
             ))}
           </div>
-        </ComicBox>
+        </Panel>
 
       </div>
     </div>
