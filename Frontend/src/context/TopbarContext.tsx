@@ -27,6 +27,7 @@ export function TopbarProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTopbarContext() {
   return useContext(TopbarContext)
 }
