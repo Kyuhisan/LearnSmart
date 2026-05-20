@@ -16,7 +16,7 @@ interface ProfHeroProps {
 
 export function ProfHero({ username, isTeacher, onSignOut, level, learningType, streak, onRetakeVark }: ProfHeroProps) {
   return (
-    <ComicBox bg={C.cyan} p={S[5]}>
+    <ComicBox bg={C.cyan} p={S[5]} style={{ paddingLeft: S[8], paddingRight: S[8] }}>
 
       {/* Dot pattern overlay */}
       <div style={{
@@ -34,8 +34,8 @@ export function ProfHero({ username, isTeacher, onSignOut, level, learningType, 
 
         {/* Avatar */}
         <div style={{
-          width: '4.5rem',
-          height: '4.5rem',
+          width: '7rem',
+          height: '7rem',
           borderRadius: '50%',
           background: C.ink,
           border: `${BW.base} solid ${C.ink}`,
@@ -45,7 +45,7 @@ export function ProfHero({ username, isTeacher, onSignOut, level, learningType, 
           justifyContent: 'center',
           color: C.yellow,
           fontFamily: "'Archivo Black', sans-serif",
-          fontSize: FS['4xl'],
+          fontSize: FS['7xl'],
           flexShrink: 0,
         }}>
           {username?.[0]?.toUpperCase()}
@@ -57,8 +57,8 @@ export function ProfHero({ username, isTeacher, onSignOut, level, learningType, 
           <div style={{ display: 'flex', gap: S[1.5], flexWrap: 'wrap' }}>
             {isTeacher ? (
               <>
-                <Tag label="EDUCATOR" bg={C.paper} />
-                <Tag label="4 MODULES" bg={C.paper} />
+                <Tag label="EDUCATOR" bg={C.purpleLt} />
+                <Tag label="4 MODULES" bg={C.cyanLt} />
               </>
             ) : (
               <>
