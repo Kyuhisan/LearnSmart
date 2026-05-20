@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tag } from "../../components/ui/Tag";
+import { ComicBox } from "../../components/ui/ComicBox";
 import { ComicBtn } from "../../components/ui/ComicBtn";
 import { Topbar } from "../../components/ui/Topbar";
-import { C, S } from "../../styles/tokens";
+import { C, S, FS, BW, R, mkShadow } from "../../styles/tokens";
 import { PROF_CATEGORIES } from "./mockData";
 import { getModuliUcitelj, izbrisiModul, objaviModul } from "./moduleApi";
 import { useAuth } from "../../context/AuthContext";
@@ -11,7 +12,21 @@ import { EditModuleModal } from "./EditModuleModal";
 import { NewModuleModal } from "./NewModulModal";
 import "../../styles/moduleLibrary.css";
 
-const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red];
+const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
+
+const MOCK_CATEGORIES = ['CORE', 'MATH', 'HANDS-ON', 'ADVANCED', 'THEORY']
+const CATEGORY_COLORS: Record<string, string> = {
+  CORE:       C.cyanLt,
+  ADVANCED:   C.purpleLt,
+  THEORY:     C.greenLt,
+  MATH:       C.yellowLt,
+  'HANDS-ON': C.pinkLt,
+}
+const STAR_LABELS: Record<number, string> = { 1:'★', 2:'★★', 3:'★★★', 4:'★★★★', 5:'★★★★★' }
+
+function getCategory(index: number): string {
+  return MOCK_CATEGORIES[index % MOCK_CATEGORIES.length]
+}
 
 interface BackendModul {
   id: string;
@@ -53,49 +68,129 @@ function ConfirmDialog({
 }
 
 function ProfModuleCard({
-  mod, color, onIzbrisi, onObjavi, onUredi,
+  mod, color, index, onIzbrisi, onObjavi, onUredi,
 }: {
   mod: BackendModul;
   color: string;
+  index: number;
   onIzbrisi: (e: React.MouseEvent, id: string) => void;
   onObjavi: (e: React.MouseEvent, id: string) => void;
   onUredi: (e: React.MouseEvent, mod: BackendModul) => void;
 }) {
   const navigate = useNavigate();
+  const category = getCategory(index);
 
   return (
-    <div className="module-card" style={{ background: color }}
-      onClick={() => navigate(`/modules/${mod.id}`)}>
-      <div className="module-card-top">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: S[2] }}>
-          <Tag label={`⭐ ${mod.tezavnost ?? "-"}`} bg="rgba(255,255,255,0.5)" />
-          <Tag
-            label={mod.jeObjavljen ? "● LIVE" : "○ DRAFT"}
-            bg={mod.jeObjavljen ? C.green : C.muted}
-          />
+    <ComicBox p={0} onClick={() => navigate(`/modules/${mod.id}`)} hoverBg={C.yellowLt}
+      style={{ display: 'flex', flexDirection: 'column' }}>
+
+      {/* Status stamp — inside ComicBox so it moves with hover translate */}
+      <div style={{
+        position: 'absolute', top: -10, right: -10, zIndex: 1,
+        background: mod.jeObjavljen ? C.green : C.mutedLt,
+        border: `${BW.base} solid ${C.ink}`,
+        borderRadius: R.sm,
+        padding: `${S[1]} ${S[3]}`,
+        fontFamily: "'Archivo Black', sans-serif",
+        fontSize: FS.sm,
+        color: C.ink,
+        boxShadow: mkShadow('base'),
+        transform: 'rotate(8deg)',
+      }}>
+        {mod.jeObjavljen ? 'LIVE' : 'DRAFT'}
+      </div>
+
+      {/* Colored header — explicit top-radius since no overflow:hidden */}
+      <div style={{
+        background: color,
+        borderBottom: `1px solid ${C.ink}`,
+        borderTopLeftRadius: R.sm, borderTopRightRadius: R.sm,
+        padding: S[3], paddingTop: S[5],
+        display: 'flex', flexDirection: 'column', gap: S[2],
+      }}>
+        {/* Stars + category tags */}
+        <div style={{ display: 'flex', gap: S[1.5], alignSelf: 'flex-start' }}>
+          <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+          <Tag label={category} bg={CATEGORY_COLORS[category]} />
         </div>
-        <div className="module-card-title">{mod.naziv}</div>
-        <div className="module-card-meta">
-          {mod.opis ?? ""} <br />
-          {mod.uciteljImePriimek}
+
+        {/* Title */}
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink, lineHeight: 1.25, wordBreak: 'break-word' }}>
+          {mod.naziv}
+        </div>
+
+        {/* Meta */}
+        <div style={{ fontSize: FS.sm, color: C.ink, opacity: 0.7 }}>
+          Prof. {mod.uciteljImePriimek}
         </div>
       </div>
-      <div className="module-card-bottom" style={{ display: "flex", flexDirection: "column", gap: S[2] }}>
-        <div style={{ display: "flex", alignItems: "center", gap: S[2] }}>
-          <div onClick={(e) => onUredi(e, mod)}>
-            <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
+
+      {/* White footer — actions, right-aligned */}
+      <div style={{
+        background: C.paper,
+        borderBottomLeftRadius: R.sm, borderBottomRightRadius: R.sm,
+        padding: `${S[2.5]} ${S[3]}`,
+        display: 'flex', justifyContent: 'flex-end', gap: S[2], flexShrink: 0,
+      }} onClick={(e) => e.stopPropagation()}>
+        {!mod.jeObjavljen && (
+          <div onClick={(e) => onObjavi(e, mod.id)}><ComicBtn sm color={C.green}>PUBLISH</ComicBtn></div>
+        )}
+        <div onClick={(e) => onUredi(e, mod)}><ComicBtn sm color={C.yellow}>EDIT</ComicBtn></div>
+        <div onClick={(e) => onIzbrisi(e, mod.id)}><ComicBtn sm color={C.red}>DELETE</ComicBtn></div>
+      </div>
+    </ComicBox>
+  );
+}
+
+function ProfModuleListRow({
+  mod, color, index, onIzbrisi, onObjavi, onUredi,
+}: {
+  mod: BackendModul;
+  color: string;
+  index: number;
+  onIzbrisi: (e: React.MouseEvent, id: string) => void;
+  onObjavi: (e: React.MouseEvent, id: string) => void;
+  onUredi: (e: React.MouseEvent, mod: BackendModul) => void;
+}) {
+  const navigate = useNavigate();
+  const category = getCategory(index);
+
+  return (
+    <ComicBox p={0} onClick={() => navigate(`/modules/${mod.id}`)} hoverBg={C.yellowLt}
+      style={{ display: 'flex', alignItems: 'stretch', overflow: 'hidden' }}>
+
+      {/* Left color stripe */}
+      <div style={{ width: 8, background: color, flexShrink: 0 }} />
+
+      {/* Main content */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}` }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, lineHeight: 1.3 }}>
+            {mod.naziv}
           </div>
-          {!mod.jeObjavljen && (
-            <div onClick={(e) => onObjavi(e, mod.id)}>
-              <ComicBtn sm color={C.green}>PUBLISH</ComicBtn>
-            </div>
-          )}
-          <div onClick={(e) => onIzbrisi(e, mod.id)}>
-            <ComicBtn sm color={C.red}>DELETE</ComicBtn>
+          <div style={{ fontSize: FS.sm, color: C.muted, marginTop: S[0.5] }}>Prof. {mod.uciteljImePriimek}</div>
+        </div>
+
+        {/* Tags */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
+          <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+          <Tag label={category} bg={CATEGORY_COLORS[category]} />
+          <Tag label={mod.jeObjavljen ? '● LIVE' : '○ DRAFT'} bg={mod.jeObjavljen ? C.green : C.mutedLt} />
+        </div>
+
+        {/* Divider */}
+        <div style={{ width: BW.base, alignSelf: 'stretch', background: C.divider }} />
+
+        {/* Actions — fixed width matching 3-button layout */}
+        <div style={{ display: 'flex', gap: S[2] }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ visibility: mod.jeObjavljen ? 'hidden' : 'visible' }} onClick={(e) => !mod.jeObjavljen && onObjavi(e, mod.id)}>
+            <ComicBtn sm color={C.green}>PUBLISH</ComicBtn>
           </div>
+          <div onClick={(e) => onUredi(e, mod)}><ComicBtn sm color={C.yellow}>EDIT</ComicBtn></div>
+          <div onClick={(e) => onIzbrisi(e, mod.id)}><ComicBtn sm color={C.red}>DELETE</ComicBtn></div>
         </div>
       </div>
-    </div>
+    </ComicBox>
   );
 }
 
@@ -108,6 +203,7 @@ export function ProfessorModules() {
   const [initialized, setInitialized] = useState(false);
   const [editMod, setEditMod] = useState<BackendModul | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [view, setView] = useState<'grid' | 'list'>('grid');
 
   const nalozi = useCallback(async () => {
     if (!session?.access_token) return;
@@ -120,6 +216,11 @@ export function ProfessorModules() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     nalozi();
   }, [nalozi]);
+
+  const getCategoryCount = (cat: string): number => {
+    if (cat === 'ALL') return moduli.length
+    return moduli.filter((_, i) => getCategory(i) === cat).length
+  }
 
   const handleIzbrisi = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -144,9 +245,11 @@ export function ProfessorModules() {
     setEditMod(mod);
   };
 
-  const filtered = moduli.filter((m) =>
-    m.naziv.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = moduli.filter((m, i) => {
+    const matchesSearch = m.naziv.toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = activeCategory === 'ALL' || getCategory(i) === activeCategory
+    return matchesSearch && matchesCategory
+  });
 
   const published = moduli.filter((m) => m.jeObjavljen).length;
   const draft = moduli.filter((m) => !m.jeObjavljen).length;
@@ -175,6 +278,10 @@ export function ProfessorModules() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          <div className="modules-view-toggle">
+            <button className={`modules-view-btn ${view === 'grid' ? 'active' : ''}`} onClick={() => setView('grid')}>▪▪</button>
+            <button className={`modules-view-btn ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')}>≡</button>
+          </div>
         </div>
         <div className="modules-filter-row">
           <div className="modules-filters">
@@ -184,14 +291,14 @@ export function ProfessorModules() {
                 onClick={() => setActiveCategory(cat)}
                 className={`modules-filter-btn ${activeCategory === cat ? "active" : ""}`}
               >
-                {cat}
+                {cat} <span className="modules-filter-count">{getCategoryCount(cat)}</span>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="modules-grid">
+      <div className={view === 'grid' ? 'modules-grid' : 'modules-list'}>
         {filtered.length === 0 ? (
           <div className="modules-empty">
             NO MODULES YET —{" "}
@@ -200,16 +307,11 @@ export function ProfessorModules() {
             </span>
           </div>
         ) : (
-          filtered.map((mod, i) => (
-            <ProfModuleCard
-              key={mod.id}
-              mod={mod}
-              color={COLORS[i % COLORS.length]}
-              onIzbrisi={handleIzbrisi}
-              onObjavi={handleObjavi}
-              onUredi={handleUredi}
-            />
-          ))
+          filtered.map((mod, i) =>
+            view === 'grid'
+              ? <ProfModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} onIzbrisi={handleIzbrisi} onObjavi={handleObjavi} onUredi={handleUredi} />
+              : <ProfModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} onIzbrisi={handleIzbrisi} onObjavi={handleObjavi} onUredi={handleUredi} />
+          )
         )}
       </div>
 
