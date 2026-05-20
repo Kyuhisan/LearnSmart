@@ -6,6 +6,7 @@ import { Topbar } from '../../components/ui/Topbar'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { getModuliJavni } from './moduleApi'
+import { Panel } from '../../components/ui/Panel'
 import '../../styles/moduleLibrary.css'
 
 const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
@@ -109,17 +110,24 @@ function ModuleCard({ mod, color, index }: { mod: BackendModul; color: string; i
 
 function ModuleListRow({ mod, color, index }: { mod: BackendModul; color: string; index: number }) {
   const navigate = useNavigate()
+  const [hovered, setHovered] = useState(false)
   const category = getCategory(index)
 
   return (
-    <ComicBox p={0} onClick={() => navigate(`/modules/${mod.id}`)} hoverBg={C.yellowLt}
-      style={{ display: 'flex', alignItems: 'stretch', overflow: 'hidden' }}>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => navigate(`/modules/${mod.id}`)}
+      style={{ cursor: 'pointer', transform: hovered ? 'translate(-2px, -4px) scale(1.01)' : 'none', transition: 'transform 0.1s ease' }}
+    >
+      <ComicBox p={0} shadowSize={hovered ? 'lg' : 'base'}
+        style={{ display: 'flex', alignItems: 'stretch' }}>
 
-      {/* Left color stripe */}
-      <div style={{ width: 8, background: color, flexShrink: 0 }} />
+        {/* Left color stripe */}
+        <div style={{ width: 8, background: color, flexShrink: 0, borderTopLeftRadius: R.sm, borderBottomLeftRadius: R.sm }} />
 
-      {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}` }}>
+        {/* Main content */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}`, background: hovered ? C.yellowLt : C.paper, transition: 'background 0.12s ease', borderTopRightRadius: R.sm, borderBottomRightRadius: R.sm }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, lineHeight: 1.3 }}>
             {mod.naziv}
@@ -141,12 +149,59 @@ function ModuleListRow({ mod, color, index }: { mod: BackendModul; color: string
           <div style={{ flex: 1 }}><Bar value={0} color={C.mutedLt} /></div>
           <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.ink, flexShrink: 0 }}>0%</span>
         </div>
-      </div>
-    </ComicBox>
+        </div>
+      </ComicBox>
+    </div>
   )
 }
 
 const STUDENT_CATEGORIES = ['ALL', ...MOCK_CATEGORIES]
+
+function SkeletonCard({ color }: { color: string }) {
+  return (
+    <div className="skeleton-pulse"><ComicBox p={0} style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: color, opacity: 0.45, borderBottom: `1px solid ${C.ink}`, borderTopLeftRadius: R.sm, borderTopRightRadius: R.sm, padding: S[3], paddingTop: S[5], display: 'flex', flexDirection: 'column', gap: S[2] }}>
+        <div style={{ display: 'flex', gap: S[1.5] }}>
+          <div style={{ width: 32, height: 18, background: C.ink, opacity: 0.2, borderRadius: R.sm }} />
+          <div style={{ width: 56, height: 18, background: C.ink, opacity: 0.2, borderRadius: R.sm }} />
+        </div>
+        <div style={{ height: 22, background: C.ink, opacity: 0.15, borderRadius: R.sm, width: '75%' }} />
+        <div style={{ height: 22, background: C.ink, opacity: 0.15, borderRadius: R.sm, width: '50%' }} />
+        <div style={{ height: 13, background: C.ink, opacity: 0.1, borderRadius: R.sm, width: '55%' }} />
+      </div>
+      <div style={{ background: C.paper, borderBottomLeftRadius: R.sm, borderBottomRightRadius: R.sm, padding: `${S[2.5]} ${S[3]}`, display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ width: 80, height: 12, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 28, height: 12, background: C.mutedLt, borderRadius: R.sm }} />
+        </div>
+        <div style={{ height: 6, background: C.mutedLt, borderRadius: R.sm }} />
+      </div>
+    </ComicBox></div>
+  )
+}
+
+function SkeletonRow({ color }: { color: string }) {
+  return (
+    <div className="skeleton-pulse"><ComicBox p={0} style={{ display: 'flex', alignItems: 'stretch' }}>
+      <div style={{ width: 8, background: color, opacity: 0.45, flexShrink: 0, borderTopLeftRadius: R.sm, borderBottomLeftRadius: R.sm }} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}`, borderTopRightRadius: R.sm, borderBottomRightRadius: R.sm }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ height: 16, background: C.mutedLt, borderRadius: R.sm, width: '55%' }} />
+          <div style={{ height: 12, background: C.divider, borderRadius: R.sm, width: '35%', marginTop: S[0.5] }} />
+        </div>
+        <div style={{ display: 'flex', gap: S[1.5] }}>
+          <div style={{ width: 36, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 56, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+        </div>
+        <div style={{ width: 1, alignSelf: 'stretch', background: C.divider }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2], minWidth: 140 }}>
+          <div style={{ flex: 1, height: 6, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 24, height: 12, background: C.mutedLt, borderRadius: R.sm }} />
+        </div>
+      </div>
+    </ComicBox></div>
+  )
+}
 
 export function StudentModules() {
   const [moduli, setModuli] = useState<BackendModul[]>([])
@@ -172,8 +227,6 @@ export function StudentModules() {
     const matchesCategory = activeCategory === 'ALL' || getCategory(i) === activeCategory
     return matchesSearch && matchesCategory
   })
-
-  if (loading) return <div>loading...</div>
 
   return (
     <div className="dashboard-main">
@@ -209,13 +262,27 @@ export function StudentModules() {
         </div>
       </div>
 
-      <div className={view === 'grid' ? 'modules-grid' : 'modules-list'}>
-        {filtered.map((mod, i) =>
-          view === 'grid'
-            ? <ModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} />
-            : <ModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} />
-        )}
-      </div>
+      {view === 'grid' ? (
+        <div className="modules-grid">
+          {loading
+            ? COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
+            : filtered.map((mod, i) => (
+                <ModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} />
+              ))
+          }
+        </div>
+      ) : (
+        <Panel title={loading ? '— MODULES' : `${filtered.length} MODULES`} accent={C.yellow} p={S[3]}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+            {loading
+              ? COLORS.map((color, i) => <SkeletonRow key={i} color={color} />)
+              : filtered.map((mod, i) => (
+                  <ModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} />
+                ))
+            }
+          </div>
+        </Panel>
+      )}
     </div>
   )
 }

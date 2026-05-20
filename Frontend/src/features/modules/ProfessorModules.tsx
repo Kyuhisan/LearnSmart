@@ -10,6 +10,7 @@ import { getModuliUcitelj, izbrisiModul, objaviModul } from "./moduleApi";
 import { useAuth } from "../../context/AuthContext";
 import { EditModuleModal } from "./EditModuleModal";
 import { NewModuleModal } from "./NewModulModal";
+import { Panel } from "../../components/ui/Panel";
 import "../../styles/moduleLibrary.css";
 
 const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
@@ -153,17 +154,24 @@ function ProfModuleListRow({
   onUredi: (e: React.MouseEvent, mod: BackendModul) => void;
 }) {
   const navigate = useNavigate();
+  const [hovered, setHovered] = useState(false);
   const category = getCategory(index);
 
   return (
-    <ComicBox p={0} onClick={() => navigate(`/modules/${mod.id}`)} hoverBg={C.yellowLt}
-      style={{ display: 'flex', alignItems: 'stretch', overflow: 'hidden' }}>
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => navigate(`/modules/${mod.id}`)}
+      style={{ cursor: 'pointer', transform: hovered ? 'translate(-2px, -4px) scale(1.01)' : 'none', transition: 'transform 0.1s ease' }}
+    >
+      <ComicBox p={0} shadowSize={hovered ? 'lg' : 'base'}
+        style={{ display: 'flex', alignItems: 'stretch' }}>
 
-      {/* Left color stripe */}
-      <div style={{ width: 8, background: color, flexShrink: 0 }} />
+        {/* Left color stripe */}
+        <div style={{ width: 8, background: color, flexShrink: 0, borderTopLeftRadius: R.sm, borderBottomLeftRadius: R.sm }} />
 
-      {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}` }}>
+        {/* Main content */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}`, background: hovered ? C.yellowLt : C.paper, transition: 'background 0.12s ease', borderTopRightRadius: R.sm, borderBottomRightRadius: R.sm }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, lineHeight: 1.3 }}>
             {mod.naziv}
@@ -189,18 +197,65 @@ function ProfModuleListRow({
           <div onClick={(e) => onUredi(e, mod)}><ComicBtn sm color={C.yellow}>EDIT</ComicBtn></div>
           <div onClick={(e) => onIzbrisi(e, mod.id)}><ComicBtn sm color={C.red}>DELETE</ComicBtn></div>
         </div>
-      </div>
-    </ComicBox>
+        </div>
+      </ComicBox>
+    </div>
   );
+}
+
+function SkeletonCard({ color }: { color: string }) {
+  return (
+    <div className="skeleton-pulse"><ComicBox p={0} style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: color, opacity: 0.45, borderBottom: `1px solid ${C.ink}`, borderTopLeftRadius: R.sm, borderTopRightRadius: R.sm, padding: S[3], paddingTop: S[5], display: 'flex', flexDirection: 'column', gap: S[2] }}>
+        <div style={{ display: 'flex', gap: S[1.5] }}>
+          <div style={{ width: 32, height: 18, background: C.ink, opacity: 0.2, borderRadius: R.sm }} />
+          <div style={{ width: 56, height: 18, background: C.ink, opacity: 0.2, borderRadius: R.sm }} />
+        </div>
+        <div style={{ height: 22, background: C.ink, opacity: 0.15, borderRadius: R.sm, width: '75%' }} />
+        <div style={{ height: 22, background: C.ink, opacity: 0.15, borderRadius: R.sm, width: '50%' }} />
+        <div style={{ height: 13, background: C.ink, opacity: 0.1, borderRadius: R.sm, width: '55%' }} />
+      </div>
+      <div style={{ background: C.paper, borderBottomLeftRadius: R.sm, borderBottomRightRadius: R.sm, padding: `${S[2.5]} ${S[3]}`, display: 'flex', justifyContent: 'flex-end', gap: S[2] }}>
+        <div style={{ width: 70, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+        <div style={{ width: 42, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+        <div style={{ width: 58, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+      </div>
+    </ComicBox></div>
+  )
+}
+
+function SkeletonRow({ color }: { color: string }) {
+  return (
+    <div className="skeleton-pulse"><ComicBox p={0} style={{ display: 'flex', alignItems: 'stretch' }}>
+      <div style={{ width: 8, background: color, opacity: 0.45, flexShrink: 0, borderTopLeftRadius: R.sm, borderBottomLeftRadius: R.sm }} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[4], padding: `${S[3]} ${S[4]}`, borderTopRightRadius: R.sm, borderBottomRightRadius: R.sm }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ height: 16, background: C.mutedLt, borderRadius: R.sm, width: '55%' }} />
+          <div style={{ height: 12, background: C.divider, borderRadius: R.sm, width: '35%', marginTop: S[0.5] }} />
+        </div>
+        <div style={{ display: 'flex', gap: S[1.5] }}>
+          <div style={{ width: 36, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 56, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 48, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+        </div>
+        <div style={{ width: 1, alignSelf: 'stretch', background: C.divider }} />
+        <div style={{ display: 'flex', gap: S[2] }}>
+          <div style={{ width: 70, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 42, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+          <div style={{ width: 58, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+        </div>
+      </div>
+    </ComicBox></div>
+  )
 }
 
 export function ProfessorModules() {
   const { session } = useAuth();
   const [moduli, setModuli] = useState<BackendModul[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newModul, setNewModul] = useState(false);
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [initialized, setInitialized] = useState(false);
   const [editMod, setEditMod] = useState<BackendModul | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -209,7 +264,7 @@ export function ProfessorModules() {
     if (!session?.access_token) return;
     const data = await getModuliUcitelj(session.access_token);
     setModuli(data);
-    setInitialized(true);
+    setLoading(false);
   }, [session]);
 
   useEffect(() => {
@@ -254,8 +309,6 @@ export function ProfessorModules() {
   const published = moduli.filter((m) => m.jeObjavljen).length;
   const draft = moduli.filter((m) => !m.jeObjavljen).length;
 
-  if (!initialized) return <div>Nalagam...</div>;
-
   return (
     <div className="dashboard-main">
       <Topbar
@@ -298,22 +351,43 @@ export function ProfessorModules() {
         </div>
       </div>
 
-      <div className={view === 'grid' ? 'modules-grid' : 'modules-list'}>
-        {filtered.length === 0 ? (
-          <div className="modules-empty">
-            NO MODULES YET —{" "}
-            <span className="modules-empty-link" onClick={() => setNewModul(true)}>
-              CREATE NEW MODULE
-            </span>
+      {view === 'grid' ? (
+        <div className="modules-grid">
+          {loading ? (
+            COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
+          ) : filtered.length === 0 ? (
+            <div className="modules-empty">
+              NO MODULES YET —{" "}
+              <span className="modules-empty-link" onClick={() => setNewModul(true)}>
+                CREATE NEW MODULE
+              </span>
+            </div>
+          ) : (
+            filtered.map((mod, i) => (
+              <ProfModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} onIzbrisi={handleIzbrisi} onObjavi={handleObjavi} onUredi={handleUredi} />
+            ))
+          )}
+        </div>
+      ) : (
+        <Panel title={loading ? '— MODULES' : `${filtered.length} MODULES`} accent={C.yellow} p={S[3]}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+            {loading ? (
+              COLORS.map((color, i) => <SkeletonRow key={i} color={color} />)
+            ) : filtered.length === 0 ? (
+              <div className="modules-empty">
+                NO MODULES YET —{" "}
+                <span className="modules-empty-link" onClick={() => setNewModul(true)}>
+                  CREATE NEW MODULE
+                </span>
+              </div>
+            ) : (
+              filtered.map((mod, i) => (
+                <ProfModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} onIzbrisi={handleIzbrisi} onObjavi={handleObjavi} onUredi={handleUredi} />
+              ))
+            )}
           </div>
-        ) : (
-          filtered.map((mod, i) =>
-            view === 'grid'
-              ? <ProfModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} onIzbrisi={handleIzbrisi} onObjavi={handleObjavi} onUredi={handleUredi} />
-              : <ProfModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} onIzbrisi={handleIzbrisi} onObjavi={handleObjavi} onUredi={handleUredi} />
-          )
-        )}
-      </div>
+        </Panel>
+      )}
 
       {editMod && (
         <EditModuleModal
