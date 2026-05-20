@@ -82,7 +82,7 @@ public class StorageService {
         return supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
     }
 
-    public String upload(MultipartFile file, UUID predmetId) throws Exception {
+    public String upload(MultipartFile file, UUID predmetId) throws IOException {
         validateFile(file);
         String bucket = resolveBucket(file.getContentType());
         String path = buildPath(file, predmetId);
