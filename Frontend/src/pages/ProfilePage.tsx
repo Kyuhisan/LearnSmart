@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
+import { AppHeader } from '../components/ui/AppHeader'
 import { StudentProfile } from '../features/profile/StudentProfile'
 import { ProfessorProfile } from '../features/profile/ProfessorProfile'
 
@@ -14,9 +15,12 @@ export function ProfilePage() {
   )
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar vloga={profil.vloga} username={profil.username} />
-      {profil.vloga === 'ucitelj' ? <ProfessorProfile /> : <StudentProfile />}
+    <div className="app-shell">
+      <AppHeader />
+      <div className="app-body">
+        <Sidebar vloga={profil.vloga} username={profil.username} />
+        {profil.vloga === 'ucitelj' ? <ProfessorProfile /> : <StudentProfile />}
+      </div>
     </div>
   )
 }

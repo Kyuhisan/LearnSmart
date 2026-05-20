@@ -44,9 +44,11 @@ body {
   --ls-redLt:    #fae3df;
   --ls-purpleLt: #ebe5f3;
   --ls-pinkLt:   #f5dfeb;
+  --ls-orange:   #e8a570;
   --ls-orangeLt: #fae5d3;
   --ls-dot-bg:   radial-gradient(var(--ls-divider) 1px, transparent 1px);
   --ls-dot-size: 20px 20px;
+  --ls-header-h: 5rem;
   --ls-radius-sm:   0.1875rem;
   --ls-radius-base: 0.375rem;
   --ls-radius-md:   0.5rem;

@@ -39,11 +39,9 @@
 .students-search {
   flex: 1;
   min-width: 240px;
-  height: 42px;
-  padding: 0 1rem;
+  padding: 0.5rem 1rem;
   outline: none;
-  font-size: 0.8125rem;
-
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
@@ -52,15 +50,6 @@
   align-items: center;
   gap: 0.375rem;
   flex-wrap: wrap;
-}
-
-/* CARD HEADER */
-
-.students-card-header {
-  padding: 0.75rem 1rem;
-  letter-spacing: 0.05em;
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 0.875rem;
 }
 
 /* ROWS WRAPPER */
@@ -76,10 +65,6 @@
 
 .student-row-hover {
   cursor: pointer;
-}
-
-.student-row-hover {
-  cursor: pointer;
   transition: transform 0.1s ease;
 }
 
@@ -87,12 +72,7 @@
   transform: translate(-2px, -4px) scale(1.01);
 }
 
-.student-row-hover:hover > div {
-  background: var(--hover-bg) !important;
-  box-shadow: 2px 4px 0 var(--ls-ink) !important;
-}
-
-/* STUDENT ROW INNER (ComicBox content) */
+/* STUDENT ROW INNER */
 
 .student-row-inner {
   display: flex;
@@ -100,7 +80,16 @@
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  background: var(--ls-paper);
+  border: 2px solid var(--ls-ink);
+  border-radius: var(--ls-radius-base);
+  box-shadow: var(--ls-shadow-base);
+  transition: background 0.1s ease, box-shadow 0.1s ease;
+}
+
+.student-row-hover:hover .student-row-inner {
+  background: var(--hover-bg);
+  box-shadow: 2px 4px 0 var(--ls-ink);
 }
 
 /* AVATAR */

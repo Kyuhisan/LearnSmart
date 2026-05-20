@@ -1,9 +1,9 @@
 .sidebar {
   width: 220px;
-  height: 100vh;
+  height: calc(100vh - var(--ls-header-h));
   position: sticky;
-  top: 0;
-  background-color: var(--ls-yellow);
+  top: var(--ls-header-h);
+  background-color: var(--ls-cream);
   border-right: 3px solid var(--ls-ink);
   display: flex;
   flex-direction: column;
@@ -11,27 +11,7 @@
   overflow-y: auto;
 }
 
-.sidebar-logo {
-  padding: 1rem 0.75rem;
-  border-bottom: 2px solid var(--ls-ink);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--ls-yellow);
-}
-
-.sidebar-logo-text {
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 0.9rem;
-  color: var(--ls-ink);
-  line-height: 1;
-}
-
-.sidebar-logo-sub {
-  font-size: 0.625rem;
-  color: var(--ls-ink);
-  font-weight: bold;
-}
+/* NAV */
 
 .sidebar-nav {
   flex: 1;
@@ -72,6 +52,8 @@
   box-shadow: var(--ls-shadow-base);
 }
 
+/* USER */
+
 .sidebar-user {
   border-top: 2px solid var(--ls-ink);
   padding: 0.75rem;
@@ -80,10 +62,11 @@
   gap: 0.5rem;
   cursor: pointer;
   background: var(--ls-cyan);
+  transition: background 0.1s ease;
 }
 
 .sidebar-user:hover {
-  background: var(--ls-yellowLt);
+  background: var(--ls-cyan);
 }
 
 .sidebar-avatar {
@@ -101,6 +84,11 @@
   border: 2px solid var(--ls-ink);
 }
 
+.sidebar-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .sidebar-user-name {
   font-family: 'Archivo Black', sans-serif;
   font-size: 0.75rem;
@@ -113,4 +101,17 @@
   color: var(--ls-ink);
   font-family: 'Archivo Black', sans-serif;
   letter-spacing: 0.05em;
+}
+
+.sidebar-logout-icon {
+  color: var(--ls-ink);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color 0.1s ease;
+}
+
+.sidebar-logout-icon:hover {
+  color: var(--ls-orange);
 }

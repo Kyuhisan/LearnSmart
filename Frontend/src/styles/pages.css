@@ -266,9 +266,17 @@
 }
 
 /* ─── DASHBOARD / SHARED LAYOUT ──────────────────────────────── */
-.dashboard-layout {
-  display: flex;
+
+/* App shell: full-page column, header is fixed so no flex needed here */
+.app-shell {
   min-height: 100vh;
+}
+
+/* Body sits below the fixed AppHeader */
+.app-body {
+  display: flex;
+  margin-top: var(--ls-header-h);
+  min-height: calc(100vh - var(--ls-header-h));
 }
 
 .dashboard-main {

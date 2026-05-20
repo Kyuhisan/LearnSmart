@@ -1,89 +1,9 @@
 /* studentDetailPage.css — layout only */
 
 .student-detail-page {
-  /* width: 100%; */
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-/* TOPBAR */
-
-.student-detail-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  margin: -1.5rem -1.5rem 0 -1.5rem;
-}
-
-.student-detail-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.student-detail-topbar-name {
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 1.125rem;
-  line-height: 1;
-}
-
-.student-detail-topbar-meta {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8125rem;
-  margin: 0.2rem 0 0;
-}
-
-/* HERO */
-
-.student-detail-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 0.5rem;
-}
-
-.student-detail-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 1.75rem;
-}
-
-.student-detail-hero-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.student-detail-hero-tags {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.student-detail-name {
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 1.75rem;
-  line-height: 1.1;
-}
-
-.student-detail-stats-line {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8125rem;
-  margin: 0;
-}
-
-.student-detail-hero-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.25rem;
 }
 
 /* BOTTOM GRID */
@@ -92,15 +12,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-}
-
-/* PANEL HEADER (shared) */
-
-.student-detail-panel-header {
-  padding: 0.75rem 1rem;
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.07em;
 }
 
 /* QUIZ LIST */
@@ -157,7 +68,7 @@
 
 .student-detail-bit-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
 }
 
@@ -196,19 +107,5 @@
 @media (max-width: 768px) {
   .student-detail-grid {
     grid-template-columns: 1fr;
-  }
-
-  .student-detail-hero {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .student-detail-hero-tags {
-    justify-content: center;
-  }
-
-  .student-detail-hero-actions {
-    justify-content: center;
   }
 }
