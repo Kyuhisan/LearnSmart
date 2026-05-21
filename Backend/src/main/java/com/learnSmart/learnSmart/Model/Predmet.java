@@ -56,4 +56,6 @@ public class Predmet {
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
     private List<Vpis> vpisi;
 
+    @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+    private List<VsebinaPredmet> vsebinaPredmet;
 }
