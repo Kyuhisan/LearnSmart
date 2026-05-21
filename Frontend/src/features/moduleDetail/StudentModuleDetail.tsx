@@ -177,7 +177,7 @@ export function StudentModuleDetail() {
       <Topbar
         title={MODULE.title}
         subtitle={`${MODULE.subject} · ${MODULE.progress}% complete`}
-        back={() => navigate('/modules')}
+        back={() => navigate(-1)}
         actions={<ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>}
       />
 
