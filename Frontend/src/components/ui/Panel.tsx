@@ -26,6 +26,7 @@ export function Panel({
       border: `${BW.base} solid ${C.ink}`,
       boxShadow: mkShadow(),
       borderRadius: R.base,
+      overflow: 'hidden',
       ...style,
     }}>
       <div style={{
@@ -36,7 +37,6 @@ export function Panel({
         padding: `${S[2.5]} ${S[3.5]}`,
         background: accent,
         borderBottom: `${BW.base} solid ${C.ink}`,
-        borderRadius: `${R.base} ${R.base} 0 0`,
       }}>
         <div style={{
           fontFamily: "'Archivo Black', sans-serif",

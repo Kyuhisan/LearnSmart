@@ -40,7 +40,7 @@ export function ProfessorStudentDetail() {
       <Topbar
         title={student.fullName.toUpperCase()}
         subtitle={`Student profile · last active ${student.lastActive.toLowerCase()}`}
-        back={() => navigate('/students')}
+        back={() => navigate(-1)}
       />
       <div className="student-detail-page">
 
