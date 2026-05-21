@@ -77,6 +77,7 @@
 
 .module-detail-tab.active {
   box-shadow: var(--ls-shadow-base);
+  transform: none;
 }
 
 .module-detail-tabbar-right {
@@ -120,6 +121,7 @@
   background: var(--ls-navy);
   border: 2px solid var(--ls-ink);
   border-radius: var(--ls-radius-base);
+  box-shadow: var(--ls-shadow-lg);
   height: 280px;
   display: flex;
   flex-direction: column;
@@ -133,13 +135,19 @@
   height: 56px;
   background: var(--ls-yellow);
   border: 2px solid var(--ls-ink);
-  border-radius: var(--ls-radius-sm);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
   cursor: pointer;
   box-shadow: var(--ls-shadow-lg);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.module-detail-play:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--ls-shadow-xl);
 }
 
 .module-detail-video-label {
@@ -267,11 +275,17 @@
   height: 36px;
   background: var(--ls-yellow);
   border: 2px solid var(--ls-ink);
-  border-radius: var(--ls-radius-sm);
+  border-radius: 50%;
   cursor: pointer;
   font-size: 0.875rem;
   box-shadow: var(--ls-shadow-base);
   flex-shrink: 0;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.module-detail-play-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--ls-shadow-lg);
 }
 
 .module-detail-progress-bar {
@@ -307,6 +321,7 @@
   background: var(--ls-paper);
   border: 2px solid var(--ls-ink);
   border-radius: var(--ls-radius-sm);
+  box-shadow: var(--ls-shadow-base);
 }
 
 .module-detail-highlight-text {
@@ -342,14 +357,22 @@
   border-radius: var(--ls-radius-sm);
   cursor: pointer;
   background: var(--ls-paper);
-  transition: all 0.1s ease;
+  box-shadow: var(--ls-shadow-base);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.module-detail-check-row:not(.checked):hover {
+  background: var(--ls-yellowLt);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--ls-shadow-lg);
 }
 
 .module-detail-check-row.checked {
-  background: var(--ls-greenLt);
+  background: var(--ls-yellow);
   text-decoration: line-through;
   opacity: 0.7;
 }
+
 
 .module-detail-checkbox {
   width: 20px;
@@ -387,4 +410,11 @@
   font-size: 0.6875rem;
   color: var(--ls-red);
   cursor: pointer;
+  transition: opacity 0.1s ease;
+  align-self: flex-start;
+}
+
+.module-detail-hint:hover {
+  opacity: 0.7;
+  text-decoration: underline;
 }

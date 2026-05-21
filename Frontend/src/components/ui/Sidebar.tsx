@@ -56,7 +56,7 @@ export function Sidebar({ vloga, username }: SidebarProps) {
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`sidebar-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            className={`sidebar-nav-item ${location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path)) ? 'active' : ''}`}
           >
             <IconBox size={14} />
             <span>{item.label}</span>
