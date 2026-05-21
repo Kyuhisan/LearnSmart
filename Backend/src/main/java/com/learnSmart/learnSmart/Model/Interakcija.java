@@ -23,8 +23,8 @@ public class Interakcija {
     private UUID uporabikId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vsebina_id", nullable = false)
-    private Vsebina vsebina;
+    @JoinColumn(name = "izvorna_datoteka_id", nullable = false)
+    private IzvornaDatoteka izvornaDatoteka;
 
     @Column(name = "ogledano_ob")
     private OffsetDateTime ogledanoOb;

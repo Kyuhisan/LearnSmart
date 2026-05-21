@@ -41,8 +41,17 @@ public class Predmet {
     @Column(name = "tezavnost")
     private Integer tezavnost;
 
+    @Column(name = "zdruzen_transcript", columnDefinition = "text")
+    private String zdruzenTranscript;
+
+    @Column(name = "koraki_obdelave", columnDefinition = "jsonb")
+    private String korakiObdelave;
+
+    @Column (name = "status")
+    private String status;
+
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
-    private List<Vsebina> vsebine;
+    private List<IzvornaDatoteka> izvorneDatoteke;
 
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
     private List<Vpis> vpisi;
