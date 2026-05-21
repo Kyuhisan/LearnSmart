@@ -1,5 +1,6 @@
 package com.learnSmart.learnSmart.Controller;
 
+import com.learnSmart.learnSmart.DTO.IzvornaDatotekaRequest;
 import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
@@ -46,16 +47,16 @@ public class IzvornaDatotekaController {
         return tip;
     }
 
-    private void buildVsebina(Predmet predmet, String imeDatoteke, String url, String tip, Long velikostBytes, String processingStatus, OffsetDateTime ustvarjenOb, String manjsiTranscript) {
+    private void buildVsebina(IzvornaDatotekaRequest req) {
         IzvornaDatoteka izvornaDatoteka = new IzvornaDatoteka();
-        izvornaDatoteka.setPredmet(predmet);
-        izvornaDatoteka.setImeDatoteke(imeDatoteke);
-        izvornaDatoteka.setUrl(url);
-        izvornaDatoteka.setTip(tip);
-        izvornaDatoteka.setVelikostBytes(velikostBytes);
-        izvornaDatoteka.setProcessingStatus(processingStatus);
-        izvornaDatoteka.setUstvarjenOb(ustvarjenOb);
-        izvornaDatoteka.setManjsiTranscript(manjsiTranscript);
+        izvornaDatoteka.setPredmet(req.getPredmet());
+        izvornaDatoteka.setImeDatoteke(req.getImeDatoteke());
+        izvornaDatoteka.setUrl(req.getUrl());
+        izvornaDatoteka.setTip(req.getTip());
+        izvornaDatoteka.setVelikostBytes(req.getVelikostBytes());
+        izvornaDatoteka.setProcessingStatus(req.getProcessingStatus());
+        izvornaDatoteka.setUstvarjenOb(req.getUstvarjenOb());
+        izvornaDatoteka.setManjsiTranscript(req.getManjsiTranscript());
 
         izvornaDatotekaRepository.save(izvornaDatoteka);
     }
@@ -71,7 +72,18 @@ public class IzvornaDatotekaController {
             String url = storageService.upload(file, predmetId);
             String tip = determineType(file);
             Long velikostBytes = file.getSize();
-            buildVsebina(predmet, imeDatoteke, url, tip, velikostBytes, "pending", OffsetDateTime.now(), null);
+
+            IzvornaDatotekaRequest req = new IzvornaDatotekaRequest();
+            req.setPredmet(predmet);
+            req.setImeDatoteke(imeDatoteke);
+            req.setUrl(url);
+            req.setTip(tip);
+            req.setVelikostBytes(velikostBytes);
+            req.setProcessingStatus("pending");
+            req.setUstvarjenOb(OffsetDateTime.now());
+            req.setManjsiTranscript(null);
+            buildVsebina(req);
+
             return ResponseEntity.ok(Map.of("url", url));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
