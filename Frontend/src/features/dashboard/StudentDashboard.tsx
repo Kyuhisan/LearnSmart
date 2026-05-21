@@ -117,8 +117,8 @@ export function StudentDashboard() {
             action={<Tag label={STUDENT_LEARNING_TYPE.label} bg={info.bg} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: info.bg, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], flexShrink: 0 }}>
-                  {info.icon}
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: info.bg, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <IconBox size={20} />
                 </div>
                 <div>
                   <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink }}>{STUDENT_LEARNING_TYPE.label}</div>
