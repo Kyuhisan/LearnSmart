@@ -1,5 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react'
-import { C, BW, S, mkShadow } from '../../styles/tokens'
+import { C, BW, S, R, mkShadow } from '../../styles/tokens'
 
 interface SpeechBubbleProps {
   children: ReactNode
@@ -19,6 +19,7 @@ export function SpeechBubble({
       position: 'relative',
       background: color,
       border: `${BW.medium} solid ${C.ink}`,
+      borderRadius: R.base,
       padding: `${S[2.5]} ${S[3.5]}`,
       boxShadow: mkShadow('lg'),
       ...style,

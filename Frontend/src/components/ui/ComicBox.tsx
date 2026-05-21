@@ -4,6 +4,7 @@ import { C, BW, R, mkShadow } from '../../styles/tokens'
 interface ComicBoxProps {
   children: ReactNode
   bg?: string
+  hoverBg?: string
   shadowColor?: string
   shadowSize?: 'sm' | 'base' | 'lg' | 'xl'
   borderColor?: string
@@ -16,6 +17,7 @@ interface ComicBoxProps {
 export function ComicBox({
   children,
   bg = C.paper,
+  hoverBg,
   shadowColor = C.ink,
   shadowSize = 'base',
   borderColor = C.ink,
@@ -35,7 +37,7 @@ export function ComicBox({
       onMouseEnter={() => isClickable && setHovered(true)}
       onMouseLeave={() => isClickable && setHovered(false)}
       style={{
-        background: bg,
+        background: hovered && hoverBg ? hoverBg : bg,
         border: `${borderWidth} solid ${borderColor}`,
         boxShadow: mkShadow(hovered ? nextSize[shadowSize] : shadowSize, shadowColor),
         padding: p,

@@ -51,3 +51,52 @@ export const GLOSSARY = [
   { term: 'LEAF', def: 'Node with no children' },
   { term: 'HEIGHT', def: 'Longest path from root to a leaf' },
 ]
+
+// ── Professor ─────────────────────────────────────────────────────────────────
+
+export type ContentType = 'video' | 'reading' | 'quiz' | 'practice'
+export type VarkTag = 'VISUAL' | 'READING' | 'AUDITORY' | 'KINESTHETIC'
+
+export interface ContentItem {
+  id: string
+  type: ContentType
+  title: string
+  vark: VarkTag
+  duration: string
+}
+
+export interface ModuleStudent {
+  name: string
+  emoji: string
+  completion: number
+  lastActive: string
+  style: VarkTag
+}
+
+export const PROF_MODULE = {
+  id: '1',
+  title: 'Binary Trees',
+  subject: 'Algorithms',
+  status: 'published' as 'published' | 'draft',
+  students: 42,
+  avgCompletion: 74,
+}
+
+export const CONTENT_ITEMS: ContentItem[] = [
+  { id: '1', type: 'video',    title: 'Intro: What is a Binary Tree?',   vark: 'VISUAL',      duration: '6 min'       },
+  { id: '2', type: 'reading',  title: 'Structured Notes — BST Rules',    vark: 'READING',     duration: '4 min read'  },
+  { id: '3', type: 'video',    title: 'Concept Map: Tree Traversals',    vark: 'VISUAL',      duration: '8 min'       },
+  { id: '4', type: 'reading',  title: 'Lecture: Full Binary Tree Talk',  vark: 'AUDITORY',    duration: '14 min'      },
+  { id: '5', type: 'practice', title: 'Build a BST — Step by Step',      vark: 'KINESTHETIC', duration: '5 tasks'     },
+  { id: '6', type: 'quiz',     title: 'Quiz #1 — Tree Properties',       vark: 'READING',     duration: '8 questions' },
+  { id: '7', type: 'practice', title: 'Traversal Practice Problems',     vark: 'KINESTHETIC', duration: '3 problems'  },
+]
+
+export const MODULE_STUDENTS: ModuleStudent[] = [
+  { name: 'Sara Horvat',  emoji: '🤖', completion: 96, lastActive: '2h ago',      style: 'VISUAL'      },
+  { name: 'Matic Kuhar',  emoji: '🐸', completion: 88, lastActive: 'yesterday',   style: 'READING'     },
+  { name: 'Jure Kovač',   emoji: '🦊', completion: 74, lastActive: '3 days ago',  style: 'AUDITORY'    },
+  { name: 'Nina Žagar',   emoji: '🐻', completion: 61, lastActive: 'yesterday',   style: 'KINESTHETIC' },
+  { name: 'Luka Pretnar', emoji: '🤖', completion: 45, lastActive: '1 week ago',  style: 'VISUAL'      },
+  { name: 'Eva Mlakar',   emoji: '🐸', completion: 32, lastActive: '5 days ago',  style: 'READING'     },
+]

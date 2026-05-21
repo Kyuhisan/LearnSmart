@@ -137,7 +137,7 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
       background: C.cream,
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: "'Manrope', sans-serif",
+      fontFamily: "'Space Mono', monospace",
       zIndex: 50,
     }}>
       {/* Halftone dot background */}
@@ -214,7 +214,14 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
               </div>
 
               <div>
-                <Tag label="VARK ASSESSMENT" bg={C.yellow} />
+                <div style={{
+                  display: 'inline-block',
+                  transform: 'scale(1.2)',
+                  transformOrigin: 'center top',
+                  marginBottom: S[3],
+                }}>
+                  <Tag label="VARK ASSESSMENT" bg={C.yellow} />
+                </div>
                 <h1 style={{
                   fontFamily: "'Archivo Black', sans-serif",
                   fontSize: isMobile ? FS['5xl'] : FS['7xl'],
@@ -240,24 +247,28 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                       padding: `${S[1.5]} ${S[3]}`,
                       background: meta.bg,
                       border: `${BW.base} solid ${C.ink}`,
+                      boxShadow: mkShadow(),
                       fontSize: FS.base, fontWeight: 800,
                       fontFamily: "'Archivo Black', sans-serif",
                       letterSpacing: '0.03125rem',
                       borderRadius: R.sm,
                     }}>
-                      {meta.icon} {meta.label.toUpperCase()}
+                      {meta.label.toUpperCase()}
                     </div>
                   )
                 )}
               </div>
 
               <div style={{ fontSize: FS.base, color: C.muted, fontWeight: 600 }}>
-                You may select <strong style={{ color: C.ink }}>more than one answer</strong> per question —
-                most people are multimodal.
+                You may select <strong style={{ color: C.ink, fontFamily: "'Archivo Black', sans-serif" }}>more than one answer</strong> per question.<br />
+                Most people are multimodal.
               </div>
 
               <ComicBtn onClick={() => transition(() => setStep('question'))} color={C.red} dark>
-                START ASSESSMENT →
+                START ASSESSMENT
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </ComicBtn>
             </div>
           )}
@@ -337,7 +348,10 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                     color={selected.length > 0 ? C.yellow : C.divider}
                     disabled={selected.length === 0}
                   >
-                    {isLast ? 'FINISH →' : 'NEXT →'}
+                    {isLast ? 'FINISH' : 'NEXT'}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                    <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                   </ComicBtn>
                 )}
               </div>
@@ -363,7 +377,10 @@ export function QuestionnaireWizard({ onComplete }: QuestionnaireWizardProps) {
                 </p>
               </div>
               <ComicBtn onClick={handleContinue} color={C.yellow}>
-                GO TO DASHBOARD →
+                GO TO DASHBOARD
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </ComicBtn>
             </div>
           )}
@@ -393,6 +410,12 @@ interface OptionButtonProps {
 function OptionButton({ letter, label, selected, onClick, disabled }: OptionButtonProps) {
   const [hovered, setHovered] = useState(false)
   const active = (hovered || selected) && !disabled
+  const shadowSize = active ? 'lg' : 'base' as const
+  const boxShadow = selected ? mkShadow(shadowSize, C.yellow) : mkShadow(shadowSize)
+  const transform = hovered && !disabled && !selected ? 'translate(-0.125rem, -0.125rem)' : 'none'
+  const badgeBgBase = hovered ? C.yellowLt : C.cream
+  const badgeBg = selected ? C.yellow : badgeBgBase
+  const borderColor = selected ? C.yellow : C.ink
 
   return (
     <button
@@ -401,18 +424,18 @@ function OptionButton({ letter, label, selected, onClick, disabled }: OptionButt
       onMouseEnter={() => !disabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: S[3],
+        display: 'flex', alignItems: 'center', gap: S[3],
         padding: `${S[3]} ${S[3.5]}`,
         background: active ? C.yellowLt : C.paper,
-        border: `${selected ? BW.medium : BW.base} solid ${selected ? C.yellow : C.ink}`,
-        boxShadow: active ? mkShadow('lg') : mkShadow(),
+        border: `${BW.base} solid ${borderColor}`,
+        boxShadow,
         fontSize: FS.md, fontWeight: 600,
-        fontFamily: "'Manrope', sans-serif",
+        fontFamily: "'Space Mono', monospace",
         textAlign: 'left',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        transform: hovered && !disabled && !selected ? 'translate(-0.125rem, -0.125rem)' : 'none',
+        transform,
         transition: 'all 0.12s ease',
-        borderRadius: R.sm,
+        borderRadius: R.base,
         color: C.ink,
         lineHeight: 1.5,
         opacity: disabled ? 0.6 : 1,
@@ -422,8 +445,8 @@ function OptionButton({ letter, label, selected, onClick, disabled }: OptionButt
       {/* Letter badge / checkmark */}
       <span style={{
         width: S[5], height: S[5], minWidth: S[5],
-        background: selected ? C.yellow : (hovered ? C.yellowLt : C.cream),
-        border: `${BW.base} solid ${selected ? C.yellow : C.ink}`,
+        background: badgeBg,
+        border: `${BW.base} solid ${borderColor}`,
         borderRadius: R.sm,
         fontFamily: "'Archivo Black', sans-serif",
         fontSize: FS.sm,

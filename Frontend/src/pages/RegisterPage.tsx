@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, S } from "../styles/tokens";
+import { IconBox } from "../components/ui/IconBox";
 import { ComicBox } from "../components/ui/ComicBox";
 import { ComicBtn } from "../components/ui/ComicBtn";
 import { Tag } from "../components/ui/Tag";
 import { BitMascot } from "../components/ui/BitMascot";
 import { supabase } from "../lib/supabaseClient";
+import { useAuth } from "../context/AuthContext";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { refreshProfil } = useAuth();
   const [username, setUsername] = useState("");
   const [vloga, setVloga] = useState<"ucenec" | "ucitelj">("ucenec");
   const [loading, setLoading] = useState(false);
@@ -87,6 +90,7 @@ export function RegisterPage() {
       }
 
       const result = await response.json();
+      await refreshProfil();
       navigate(result.vloga === "ucitelj" ? "/dashboard" : "/questionnaire");
     } catch {
       setError("Something went wrong. Please try again.");
@@ -112,13 +116,13 @@ export function RegisterPage() {
       >
         <div className="register-card-inner">
           <div className="register-header">
-            <BitMascot size={60} mood="wink" />
             <div className="register-top">
-              <div className="register-tag-wrapper">
+              <div className="page-tag-wrapper">
                 <Tag label="Welcome!" bg={C.yellow} />
               </div>
-              <div className="register-title">Complete your profile</div>
+              <div className="register-title">Complete your profile!</div>
             </div>
+            <BitMascot size={60} mood="wink" />
           </div>
 
           <div className="register-field-group">
@@ -139,24 +143,26 @@ export function RegisterPage() {
               <ComicBox
                 bg={vloga === "ucenec" ? C.cyanLt : C.paper}
                 shadowSize="sm"
+                shadowColor={vloga === "ucenec" ? C.cyan : C.ink}
                 p={S[3]}
                 onClick={() => setVloga("ucenec")}
                 borderColor={vloga === "ucenec" ? C.cyan : C.ink}
                 style={{ flex: 1, cursor: "pointer", textAlign: "center" }}
               >
-                <div className="register-role-emoji">🎓</div>
+                <div className="register-role-emoji"><IconBox size={24} /></div>
                 <div className="register-role-label">STUDENT</div>
               </ComicBox>
 
               <ComicBox
                 bg={vloga === "ucitelj" ? C.purpleLt : C.paper}
                 shadowSize="sm"
+                shadowColor={vloga === "ucitelj" ? C.purple : C.ink}
                 p={S[3]}
                 onClick={() => setVloga("ucitelj")}
                 borderColor={vloga === "ucitelj" ? C.purple : C.ink}
                 style={{ flex: 1, cursor: "pointer", textAlign: "center" }}
               >
-                <div className="register-role-emoji">👨‍🏫</div>
+                <div className="register-role-emoji"><IconBox size={24} /></div>
                 <div className="register-role-label">TEACHER</div>
               </ComicBox>
             </div>
@@ -170,7 +176,14 @@ export function RegisterPage() {
             disabled={loading}
             style={{ width: "100%", justifyContent: "center" }}
           >
-            {loading ? "Saving..." : "Start Learning →"}
+            {loading ? "Saving..." : (
+              <>
+                {vloga === "ucitelj" ? "Start Teaching" : "Start Learning"}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M2 7H12M8 3L12 7L8 11" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </>
+            )}
           </ComicBtn>
         </div>
       </ComicBox>

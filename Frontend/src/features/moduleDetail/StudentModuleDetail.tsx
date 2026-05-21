@@ -5,6 +5,8 @@ import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
+import { Panel } from '../../components/ui/Panel'
+import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 import { MODULE, CHECKLIST_TASKS, PRACTICE_PROBLEMS, AUDIO_HIGHLIGHTS, GLOSSARY } from './mockData'
 import '../../styles/moduleDetailPage.css'
@@ -12,10 +14,10 @@ import '../../styles/moduleDetailPage.css'
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
 const tabConfig = {
-  visual:      { label: 'VISUAL',      icon: '👁',  color: C.purpleLt, bitMsg: '"Visual mode engaged! Diagrams incoming. 🎨"' },
-  reading:     { label: 'READING',     icon: '📖', color: C.cyanLt,   bitMsg: '"Reading mode active. Loading notes... 📋"' },
-  auditory:    { label: 'AUDITORY',    icon: '🎧', color: C.greenLt,  bitMsg: '"Audio mode online. Press play. 🎵"' },
-  kinesthetic: { label: 'KINESTHETIC', icon: '🤸', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go! 💪"' },
+  visual:      { label: 'VISUAL',      color: C.purpleLt, bitMsg: '"Visual mode engaged. Diagrams incoming."' },
+  reading:     { label: 'READING',     color: C.cyanLt,   bitMsg: '"Reading mode active. Loading notes."' },
+  auditory:    { label: 'AUDITORY',    color: C.greenLt,  bitMsg: '"Audio mode online. Press play."' },
+  kinesthetic: { label: 'KINESTHETIC', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go."' },
 }
 
 
@@ -26,10 +28,9 @@ function VisualContent() {
         <div className="module-detail-play">▶</div>
         <div className="module-detail-video-label">BINARY-TREES.MP4 · 14:00</div>
       </div>
-      <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Concept Map" bg={C.purpleLt} />
-        <div className="module-detail-concept-placeholder">🌳 Concept map diagram here</div>
-      </ComicBox>
+      <Panel title="CONCEPT MAP" accent={C.purpleLt} p={S[4]}>
+        <div className="module-detail-concept-placeholder">Concept map diagram here</div>
+      </Panel>
       <div className="module-detail-grid">
         <ComicBox bg={C.purpleLt} p={S[4]}>
           <div className="module-detail-card-title">ROOT NODE</div>
@@ -47,15 +48,13 @@ function VisualContent() {
 function ReadingContent() {
   return (
     <div className="module-detail-content">
-      <ComicBox bg={C.cyanLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Definition" bg={C.cyan} />
+      <Panel title="DEFINITION" accent={C.cyan} bg={C.cyanLt} p={S[4]}>
         <p className="module-detail-definition">
           <strong>Binary Tree</strong> — A hierarchical data structure in which each node has at most two children,
           referred to as the <em>left child</em> and the <em>right child</em>.
         </p>
-      </ComicBox>
-      <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Structured Notes" bg={C.cyan} />
+      </Panel>
+      <Panel title="STRUCTURED NOTES" accent={C.cyan} p={S[4]}>
         <div className="module-detail-notes">
           <div className="module-detail-notes-section">1. CORE PROPERTIES</div>
           <ul className="module-detail-notes-list">
@@ -76,9 +75,8 @@ function ReadingContent() {
             <li>Post-order (L→R→Root): deletion</li>
           </ul>
         </div>
-      </ComicBox>
-      <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Glossary" bg={C.cyan} />
+      </Panel>
+      <Panel title="GLOSSARY" accent={C.cyan} p={S[4]}>
         <div className="module-detail-glossary">
           {GLOSSARY.map(g => (
             <div key={g.term} className="module-detail-glossary-row">
@@ -87,7 +85,7 @@ function ReadingContent() {
             </div>
           ))}
         </div>
-      </ComicBox>
+      </Panel>
     </div>
   )
 }
@@ -97,26 +95,25 @@ const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8
 function AuditoryContent() {
   return (
     <div className="module-detail-content">
-      <ComicBox bg={C.navy} p={S[5]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Lecture" bg={C.green} />
-        <div className="module-detail-audio-title">BINARY TREES — FULL LECTURE</div>
-        <div className="module-detail-audio-sub">Prof. Novak · 14 min</div>
-        <div className="module-detail-waveform">
-          {WAVEFORM_HEIGHTS.map((h, i) => (
-            <div key={i} className="module-detail-waveform-bar"
-              style={{ height: `${h}px` }} />
-          ))}
-        </div>
-        <div className="module-detail-audio-controls">
-          <button className="module-detail-play-btn">▶</button>
-          <div className="module-detail-progress-bar">
-            <div className="module-detail-progress-fill" style={{ width: '0%' }} />
+      <Panel title="LECTURE" accent={C.green} bg={C.navy} p={S[5]}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
+          <div className="module-detail-audio-title">BINARY TREES — FULL LECTURE</div>
+          <div className="module-detail-audio-sub">Prof. Novak · 14 min</div>
+          <div className="module-detail-waveform">
+            {WAVEFORM_HEIGHTS.map((h, i) => (
+              <div key={i} className="module-detail-waveform-bar" style={{ height: `${h}px` }} />
+            ))}
           </div>
-          <span className="module-detail-time">0:00/14:00</span>
+          <div className="module-detail-audio-controls">
+            <button className="module-detail-play-btn">▶</button>
+            <div className="module-detail-progress-bar">
+              <div className="module-detail-progress-fill" style={{ width: '0%' }} />
+            </div>
+            <span className="module-detail-time">0:00/14:00</span>
+          </div>
         </div>
-      </ComicBox>
-      <ComicBox bg={C.greenLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Tag label="Highlights" bg={C.green} />
+      </Panel>
+      <Panel title="HIGHLIGHTS" accent={C.green} bg={C.greenLt} p={S[4]}>
         <div className="module-detail-highlights">
           {AUDIO_HIGHLIGHTS.map((h, i) => (
             <div key={i} className="module-detail-highlight-row">
@@ -125,7 +122,7 @@ function AuditoryContent() {
             </div>
           ))}
         </div>
-      </ComicBox>
+      </Panel>
     </div>
   )
 }
@@ -138,11 +135,8 @@ function KinestheticContent() {
 
   return (
     <div className="module-detail-content">
-      <ComicBox bg={C.paper} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <div className="module-detail-checklist-header">
-          <Tag label="Checklist" bg={C.red} />
-          <span className="module-detail-checklist-count">{checked.length}/{CHECKLIST_TASKS.length} DONE</span>
-        </div>
+      <Panel title="CHECKLIST" accent={C.red} p={S[4]}
+        action={<span className="module-detail-checklist-count">{checked.length}/{CHECKLIST_TASKS.length} DONE</span>}>
         <div className="module-detail-checklist">
           {CHECKLIST_TASKS.map((task, i) => (
             <div key={i} className={`module-detail-check-row ${checked.includes(i) ? 'checked' : ''}`}
@@ -153,13 +147,14 @@ function KinestheticContent() {
             </div>
           ))}
         </div>
-      </ComicBox>
+      </Panel>
       {PRACTICE_PROBLEMS.map(p => (
-        <ComicBox key={p.label} bg={C.redLt} p={S[4]} style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-          <Tag label={p.label} bg={C.red} />
-          <p className="module-detail-problem-text">{p.text}</p>
-          <div className="module-detail-hint">▶ SHOW HINT 💡</div>
-        </ComicBox>
+        <Panel key={p.label} title={p.label} accent={C.red} bg={C.redLt} p={S[4]}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
+            <p className="module-detail-problem-text">{p.text}</p>
+            <div className="module-detail-hint">▶ SHOW HINT</div>
+          </div>
+        </Panel>
       ))}
     </div>
   )
@@ -179,16 +174,12 @@ export function StudentModuleDetail() {
 
   return (
     <div className="module-detail-page">
-      <div className="module-detail-topbar">
-        <div className="module-detail-topbar-left">
-          <ComicBtn sm color={C.paper} onClick={() => navigate('/modules')}>← BACK</ComicBtn>
-          <div>
-            <div className="module-detail-topbar-title">{MODULE.title}</div>
-            <div className="module-detail-topbar-sub">{MODULE.subject} · {MODULE.progress}% complete</div>
-          </div>
-        </div>
-        <ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>
-      </div>
+      <Topbar
+        title={MODULE.title}
+        subtitle={`${MODULE.subject} · ${MODULE.progress}% complete`}
+        back={() => navigate(-1)}
+        actions={<ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>}
+      />
 
       <div className="module-detail-tabbar">
         <div className="module-detail-tabs">
@@ -200,7 +191,7 @@ export function StudentModuleDetail() {
               className={`module-detail-tab ${activeTab === t ? 'active' : ''}`}
               style={activeTab === t ? { background: tabConfig[t].color } : {}}
             >
-              {tabConfig[t].icon} {tabConfig[t].label}
+              {tabConfig[t].label}
             </button>
           ))}
         </div>

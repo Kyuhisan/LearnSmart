@@ -23,7 +23,7 @@ export function StatCard({ label, value, sub, bg = C.paper, style }: StatCardPro
         {label}
       </div>
       <div style={{
-        fontFamily: "'Space Mono', monospace",
+        fontFamily: "'Archivo Black', sans-serif",
         fontSize: FS['5xl'],
         color: C.ink,
         lineHeight: 1,

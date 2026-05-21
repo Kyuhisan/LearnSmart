@@ -48,7 +48,7 @@ export function ComicBtn({
         display: 'inline-flex',
         alignItems: 'center',
         gap: S[1.5],
-        borderRadius: R.sm,
+        borderRadius: R.base,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.6 : 1,
         ...style,

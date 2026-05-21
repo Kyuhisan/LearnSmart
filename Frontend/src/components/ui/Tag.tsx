@@ -17,10 +17,11 @@ export function Tag({ label, bg = C.yellowLt, color = C.ink }: TagProps) {
       fontSize: FS.xs,
       fontWeight: 800,
       letterSpacing: '0.03125rem',
-      border: `${BW.thin} solid ${C.ink}`,
+      border: `${BW.base} solid ${C.ink}`,
       fontFamily: "'Archivo Black', sans-serif",
       textTransform: 'uppercase',
       borderRadius: R.sm,
+      filter: `drop-shadow(2px 2px 0 ${C.ink})`,
     }}>
       {label}
     </span>

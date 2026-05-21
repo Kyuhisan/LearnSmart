@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { TopbarProvider } from "./context/TopbarContext";
 import { BitMascot } from "./components/ui/BitMascot";
 import { Callback } from "./pages/Callback";
 import { LoginPage } from "./pages/LoginPage";
@@ -56,6 +57,7 @@ function QuestionnairePage() {
 function App() {
   return (
     <AuthProvider>
+      <TopbarProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginPage />} />
@@ -189,6 +191,7 @@ function App() {
           />
         </Routes>
       </BrowserRouter>
+      </TopbarProvider>
     </AuthProvider>
   );
 }

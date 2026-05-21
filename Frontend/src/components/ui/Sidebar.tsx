@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { BitMascot } from './BitMascot'
+import { IconBox } from './IconBox'
 import { useAuth } from '../../context/AuthContext'
 import "../../styles/sidebar.css";
 
@@ -7,28 +7,27 @@ import "../../styles/sidebar.css";
 interface SidebarItem {
   label: string
   path: string
-  icon: string
 }
 
 const studentItems: SidebarItem[] = [
-  { label: 'Home Base',    path: '/dashboard',    icon: '🏠' },
-  { label: 'Modules',      path: '/modules',       icon: '📚' },
-  { label: 'Quizzes',      path: '/quiz',          icon: '⚡' },
-  { label: 'Leaderboard',  path: '/leaderboard',   icon: '🏆' },
-  { label: 'My Progress',  path: '/progress',      icon: '📈' },
-  { label: 'Notifications',path: '/notifications', icon: '🔔' },
-  { label: 'Profile',      path: '/profile',       icon: '👤' },
+  { label: 'Home Base',     path: '/dashboard'    },
+  { label: 'Modules',       path: '/modules'      },
+  { label: 'Quizzes',       path: '/quiz'         },
+  { label: 'Leaderboard',   path: '/leaderboard'  },
+  { label: 'My Progress',   path: '/progress'     },
+  { label: 'Notifications', path: '/notifications'},
+  { label: 'Profile',       path: '/profile'      },
 ]
 
 const teacherItems: SidebarItem[] = [
-  { label: 'Home Base',    path: '/dashboard',       icon: '🏠' },
-  { label: 'Modules',      path: '/modules',          icon: '📚' },
-  { label: 'Upload',       path: '/upload',           icon: '📤' },
-  { label: 'AI Quiz',      path: '/ai-quiz-builder',  icon: '✨' },
-  { label: 'Analytics',    path: '/analytics',        icon: '📊' },
-  { label: 'Students',     path: '/students',         icon: '👥' },
-  { label: 'Notifications',path: '/notifications',    icon: '🔔' },
-  { label: 'Profile',      path: '/profile',          icon: '👤' },
+  { label: 'Home Base',     path: '/dashboard'      },
+  { label: 'Modules',       path: '/modules'        },
+  { label: 'Upload',        path: '/upload'         },
+  { label: 'AI Quiz',       path: '/ai-quiz-builder'},
+  { label: 'Analytics',     path: '/analytics'      },
+  { label: 'Students',      path: '/students'       },
+  { label: 'Notifications', path: '/notifications'  },
+  { label: 'Profile',       path: '/profile'        },
 ]
 
 interface SidebarProps {
@@ -50,41 +49,53 @@ export function Sidebar({ vloga, username }: SidebarProps) {
 
   return (
     <div className="sidebar">
-      {/* Logo */}
-      <div className="sidebar-logo">
-        <BitMascot size={32} mood="happy" />
-        <div>
-          <div className="sidebar-logo-text">LEARNSMART</div>
-          <div className="sidebar-logo-sub">w/ BIT 🤖</div>
-        </div>
-      </div>
 
       {/* Nav */}
       <div className="sidebar-nav">
         {items.map(item => (
-          <div
+          <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`sidebar-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+            className={`sidebar-nav-item ${location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path)) ? 'active' : ''}`}
           >
-            <span>{item.icon}</span>
+            <IconBox size={14} />
             <span>{item.label}</span>
-          </div>
+          </button>
         ))}
       </div>
 
       {/* User */}
-      <div className="sidebar-user" onClick={handleLogout} title="Sign out">
-        <div className="sidebar-avatar">
-          {username?.[0]?.toUpperCase()}
-        </div>
-        <div>
-          <div className="sidebar-user-name">{username}</div>
-          <div className="sidebar-user-role">
-            {isTeacher ? 'PROFESSOR' : 'STUDENT'}
+      <div
+        className="sidebar-user"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate('/profile')}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') navigate('/profile') }}
+      >
+        <div className="sidebar-user-profile">
+          <div className="sidebar-avatar">
+            {username?.[0]?.toUpperCase()}
+          </div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{username}</div>
+            <div className="sidebar-user-role">
+              {isTeacher ? 'PROFESSOR' : 'STUDENT'}
+            </div>
           </div>
         </div>
+        <button
+          className="sidebar-logout-icon"
+          title="Sign out"
+          onClick={(e) => { e.stopPropagation(); handleLogout() }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
       </div>
+
     </div>
   )
 }
