@@ -80,14 +80,14 @@ export function ProfessorDashboard() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
-              <ComicBtn color={C.yellow}>UPLOAD</ComicBtn>
-              <ComicBtn color={C.pink} dark>AI BUILDER</ComicBtn>
+              <ComicBtn color={C.yellow} onClick={() => navigate('/upload')}>UPLOAD</ComicBtn>
+              <ComicBtn color={C.pink} dark onClick={() => navigate('/ai-quiz-builder')}>AI BUILDER</ComicBtn>
             </div>
           </div>
         </ComicBox>
 
         {/* Modules + Pending quizzes */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'stretch' }}>
 
           {/* Your modules */}
           <Panel title="YOUR MODULES" accent={C.yellow} p={S[4]} action={<ComicBtn sm color={C.green}>+ NEW</ComicBtn>}>
@@ -133,17 +133,17 @@ export function ProfessorDashboard() {
         </div>
 
         {/* Style mix + Top performers */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[3], alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[3], alignItems: 'stretch' }}>
 
           {/* Style mix */}
-          <Panel title="STUDENT STYLE MIX" accent={C.purple} p={S[4]}
+          <Panel title="STUDENT STYLE MIX" accent={C.purple} p={0}
             action={<Tag label="134 STUDENTS" bg={C.purpleLt} />}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: S[4] }}>
               {PROFESSOR_STYLE_MIX.map((t) => (
-                <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                  <span style={{ width: 100, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, marginRight: S[3] }}>{t.label.toUpperCase()}</span>
-                  <div style={{ flex: 1 }}><Bar value={t.percent} color={t.color} height="10px" /></div>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, width: 32, textAlign: 'right' }}>{t.percent}%</span>
+                <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: t.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{t.label.toUpperCase()}</span>
+                  <div style={{ flex: 1 }}><Bar value={t.percent} color={t.color} height={12} shadow /></div>
+                  <Tag label={`${t.percent}%`} bg={t.color} />
                 </div>
               ))}
             </div>

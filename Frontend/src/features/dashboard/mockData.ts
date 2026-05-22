@@ -158,13 +158,14 @@ export interface StyleMix {
   count: number
   percent: number
   color: string
+  colorLt: string
 }
 
 export const PROFESSOR_STYLE_MIX: StyleMix[] = [
-  { label: 'Visual',      count: 62, percent: 46, color: C.purple },
-  { label: 'Kinesthetic', count: 31, percent: 23, color: C.red    },
-  { label: 'Reading',     count: 25, percent: 19, color: C.cyan   },
-  { label: 'Auditory',    count: 16, percent: 12, color: C.green  },
+  { label: 'Visual',      count: 62, percent: 46, color: C.purple, colorLt: C.purpleLt },
+  { label: 'Kinesthetic', count: 31, percent: 23, color: C.red,    colorLt: C.redLt    },
+  { label: 'Reading',     count: 25, percent: 19, color: C.cyan,   colorLt: C.cyanLt   },
+  { label: 'Auditory',    count: 16, percent: 12, color: C.green,  colorLt: C.greenLt  },
 ]
 
 export interface TopPerformer {
