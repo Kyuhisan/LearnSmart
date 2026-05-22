@@ -1,13 +1,14 @@
-import { C, BW, R } from '../../styles/tokens'
+import { C, BW, R, mkShadow } from '../../styles/tokens'
 
 interface BarProps {
   value: number
   max?: number
   color?: string
   height?: string
+  shadow?: boolean
 }
 
-export function Bar({ value, max = 100, color = C.yellow, height = '0.625rem' }: BarProps) {
+export function Bar({ value, max = 100, color = C.yellow, height = '0.625rem', shadow }: BarProps) {
   return (
     <div style={{
       height,
@@ -16,6 +17,7 @@ export function Bar({ value, max = 100, color = C.yellow, height = '0.625rem' }:
       position: 'relative',
       overflow: 'hidden',
       borderRadius: R.sm,
+      boxShadow: shadow ? mkShadow() : undefined,
     }}>
       <div style={{
         width: `${Math.min(100, (value / max) * 100)}%`,
