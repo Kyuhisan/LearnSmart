@@ -6,6 +6,7 @@ import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Service.StorageService;
+import com.learnSmart.learnSmart.Service.TranscriptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,13 @@ public class IzvornaDatotekaController {
     private final StorageService storageService;
     private final PredmetRepository predmetRepository;
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
+    private final TranscriptService transcriptService;
 
-    public IzvornaDatotekaController(StorageService storageService, PredmetRepository predmetRepository, IzvornaDatotekaRepository izvornaDatotekaRepository) {
+    public IzvornaDatotekaController(StorageService storageService, PredmetRepository predmetRepository, IzvornaDatotekaRepository izvornaDatotekaRepository, TranscriptService transcriptService) {
         this.storageService = storageService;
         this.predmetRepository = predmetRepository;
         this.izvornaDatotekaRepository = izvornaDatotekaRepository;
+        this.transcriptService = transcriptService;
     }
 
     private String determineType(MultipartFile file) {
@@ -47,7 +50,7 @@ public class IzvornaDatotekaController {
         return tip;
     }
 
-    private void buildVsebina(IzvornaDatotekaRequest req) {
+    private IzvornaDatoteka buildVsebina(IzvornaDatotekaRequest req) {
         IzvornaDatoteka izvornaDatoteka = new IzvornaDatoteka();
         izvornaDatoteka.setPredmet(req.getPredmet());
         izvornaDatoteka.setImeDatoteke(req.getImeDatoteke());
@@ -58,7 +61,7 @@ public class IzvornaDatotekaController {
         izvornaDatoteka.setUstvarjenOb(req.getUstvarjenOb());
         izvornaDatoteka.setManjsiTranscript(req.getManjsiTranscript());
 
-        izvornaDatotekaRepository.save(izvornaDatoteka);
+        return izvornaDatotekaRepository.save(izvornaDatoteka);
     }
 
     @PostMapping(value = {"/upload"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -82,7 +85,9 @@ public class IzvornaDatotekaController {
             req.setProcessingStatus("pending");
             req.setUstvarjenOb(OffsetDateTime.now());
             req.setManjsiTranscript(null);
-            buildVsebina(req);
+            IzvornaDatoteka izvornaDatoteka = buildVsebina(req);
+
+            transcriptService.processTranscript(izvornaDatoteka.getId(), url, tip);
 
             return ResponseEntity.ok(Map.of("url", url));
         } catch (IllegalArgumentException e) {
