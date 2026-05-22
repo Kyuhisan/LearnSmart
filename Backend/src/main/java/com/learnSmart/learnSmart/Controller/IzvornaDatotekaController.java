@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Controller;
 
 import com.learnSmart.learnSmart.DTO.IzvornaDatotekaRequest;
+import com.learnSmart.learnSmart.DTO.Upload.UploadResponseDTO;
 import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
@@ -17,8 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 
 @RestController
@@ -44,6 +44,8 @@ public class IzvornaDatotekaController {
             tip = "PDF";
         } else if (mimeType != null && mimeType.equals("video/mp4")) {
             tip = "VIDEO";
+        } else if (mimeType != null && mimeType.startsWith("audio/")) {
+            tip = "AUDIO";
         } else {
             tip = "IMG";
         }
@@ -65,35 +67,45 @@ public class IzvornaDatotekaController {
     }
 
     @PostMapping(value = {"/upload"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, Object>> upload(
-            @RequestParam("file") MultipartFile file,
+    public ResponseEntity<UploadResponseDTO> upload(
+            @RequestParam("file") List<MultipartFile> files,
             @RequestParam("predmetId") UUID predmetId
     ) {
         try {
             Predmet predmet = predmetRepository.findById(predmetId).orElseThrow(() -> new IllegalArgumentException("Subject does not exist."));
-            String imeDatoteke = file.getOriginalFilename();
-            String url = storageService.upload(file, predmetId);
-            String tip = determineType(file);
-            Long velikostBytes = file.getSize();
 
-            IzvornaDatotekaRequest req = new IzvornaDatotekaRequest();
-            req.setPredmet(predmet);
-            req.setImeDatoteke(imeDatoteke);
-            req.setUrl(url);
-            req.setTip(tip);
-            req.setVelikostBytes(velikostBytes);
-            req.setProcessingStatus("pending");
-            req.setUstvarjenOb(OffsetDateTime.now());
-            req.setManjsiTranscript(null);
-            IzvornaDatoteka izvornaDatoteka = buildVsebina(req);
+            List<Map<String, Object>> uploadedFiles = new ArrayList<>();
 
-            transcriptService.processTranscript(izvornaDatoteka.getId(), url, tip);
+            for (MultipartFile file : files) {
+                String imeDatoteke = file.getOriginalFilename();
+                String url = storageService.upload(file, predmetId);
+                String tip = determineType(file);
+                Long velikostBytes = file.getSize();
 
-            return ResponseEntity.ok(Map.of("url", url));
+                IzvornaDatotekaRequest req = new IzvornaDatotekaRequest();
+                req.setPredmet(predmet);
+                req.setImeDatoteke(imeDatoteke);
+                req.setUrl(url);
+                req.setTip(tip);
+                req.setVelikostBytes(velikostBytes);
+                req.setProcessingStatus("pending");
+                req.setUstvarjenOb(OffsetDateTime.now());
+                req.setManjsiTranscript(null);
+                IzvornaDatoteka izvornaDatoteka = buildVsebina(req);
+
+                transcriptService.processTranscript(izvornaDatoteka.getId(), url, tip);
+
+                uploadedFiles.add(Map.of(
+                        "fileName", imeDatoteke,
+                        "url", url
+                ));
+            }
+
+            return ResponseEntity.ok(UploadResponseDTO.success(uploadedFiles));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UploadResponseDTO.error(e.getMessage()));
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UploadResponseDTO.error(e.getMessage()));
         }
     }
 }
