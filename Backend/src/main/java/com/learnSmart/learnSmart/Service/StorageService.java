@@ -24,7 +24,7 @@ public class StorageService {
     private void validateFile(MultipartFile file) {
         String mimeType = file.getContentType();
 
-        if (mimeType == null || (!mimeType.equals("application/pdf") && !mimeType.equals("video/mp4") && !mimeType.startsWith("image/"))) {
+        if (mimeType == null || (!mimeType.equals("application/pdf") && !mimeType.equals("video/mp4") && !mimeType.startsWith("image/") && !mimeType.startsWith("audio/"))) {
             throw new IllegalArgumentException("Unsupported file type: " + mimeType);
         }
 

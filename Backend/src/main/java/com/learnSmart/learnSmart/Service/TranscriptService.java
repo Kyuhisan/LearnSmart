@@ -41,11 +41,16 @@ public class TranscriptService {
         return text;
     }
 
+    private void extractFromMp3() {
+
+    }
 
 
 
-    private void extractFromMp3() {}
-    private void extractFromMp4() {}
+
+    private void extractFromMp4() {
+
+    }
 
 
     public String extractTranscript(String fileURL, String tip) throws IOException {
