@@ -7,6 +7,7 @@ interface ProfHeroProps {
   readonly username: string
   readonly isTeacher: boolean
   readonly onSignOut: () => void
+  readonly onSettings?: () => void
   readonly level?: number
   readonly learningType?: string
   readonly streak?: number
@@ -14,7 +15,7 @@ interface ProfHeroProps {
 }
 
 
-export function ProfHero({ username, isTeacher, onSignOut, level, learningType, streak, onRetakeVark }: ProfHeroProps) {
+export function ProfHero({ username, isTeacher, onSignOut, onSettings, level, learningType, streak, onRetakeVark }: ProfHeroProps) {
   return (
     <ComicBox bg={C.cyan} p={S[5]} style={{ paddingLeft: S[8], paddingRight: S[8] }}>
 
@@ -86,11 +87,11 @@ export function ProfHero({ username, isTeacher, onSignOut, level, learningType, 
 
           {/* Buttons */}
           <div style={{ display: 'flex', gap: S[2], marginTop: S[1], flexWrap: 'wrap' }}>
-            <ComicBtn color={C.paper}>SETTINGS</ComicBtn>
+            <ComicBtn color={C.paper} hoverColor={C.yellowLt} onClick={onSettings}>SETTINGS</ComicBtn>
             {!isTeacher && onRetakeVark && (
-              <ComicBtn color={C.paper} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
+              <ComicBtn color={C.paper} hoverColor={C.yellowLt} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
             )}
-            <ComicBtn color={C.red} dark onClick={onSignOut}>SIGN OUT</ComicBtn>
+            <ComicBtn color={C.red} onClick={onSignOut}>SIGN OUT</ComicBtn>
           </div>
 
         </div>

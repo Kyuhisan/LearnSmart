@@ -2,8 +2,7 @@ import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
 import { AppHeader } from '../components/ui/AppHeader'
-import { StudentSettings } from '../features/settings/StudentSettings'
-import { ProfessorSettings } from '../features/settings/ProfessorSettings'
+import { AppSettings } from '../features/settings/AppSettings'
 
 export function SettingsPage() {
   const { profil } = useAuth()
@@ -19,7 +18,7 @@ export function SettingsPage() {
       <AppHeader />
       <div className="app-body">
         <Sidebar vloga={profil.vloga} username={profil.username} />
-        {profil.vloga === 'ucitelj' ? <ProfessorSettings /> : <StudentSettings />}
+        <AppSettings />
       </div>
     </div>
   )

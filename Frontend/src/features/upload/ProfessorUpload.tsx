@@ -127,7 +127,7 @@ function FileRow({ file }: { file: UploadedFile }) {
       <Tag label={status.label} bg={status.bg} />
 
       <div onClick={e => e.stopPropagation()}>
-        <ComicBtn sm color={C.redLt} style={{ width: '2rem', height: '2rem', padding: 0, justifyContent: 'center', fontSize: FS.md, lineHeight: 1 }}>✕</ComicBtn>
+        <ComicBtn sm color={C.redLt} style={{ width: S[8], height: S[8], padding: 0, justifyContent: 'center', fontSize: FS.md, lineHeight: 1 }}>✕</ComicBtn>
       </div>
     </ComicBox>
   )
@@ -160,7 +160,7 @@ export function ProfessorUpload() {
               onDragLeave={() => setDragOver(false)}
               onDrop={e => { e.preventDefault(); setDragOver(false) }}
               style={{
-                border: `2px dashed ${dragOver ? C.yellow : C.muted}`,
+                border: `${BW.base} dashed ${dragOver ? C.yellow : C.muted}`,
                 borderRadius: R.base,
                 padding: S[8],
                 background: dragOver ? C.yellowLt : 'transparent',

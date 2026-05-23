@@ -35,7 +35,7 @@ export function ProfessorProfile() {
       />
 
       <div className="prof-content">
-        <ProfHero username={profil.username} isTeacher onSignOut={handleSignOut} />
+        <ProfHero username={profil.username} isTeacher onSignOut={handleSignOut} onSettings={() => navigate('/settings')} />
 
         <div className="prof-stats-row">
           <StatCard label="STUDENTS"  value="248" sub="134 active today"   bg={C.yellowLt} style={{ flex: 1 }} />

@@ -35,7 +35,7 @@ export function StudentProfile() {
       <Topbar
         title="MY PROFILE"
         subtitle="Account · learning style · activity"
-        actions={<ComicBtn sm color={C.cyan}>2 NEW</ComicBtn>}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn>}
       />
 
       <div className="prof-content">
@@ -47,6 +47,7 @@ export function StudentProfile() {
           learningType={styleInfo.label.toUpperCase()}
           streak={STUDENT_PROFILE.streak}
           onRetakeVark={() => navigate('/questionnaire')}
+          onSettings={() => navigate('/settings')}
         />
 
         <div className="prof-stats-row">

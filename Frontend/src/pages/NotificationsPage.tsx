@@ -2,8 +2,7 @@ import { useAuth } from '../context/AuthContext'
 import { BitMascot } from '../components/ui/BitMascot'
 import { Sidebar } from '../components/ui/Sidebar'
 import { AppHeader } from '../components/ui/AppHeader'
-import { StudentNotifications } from '../features/notifications/StudentNotifications'
-import { ProfessorNotifications } from '../features/notifications/ProfessorNotifications'
+import { Notifications } from '../features/notifications/Notifications'
 
 export function NotificationsPage() {
   const { profil } = useAuth()
@@ -19,7 +18,7 @@ export function NotificationsPage() {
       <AppHeader />
       <div className="app-body">
         <Sidebar vloga={profil.vloga} username={profil.username} />
-        {profil.vloga === 'ucitelj' ? <ProfessorNotifications /> : <StudentNotifications />}
+        <Notifications />
       </div>
     </div>
   )
