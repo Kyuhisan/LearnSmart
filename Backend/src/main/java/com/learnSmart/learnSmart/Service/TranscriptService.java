@@ -37,28 +37,18 @@ public class TranscriptService {
         this.izvornaDatotekaRepository = izvornaDatotekaRepository;
     }
 
-    // PDF file
-    private String extractFromPdf(String fileURL) throws IOException {
-        URL url = new URL(fileURL);
+    //HTTP CONNECTION
+    private HttpURLConnection createConnection(URL url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("apikey", supabaseServiceKey);
         connection.setRequestProperty("Authorization", "Bearer " + supabaseServiceKey);
-
-        InputStream inputStream = connection.getInputStream();
-        PDDocument pdDocument = Loader.loadPDF(inputStream.readAllBytes());
-        PDFTextStripper pdfTextStripper = new PDFTextStripper();
-        String text = pdfTextStripper.getText(pdDocument);
-        pdDocument.close();
-        return text;
+        return connection;
     }
 
-
-    // AUDIO files
-    private Path downloadAudioFile(String fileURL) throws IOException {
+    //GENERIC FILE DOWNLOAD
+    private Path downloadFile(String fileURL, String prefix) throws IOException {
         URL url = new URL(fileURL);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestProperty("apikey", supabaseServiceKey);
-        connection.setRequestProperty("Authorization", "Bearer " + supabaseServiceKey);
+        HttpURLConnection connection = createConnection(url);
 
         String extension = ".tmp";
         String path = url.getPath();
@@ -68,23 +58,40 @@ public class TranscriptService {
             extension = path.substring(dotIndex);
         }
 
-        Path tmpFile = Files.createTempFile("audio-", extension);
+        Path tmpFile = Files.createTempFile(prefix, extension);
 
         try {
             Files.copy(
                     connection.getInputStream(),
                     tmpFile,
-                    StandardCopyOption.REPLACE_EXISTING
-            );
+                    StandardCopyOption.REPLACE_EXISTING);
 
             return tmpFile;
-
         } finally {
             connection.disconnect();
         }
     }
 
-    private String transcribeAduio(Path tmpFile) throws IOException {
+    // PDF file
+    private String extractFromPdf(String fileURL) throws IOException {
+        URL url = new URL(fileURL);
+        HttpURLConnection connection = createConnection(url);
+
+        try {
+            InputStream inputStream = connection.getInputStream();
+            PDDocument pdDocument = Loader.loadPDF(inputStream.readAllBytes());
+            PDFTextStripper pdfTextStripper = new PDFTextStripper();
+            String text = pdfTextStripper.getText(pdDocument);
+            pdDocument.close();
+            return text;
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+
+    // AUDIO files
+    private String transcribeAudio(Path tmpFile) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -113,10 +120,10 @@ public class TranscriptService {
     }
 
     private String extractFromAudio(String fileURL) throws IOException {
-        Path tmpFile = downloadAudioFile(fileURL);
+        Path tmpFile = downloadFile(fileURL, "audio-");
 
         try {
-            return transcribeAduio(tmpFile);
+            return transcribeAudio(tmpFile);
         } finally {
             Files.deleteIfExists(tmpFile);
         }
