@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
+import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
@@ -32,10 +33,13 @@ public class TranscriptService {
     private String openaiApiKey;
 
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
+    private final StorageService storageService;
 
-    public TranscriptService(IzvornaDatotekaRepository izvornaDatotekaRepository) {
+    public TranscriptService(IzvornaDatotekaRepository izvornaDatotekaRepository, StorageService storageService) {
         this.izvornaDatotekaRepository = izvornaDatotekaRepository;
+        this.storageService = storageService;
     }
+
 
     //HTTP CONNECTION
     private HttpURLConnection createConnection(URL url) throws IOException {
@@ -44,6 +48,7 @@ public class TranscriptService {
         connection.setRequestProperty("Authorization", "Bearer " + supabaseServiceKey);
         return connection;
     }
+
 
     //GENERIC FILE DOWNLOAD
     private Path downloadFile(String fileURL, String prefix) throws IOException {
@@ -72,17 +77,18 @@ public class TranscriptService {
         }
     }
 
+
     // PDF file
     private String extractFromPdf(String fileURL) throws IOException {
         URL url = new URL(fileURL);
         HttpURLConnection connection = createConnection(url);
 
-        try {
-            InputStream inputStream = connection.getInputStream();
-            PDDocument pdDocument = Loader.loadPDF(inputStream.readAllBytes());
+        try (
+                InputStream inputStream = connection.getInputStream();
+                PDDocument pdDocument = Loader.loadPDF(inputStream.readAllBytes())
+        ) {
             PDFTextStripper pdfTextStripper = new PDFTextStripper();
             String text = pdfTextStripper.getText(pdDocument);
-            pdDocument.close();
             return text;
         } finally {
             connection.disconnect();
@@ -119,6 +125,7 @@ public class TranscriptService {
         return (String) responseBody.get("text");
     }
 
+
     private String extractFromAudio(String fileURL) throws IOException {
         Path tmpFile = downloadFile(fileURL, "audio-");
 
@@ -129,31 +136,103 @@ public class TranscriptService {
         }
     }
 
+
     // MP4
-    private void extractFromMp4() {}
+    private Path extractAudioFromVideo(Path tmpVideo) throws IOException, InterruptedException {
+        Path tmpAudio = Files.createTempFile("audio-", ".mp3");
+
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "ffmpeg",
+                "-y",
+                "-i",
+                tmpVideo.toString(),
+                "-vn",
+                "-acodec",
+                "mp3",
+                tmpAudio.toString()
+        );
+        processBuilder.redirectErrorStream(true);
+
+        Process process = processBuilder.start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+
+        int exitCode = process.waitFor();
+
+        if (exitCode != 0) {
+            throw new IOException("FFmpeg audio extraction failed.");
+        }
+        return tmpAudio;
+    }
+
+    private void saveAudioFile(IzvornaDatoteka videoDatoteka, String audioUrl, Path tmpAudio) throws IOException {
+        IzvornaDatoteka audioDatoteka = new IzvornaDatoteka();
+        audioDatoteka.setPredmet(videoDatoteka.getPredmet());
+        audioDatoteka.setImeDatoteke(tmpAudio.getFileName().toString());
+        audioDatoteka.setUrl(audioUrl);
+        audioDatoteka.setTip("AUDIO");
+        audioDatoteka.setProcessingStatus("done");
+        audioDatoteka.setUstvarjenOb(OffsetDateTime.now());
+        audioDatoteka.setVelikostBytes(Files.size(tmpAudio));
+        audioDatoteka.setGeneriranaIz(videoDatoteka);
+
+        izvornaDatotekaRepository.save(audioDatoteka);
+    }
 
 
-    public String extractTranscript(String fileURL, String tip) throws IOException {
-        if (tip.equals("PDF")) {
-            return extractFromPdf(fileURL);
-        } else if (tip.equals("AUDIO")) {
-            return extractFromAudio(fileURL);
-        } else {
-            throw new IllegalArgumentException("");
+    private String extractFromMp4(IzvornaDatoteka videoDatoteka) throws IOException {
+        UUID predmetId = videoDatoteka.getPredmet().getId();
+        Path tmpVideo = downloadFile(videoDatoteka.getUrl(), "video-");
+        Path tmpAudio = null;
+
+        try {
+            tmpAudio = extractAudioFromVideo(tmpVideo);
+            storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);
+
+            String audioUrl = storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);
+            saveAudioFile(videoDatoteka, audioUrl, tmpAudio);
+            return transcribeAudio(tmpAudio);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Video processing interrupted." ,e);
+
+        } finally {
+            Files.deleteIfExists(tmpVideo);
+
+            if (tmpAudio != null) {
+                Files.deleteIfExists(tmpAudio);
+            }
         }
     }
+
+
+    public String extractTranscript(IzvornaDatoteka datoteka) throws IOException {
+        return switch (datoteka.getTip()) {
+            case "PDF" -> extractFromPdf(datoteka.getUrl());
+            case "AUDIO" -> extractFromAudio(datoteka.getUrl());
+            case "VIDEO" -> extractFromMp4(datoteka);
+            default -> throw new IOException("Unsupported file type.");
+        };
+    }
+
 
     @Async
     public void processTranscript(UUID izvornaDatotekaId, String fileURL, String tip) {
         try {
-            String transcript = extractTranscript(fileURL, tip);
-
             IzvornaDatoteka datoteka = izvornaDatotekaRepository.findById(izvornaDatotekaId).orElseThrow(() -> new IllegalArgumentException("File does not exist"));
+            String transcript = extractTranscript(datoteka);
             datoteka.setManjsiTranscript(transcript);
             datoteka.setProcessingStatus("done");
+
             izvornaDatotekaRepository.save(datoteka);
         } catch(Exception e) {
-            System.out.println("Transcipt failed: " + e.getMessage());
+            System.out.println("Transcript failed: " + e.getMessage());
             e.printStackTrace();
 
             izvornaDatotekaRepository.findById(izvornaDatotekaId).ifPresent(d -> {

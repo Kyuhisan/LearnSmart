@@ -42,7 +42,7 @@ public class IzvornaDatotekaController {
 
         if (mimeType != null && mimeType.equals("application/pdf")) {
             tip = "PDF";
-        } else if (mimeType != null && mimeType.equals("video/mp4")) {
+        } else if (mimeType != null && mimeType.startsWith("video/")) {
             tip = "VIDEO";
         } else if (mimeType != null && mimeType.startsWith("audio/")) {
             tip = "AUDIO";
