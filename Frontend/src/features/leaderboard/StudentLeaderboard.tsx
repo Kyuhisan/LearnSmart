@@ -15,7 +15,7 @@ const PODIUM_HEIGHT = ['7rem', '5.5rem', '4.5rem']
 type Filter = 'ALL TIME' | 'THIS WEEK'
 
 function PodiumCard({ entry, position }: { entry: LeaderboardEntry; position: 0 | 1 | 2 }) {
-  const xp = position === 0 ? entry.xp : position === 1 ? entry.xp : entry.xp
+  const xp = entry.xp
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[2], flex: 1 }}>
       {/* Avatar */}
