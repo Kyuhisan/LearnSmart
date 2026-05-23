@@ -1,23 +1,103 @@
-    import { BitMascot } from '../../components/ui/BitMascot'
-import { ComicBox } from '../../components/ui/ComicBox'
+import { useState } from 'react'
+import { StatCard } from '../../components/ui/StatCard'
+import { Panel } from '../../components/ui/Panel'
+import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
-import { C, S } from '../../styles/tokens'
+import { QuizSession } from './QuizSession'
+import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
+import { QUIZ_STATS, AVAILABLE_QUIZZES, COMPLETED_QUIZZES } from './mockData'
+
+const DIFFICULTY_COLOR: Record<string, string> = {
+  EASY:   C.greenLt,
+  MEDIUM: C.yellowLt,
+  HARD:   C.redLt,
+}
 
 export function StudentQuiz() {
+  const [sessionActive, setSessionActive] = useState(false)
+
+  if (sessionActive) return <QuizSession onClose={() => setSessionActive(false)} />
+
   return (
     <div className="dashboard-main">
-      <Topbar title="QUIZ TIME" subtitle="Test your knowledge" />
-      <ComicBox bg={C.cyanLt} p={S[6]} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3] }}>
-        <BitMascot size={60} mood="thinking" float />
-        <Tag label="STUDENT" bg={C.cyan} />
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '1.25rem', color: C.ink }}>
-          COMING SOON — STUDENT
+      <Topbar
+        title="QUIZZES"
+        subtitle="Test your knowledge · track your progress"
+        actions={<Tag label={`${QUIZ_STATS.totalCompleted} / ${QUIZ_STATS.totalAvailable} DONE`} bg={C.cyanLt} />}
+      />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
+
+        {/* Stats row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: S[3] }}>
+          <StatCard label="AVG SCORE"     value={`${QUIZ_STATS.avgScore}%`}      sub="across all quizzes"          bg={C.cyanLt}   />
+          <StatCard label="BEST SCORE"    value={`${QUIZ_STATS.bestScore}%`}     sub="Quiz #12 — Binary Trees"    bg={C.greenLt}  />
+          <StatCard label="FASTEST TIME"  value={QUIZ_STATS.fastestTime}         sub="Quiz #12 — Binary Trees"    bg={C.yellowLt} />
+          <StatCard label="QUIZ STREAK"   value={`${QUIZ_STATS.streak}d`}        sub="keep it going!"             bg={C.redLt}    />
         </div>
-        <div style={{ fontSize: '0.875rem', color: C.muted }}>
-          Active quiz session: questions, timer, answer selection, results
-        </div>
-      </ComicBox>
+
+        {/* Available quizzes */}
+        <Panel title="AVAILABLE QUIZZES" accent={C.yellow}
+          action={<Tag label={`${AVAILABLE_QUIZZES.length} PENDING`} bg={C.yellowLt} />}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
+            {AVAILABLE_QUIZZES.map(q => (
+              <div key={q.id} style={{
+                display: 'flex', alignItems: 'center', gap: S[3],
+                padding: `${S[2.5]} ${S[3]}`,
+                border: `${BW.base} solid ${C.ink}`,
+                borderRadius: R.sm,
+                boxShadow: mkShadow(),
+                background: q.moduleColorLt,
+              }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[0.5] }}>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{q.title}</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{q.module}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexShrink: 0 }}>
+                  <Tag label={`${q.questions}Q`} bg={C.paper} />
+                  <Tag label={q.timeLimit} bg={C.paper} />
+                  <Tag label={q.difficulty} bg={DIFFICULTY_COLOR[q.difficulty]} />
+                  {q.dueDate && <Tag label={q.dueDate} bg={C.orangeLt} />}
+                  <ComicBtn sm color={C.yellow} hoverColor={C.yellowLt} onClick={() => setSessionActive(true)}>START</ComicBtn>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        {/* Completed quizzes */}
+        <Panel title="COMPLETED QUIZZES" accent={C.green}
+          action={<Tag label={`${COMPLETED_QUIZZES.length} DONE`} bg={C.greenLt} />}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
+            {COMPLETED_QUIZZES.map(q => (
+              <div key={q.id} style={{
+                display: 'flex', alignItems: 'center', gap: S[3],
+                padding: `${S[2.5]} ${S[3]}`,
+                border: `${BW.base} solid ${C.ink}`,
+                borderRadius: R.sm,
+                boxShadow: mkShadow(),
+                background: q.moduleColorLt,
+              }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[0.5] }}>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{q.title}</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{q.module}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexShrink: 0 }}>
+                  <Tag
+                    label={`${q.score}%`}
+                    bg={q.score >= 80 ? C.greenLt : q.score >= 65 ? C.yellowLt : C.redLt}
+                  />
+                  <Tag label={q.timeTaken} bg={C.paper} />
+                  <Tag label={q.completedOn} bg={C.paper} />
+                  <Tag label={q.passed ? 'PASSED' : 'FAILED'} bg={q.passed ? C.greenLt : C.redLt} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+      </div>
     </div>
   )
 }

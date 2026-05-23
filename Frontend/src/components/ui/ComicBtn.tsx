@@ -5,6 +5,7 @@ interface ComicBtnProps {
   children: ReactNode
   onClick?: () => void
   color?: string
+  hoverColor?: string
   sm?: boolean
   style?: CSSProperties
   dark?: boolean
@@ -16,6 +17,7 @@ export function ComicBtn({
   children,
   onClick,
   color = C.yellow,
+  hoverColor,
   sm,
   style,
   dark,
@@ -33,7 +35,7 @@ export function ComicBtn({
       onMouseEnter={() => !disabled && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: disabled ? C.mutedLt : color,
+        background: disabled ? C.mutedLt : (active && hoverColor ? hoverColor : color),
         color: dark ? '#fff' : C.ink,
         border: `${BW.base} solid ${C.ink}`,
         padding: sm ? `${S[1.5]} ${S[3.5]}` : `${S[2.5]} ${S[5]}`,

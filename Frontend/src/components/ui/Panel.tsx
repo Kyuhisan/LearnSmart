@@ -9,6 +9,7 @@ interface PanelProps {
   p?: number | string
   bg?: string
   style?: CSSProperties
+  overflow?: CSSProperties['overflow']
 }
 
 export function Panel({
@@ -19,6 +20,7 @@ export function Panel({
   p = S[4],
   bg = C.paper,
   style,
+  overflow = 'hidden',
 }: PanelProps) {
   return (
     <div style={{
@@ -26,7 +28,7 @@ export function Panel({
       border: `${BW.base} solid ${C.ink}`,
       boxShadow: mkShadow(),
       borderRadius: R.base,
-      overflow: 'hidden',
+      overflow,
       ...style,
     }}>
       <div style={{
@@ -37,6 +39,7 @@ export function Panel({
         padding: `${S[2.5]} ${S[3.5]}`,
         background: accent,
         borderBottom: `${BW.base} solid ${C.ink}`,
+        borderRadius: `calc(${R.base} - ${BW.base}) calc(${R.base} - ${BW.base}) 0 0`,
       }}>
         <div style={{
           fontFamily: "'Archivo Black', sans-serif",
