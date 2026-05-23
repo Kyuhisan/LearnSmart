@@ -1,7 +1,9 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
+import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
+import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -26,6 +28,7 @@ import java.util.*;
 @Service
 public class TranscriptService {
 
+    private final PredmetRepository predmetRepository;
     @Value("${SUPABASE_SERVICE_KEY}")
     private String supabaseServiceKey;
 
@@ -35,9 +38,10 @@ public class TranscriptService {
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
     private final StorageService storageService;
 
-    public TranscriptService(IzvornaDatotekaRepository izvornaDatotekaRepository, StorageService storageService) {
+    public TranscriptService(IzvornaDatotekaRepository izvornaDatotekaRepository, StorageService storageService, PredmetRepository predmetRepository) {
         this.izvornaDatotekaRepository = izvornaDatotekaRepository;
         this.storageService = storageService;
+        this.predmetRepository = predmetRepository;
     }
 
 
@@ -192,7 +196,6 @@ public class TranscriptService {
 
         try {
             tmpAudio = extractAudioFromVideo(tmpVideo);
-            storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);
 
             String audioUrl = storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);
             saveAudioFile(videoDatoteka, audioUrl, tmpAudio);
@@ -222,6 +225,23 @@ public class TranscriptService {
     }
 
 
+    private void updateCombinedTranscript(UUID predmetId) throws IOException {
+        List<IzvornaDatoteka> doneDatoteka = izvornaDatotekaRepository.findByPredmetIdAndProcessingStatus(predmetId, "done");
+
+        StringBuilder combined = new StringBuilder();
+        for (IzvornaDatoteka datoteka : doneDatoteka) {
+            if (datoteka.getManjsiTranscript() != null) {
+                combined.append(datoteka.getManjsiTranscript());
+                combined.append("\n");
+            }
+        }
+
+        Predmet predmet = predmetRepository.findById(predmetId).orElseThrow(() -> new IllegalArgumentException("Predmet does not exist"));
+        predmet.setZdruzenTranscript(combined.toString());
+        predmetRepository.save(predmet);
+    }
+
+
     @Async
     public void processTranscript(UUID izvornaDatotekaId, String fileURL, String tip) {
         try {
@@ -231,6 +251,8 @@ public class TranscriptService {
             datoteka.setProcessingStatus("done");
 
             izvornaDatotekaRepository.save(datoteka);
+
+            updateCombinedTranscript(datoteka.getPredmet().getId());
         } catch(Exception e) {
             System.out.println("Transcript failed: " + e.getMessage());
             e.printStackTrace();
