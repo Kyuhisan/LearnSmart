@@ -1,0 +1,16 @@
+/* ─── SHARED UTILITIES ───────────────────────────────────────── */
+.page-bg {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--ls-cream);
+  background-image: var(--ls-dot-bg);
+  background-size: var(--ls-dot-size);
+}
+
+.page-loader {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ls-cream);
+}
