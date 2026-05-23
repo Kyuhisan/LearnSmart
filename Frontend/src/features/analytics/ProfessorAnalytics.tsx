@@ -200,12 +200,12 @@ export function ProfessorAnalytics() {
           <Panel title="LEARNING STYLES" accent={C.purple}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
               {STYLE_BREAKDOWN.map(s => (
-                <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: s.color + '22', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: s.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
                   <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{s.label}</span>
                   <div style={{ flex: 1 }}>
                     <Bar value={s.percent} color={s.color} height={12} shadow />
                   </div>
-                  <Tag label={`${s.percent}%`} bg={C.mutedLt} />
+                  <Tag label={`${s.percent}%`} bg={s.color} />
                 </div>
               ))}
             </div>

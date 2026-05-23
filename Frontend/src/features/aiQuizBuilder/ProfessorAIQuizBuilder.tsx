@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBtn } from '../../components/ui/ComicBtn'
+import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
@@ -217,16 +218,9 @@ export function ProfessorAIQuizBuilder() {
           {questions && (
             <Panel title="REVIEW STATUS" accent={C.cyan} p={S[4]} action={<Tag label="STEP 3" bg={C.cyanLt} />}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: S[2] }}>
-                {[
-                  { label: 'PENDING',  value: pendingCount,  bg: C.mutedLt },
-                  { label: 'APPROVED', value: approvedCount, bg: C.greenLt },
-                  { label: 'REJECTED', value: rejectedCount, bg: C.redLt   },
-                ].map(s => (
-                  <div key={s.label} style={{ padding: S[3], background: s.bg, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['3xl'], color: C.ink }}>{s.value}</div>
-                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 1 }}>{s.label}</div>
-                  </div>
-                ))}
+                <StatCard label="PENDING"  value={pendingCount}  sub="" bg={C.mutedLt} />
+                <StatCard label="APPROVED" value={approvedCount} sub="" bg={C.greenLt} />
+                <StatCard label="REJECTED" value={rejectedCount} sub="" bg={C.redLt}   />
               </div>
             </Panel>
           )}

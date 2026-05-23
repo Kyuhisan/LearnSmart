@@ -20,6 +20,7 @@ export interface StyleBreakdown {
   label: string
   percent: number
   color: string
+  colorLt: string
 }
 
 export const WEEKLY_ACTIVITY: WeeklyActivity[] = [
@@ -41,10 +42,10 @@ export const MODULE_STATS: ModuleStats[] = [
 ]
 
 export const STYLE_BREAKDOWN: StyleBreakdown[] = [
-  { label: 'VISUAL',      percent: 38, color: C.purple },
-  { label: 'READING',     percent: 27, color: C.cyan   },
-  { label: 'AUDITORY',    percent: 21, color: C.green  },
-  { label: 'KINESTHETIC', percent: 14, color: C.red    },
+  { label: 'VISUAL',      percent: 38, color: C.purple, colorLt: C.purpleLt },
+  { label: 'READING',     percent: 27, color: C.cyan,   colorLt: C.cyanLt   },
+  { label: 'AUDITORY',    percent: 21, color: C.green,  colorLt: C.greenLt  },
+  { label: 'KINESTHETIC', percent: 14, color: C.red,    colorLt: C.redLt    },
 ]
 
 export interface ModuleQuizDetail {

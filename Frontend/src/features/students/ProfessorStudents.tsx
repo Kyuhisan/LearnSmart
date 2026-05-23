@@ -4,7 +4,7 @@ import { Panel } from '../../components/ui/Panel'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
-import { C, S, BW, R, STYLE_INFO } from '../../styles/tokens'
+import { C, S, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { STUDENTS, STUDENTS_STATS, type Student } from './mockData'
 import '../../styles/studentPage.css'
 
@@ -28,6 +28,64 @@ function styleInfo(style: LearningStyle) {
 
 function isAtRisk(student: Student): boolean {
   return student.avgScore < 65
+}
+
+function StudentRow({ student, atRisk, onClick }: { student: Student; atRisk: boolean; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        cursor: 'pointer',
+        transition: 'transform 0.1s ease',
+        transform: hovered ? 'translate(-2px, -4px) scale(1.01)' : 'none',
+      }}
+    >
+      <div className="student-row-inner" style={{
+        background: hovered ? C.yellowLt : C.paper,
+        boxShadow: hovered ? `2px 4px 0 ${C.ink}` : mkShadow(),
+      }}>
+
+        {/* Avatar */}
+        <div
+          className="student-avatar"
+          style={{
+            border: `${BW.base} solid ${C.ink}`,
+            background: styleInfo(student.learningStyle).bg,
+            color: C.ink,
+          }}
+        >
+          {student.fullName.charAt(0)}
+        </div>
+
+        {/* Info */}
+        <div className="student-info">
+          <div className="student-name-row">
+            <span className="student-name" style={{ color: C.ink }}>
+              {student.fullName}
+            </span>
+            {atRisk && <Tag label="AT RISK" bg={C.red} />}
+          </div>
+          <p className="student-meta" style={{ color: C.muted }}>
+            Last active {student.lastActive} · {styleInfo(student.learningStyle).label}
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="student-stats">
+          <div className="student-score" style={{ color: atRisk ? C.red : C.green }}>
+            {student.avgScore}%
+          </div>
+          <div className="student-xp" style={{ color: C.muted }}>
+            {student.xp.toLocaleString()} XP
+          </div>
+        </div>
+
+      </div>
+    </div>
+  )
 }
 
 export function ProfessorStudents() {
@@ -91,64 +149,16 @@ export function ProfessorStudents() {
 
         {/* Main card */}
         <Panel title={`${filtered.length} STUDENTS`} accent={C.yellow} p={S[3]}>
-
-          {/* Student rows */}
           <div className="students-rows">
-            {filtered.map((student) => {
-              const atRisk = isAtRisk(student)
-              return (
-                <div
-                  key={student.id}
-                  className="student-row-hover"
-                  onClick={() => navigate(`/students/${student.id}`)}
-                  style={{ '--hover-bg': C.yellowLt } as React.CSSProperties}
-                >
-                  <div className="student-row-inner">
-
-                    {/* Avatar */}
-                    <div
-                      className="student-avatar"
-                      style={{
-                        border: `${BW.base} solid ${C.ink}`,
-                        background: styleInfo(student.learningStyle).bg,
-                        color: C.ink,
-                      }}
-                    >
-                      {student.fullName.charAt(0)}
-                    </div>
-
-                    {/* Info */}
-                    <div className="student-info">
-                      <div className="student-name-row">
-                        <span className="student-name" style={{ color: C.ink }}>
-                          {student.fullName}
-                        </span>
-                        {atRisk && <Tag label="AT RISK" bg={C.red} />}
-                      </div>
-                      <p className="student-meta" style={{ color: C.muted }}>
-                        Last active {student.lastActive} · {styleInfo(student.learningStyle).label}
-                      </p>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="student-stats">
-                      <div
-                        className="student-score"
-                        style={{ color: atRisk ? C.red : C.green }}
-                      >
-                        {student.avgScore}%
-                      </div>
-                      <div className="student-xp" style={{ color: C.muted }}>
-                        {student.xp.toLocaleString()} XP
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              )
-            })}
+            {filtered.map((student) => (
+              <StudentRow
+                key={student.id}
+                student={student}
+                atRisk={isAtRisk(student)}
+                onClick={() => navigate(`/students/${student.id}`)}
+              />
+            ))}
           </div>
-
         </Panel>
 
       </div>
