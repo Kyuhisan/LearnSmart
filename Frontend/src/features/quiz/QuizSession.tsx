@@ -114,24 +114,26 @@ export function QuizSession({ onClose }: QuizSessionProps) {
   const [visible, setVisible] = useState(true)
   const [timeLeft, setTimeLeft] = useState(ACTIVE_QUIZ.timeLimit)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const timeLeftRef = useRef(ACTIVE_QUIZ.timeLimit)
 
   useEffect(() => {
     if (step !== 'question') {
       if (timerRef.current) clearInterval(timerRef.current)
       return
     }
+    timeLeftRef.current = ACTIVE_QUIZ.timeLimit
+    const qIdx = questionIndex
     timerRef.current = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) {
-          clearInterval(timerRef.current!)
-          handleTimeout()
-          return 0
-        }
-        return t - 1
-      })
+      timeLeftRef.current -= 1
+      setTimeLeft(timeLeftRef.current)
+      if (timeLeftRef.current <= 0) {
+        clearInterval(timerRef.current!)
+        setSelectedOption(-1)
+        setAnswers(prev => [...prev, { selected: -1, correct: QUIZ_QUESTIONS[qIdx].correct }])
+        setStep('feedback')
+      }
     }, 1000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, questionIndex])
 
   const transition = (fn: () => void) => {
@@ -150,12 +152,6 @@ export function QuizSession({ onClose }: QuizSessionProps) {
     setSelectedOption(idx)
     setAnswers(prev => [...prev, { selected: idx, correct: q.correct }])
     if (timerRef.current) clearInterval(timerRef.current)
-    setStep('feedback')
-  }
-
-  const handleTimeout = () => {
-    setSelectedOption(-1)
-    setAnswers(prev => [...prev, { selected: -1, correct: q.correct }])
     setStep('feedback')
   }
 
