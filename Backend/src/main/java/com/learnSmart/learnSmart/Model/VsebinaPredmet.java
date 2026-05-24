@@ -21,7 +21,7 @@ public class VsebinaPredmet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "uuid")
     private UUID vsebinaPredmetId;
 
     @ManyToOne(fetch = FetchType.LAZY)

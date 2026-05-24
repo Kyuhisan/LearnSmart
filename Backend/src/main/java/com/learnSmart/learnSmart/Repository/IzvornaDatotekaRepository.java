@@ -7,4 +7,5 @@ import java.util.List;
 import java.util.UUID;
 public interface IzvornaDatotekaRepository extends JpaRepository<IzvornaDatoteka, UUID> {
     List<IzvornaDatoteka> findByPredmetIdAndProcessingStatus(UUID predmetId, String processingStatus);
+    long countByPredmetIdAndProcessingStatusNot(UUID predmetId, String processingStatus);
 }

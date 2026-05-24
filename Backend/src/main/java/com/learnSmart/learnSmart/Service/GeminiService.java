@@ -84,7 +84,66 @@ public class GeminiService {
     private RestTemplate buildRestTemplate() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(10000);
-        requestFactory.setReadTimeout(10000);
+        requestFactory.setReadTimeout(120000);
         return new RestTemplate(requestFactory);
+    }
+
+    public String generateContentPacks(String combinedTranscript) {
+        try {
+            String prompt = "You are an educational content generator. Based on the provided transcript, generate learning content for 3 different learning styles.\n" +
+                    "\n" +
+                    "Return ONLY a valid JSON object with no additional text, markdown, or code blocks. The JSON must have exactly these 3 keys:\n" +
+                    "\n" +
+                    "{\n" +
+                    "  \"branje\": {\n" +
+                    "    \"definicija\": \"A clear definition of the main topic\",\n" +
+                    "    \"povzetek\": \"A concise summary of the content\",\n" +
+                    "    \"strukturirane_opombe\": [\"key point 1\", \"key point 2\", \"key point 3\"],\n" +
+                    "    \"glosar\": [{\"izraz\": \"term\", \"definicija\": \"definition\"}],\n" +
+                    "    \"kljucni_pojmi\": [\"concept 1\", \"concept 2\"]\n" +
+                    "  },\n" +
+                    "  \"kinestetično\": {\n" +
+                    "    \"vprasanja\": [\n" +
+                    "      Generate between 10 and 15 multiple choice questions based on the transcript.\n" +
+                    "      Each question must have exactly 4 options (A, B, C, D) and one correct answer.\n" +
+                    "      {\n" +
+                    "        \"vprasanje\": \"question text\",\n" +
+                    "        \"moznosti\": [\"A) option\", \"B) option\", \"C) option\", \"D) option\"],\n" +
+                    "        \"pravilen_odgovor\": \"A\"\n" +
+                    "      }\n" +
+                    "    ]\n" +
+                    "  },\n" +
+                    "  \"audio\": {\n" +
+                    "    \"naracijski_skript\": \"A natural spoken narrative of the entire content, written as if spoken aloud by a teacher. Should be comprehensive and cover all key points.\"\n" +
+                    "  }\n" +
+                    "}\n" +
+                    "\n" +
+                    "Transcript: " + combinedTranscript;
+
+            Map<String, Object> body = Map.of(
+                    "contents", List.of(
+                            Map.of("parts", List.of(
+                                    Map.of("text", prompt)
+                            ))
+                    )
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    url,
+                    new HttpEntity<>(body, headers),
+                    Map.class
+            );
+
+            return extractText(response.getBody());
+
+        } catch (Exception e) {
+            log.warn("Gemini content generation failed: {}", e.getMessage());
+            return null;
+        }
     }
 }
