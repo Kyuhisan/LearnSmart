@@ -81,7 +81,13 @@ public class StorageService {
     }
 
     public String uploadFile(Path filePath, String mimeType, UUID predmetId) throws IOException {
-        String extension = filePath.getFileName().toString();
+        Path fileNamePath = filePath.getFileName();
+
+        if (fileNamePath == null) {
+            throw new IllegalArgumentException("Invalid file path.");
+        }
+
+        String extension = fileNamePath.toString();
         extension = extension.contains(".") ? extension.substring(extension.lastIndexOf(".")) : "";
         String fileName = UUID.randomUUID() + extension; // <--- we can change the name if we want to
         String path = "modules/" + predmetId + "/" + fileName;

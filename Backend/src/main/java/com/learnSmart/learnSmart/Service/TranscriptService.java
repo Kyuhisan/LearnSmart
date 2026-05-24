@@ -198,13 +198,19 @@ public class TranscriptService {
     }
 
     private void saveAudioFile(IzvornaDatoteka videoDatoteka, String audioUrl, Path tmpAudio) throws IOException {
-        if (tmpAudio == null || tmpAudio.getFileName() == null) {
+        if (tmpAudio == null) {
+            throw new IllegalStateException("Audio path invalid.");
+        }
+
+        Path fileNamePath = tmpAudio.getFileName();
+
+        if (fileNamePath == null) {
             throw new IllegalStateException("Audio path invalid.");
         }
 
         IzvornaDatoteka audioDatoteka = new IzvornaDatoteka();
         audioDatoteka.setPredmet(videoDatoteka.getPredmet());
-        audioDatoteka.setImeDatoteke(tmpAudio.getFileName().toString());
+        audioDatoteka.setImeDatoteke(fileNamePath.toString());
         audioDatoteka.setUrl(audioUrl);
         audioDatoteka.setTip("AUDIO");
         audioDatoteka.setProcessingStatus("done");
