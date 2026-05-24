@@ -3,6 +3,9 @@ package com.learnSmart.learnSmart.Model;
 import jakarta.persistence.*;
 import lombok.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +47,7 @@ public class Predmet {
     @Column(name = "zdruzen_transcript", columnDefinition = "text")
     private String zdruzenTranscript;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "koraki_obdelave", columnDefinition = "jsonb")
     private String korakiObdelave;
 
@@ -56,4 +60,6 @@ public class Predmet {
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
     private List<Vpis> vpisi;
 
+    @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+    private List<VsebinaPredmet> vsebinaPredmet;
 }

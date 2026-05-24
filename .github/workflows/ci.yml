@@ -56,6 +56,11 @@ jobs:
       - name: Make mvnw executable
         working-directory: Backend
         run: chmod +x mvnw
+        
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
       - name: Build and analyze
         working-directory: Backend
@@ -70,6 +75,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           FRONT_URL: http://localhost:5173
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=kyuhisan_learnsmart_backend
 
   frontend:
