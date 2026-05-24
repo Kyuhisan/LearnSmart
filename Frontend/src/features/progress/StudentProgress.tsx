@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
 import { Bar } from '../../components/ui/Bar'
@@ -30,9 +31,117 @@ function xpToBorder(xp: number, future?: boolean): string {
   return C.green
 }
 
+function StreakCalendarPanel() {
+  return (
+    <Panel title="STREAK CALENDAR" accent={C.orange}
+      action={<Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} />}>
+      <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: S[2] }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
+          {DAY_HEADERS.map((d, i) => (
+            <div key={i} style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, textAlign: 'center', letterSpacing: 0.5 }}>
+              {d}
+            </div>
+          ))}
+        </div>
+        {WEEKS.map((week, wi) => (
+          <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
+            {week.map((day, di) => (
+              <div key={di}
+                title={day.future ? 'Upcoming' : `${day.date}${day.xp > 0 ? ` · +${day.xp} XP` : ' · no activity'}`}
+                style={{ aspectRatio: '1', background: xpToColor(day.xp, day.future), border: `${BW.base} solid ${xpToBorder(day.xp, day.future)}`, borderRadius: R.sm, boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red), display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[0.5] }}
+              >
+                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: day.future ? C.divider : C.ink, lineHeight: 1 }}>
+                  {new Date(day.date).getDate()}
+                </span>
+                {!day.future && (
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.ink, lineHeight: 1 }}>
+                    {day.xp > 0 ? `+${day.xp} XP` : 'N/A'}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[3], marginTop: S[1] }}>
+          {[
+            { color: C.greenLt, border: C.green,   label: 'DONE'     },
+            { color: C.redLt,   border: C.red,     label: 'MISSED'   },
+            { color: C.paper,   border: C.divider, label: 'UPCOMING' },
+          ].map(item => (
+            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: S[1] }}>
+              <div style={{ width: 14, height: 14, background: item.color, border: `${BW.base} solid ${item.border}`, borderRadius: R.sm, boxShadow: item.border !== C.divider ? mkShadow('base', item.border) : 'none', flexShrink: 0 }} />
+              <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  )
+}
+
+function BadgesPanel({ limit, cols }: { limit?: number; cols: number }) {
+  const badges = limit ? BADGES.slice(0, limit) : BADGES
+  return (
+    <Panel title="BADGES" accent={C.purple} action={<Tag label={`${PROGRESS_STATS.totalBadges} EARNED`} bg={C.purpleLt} />}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: S[3], padding: 0 }}>
+        {badges.map(b => (
+          <div key={b.id} style={{
+            display: 'flex', flexDirection: 'column', gap: S[1.5],
+            padding: S[3],
+            background: b.earned ? b.colorLt : C.cream,
+            border: `${BW.base} solid ${b.earned ? C.ink : C.divider}`,
+            borderRadius: R.sm,
+            boxShadow: b.earned ? mkShadow() : 'none',
+            opacity: b.earned ? 1 : 0.55,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Tag label={b.earned ? 'EARNED' : 'LOCKED'} bg={b.earned ? b.colorLt : C.mutedLt} />
+              {b.earned && b.earnedDate && (
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>{b.earnedDate}</span>
+              )}
+            </div>
+            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, letterSpacing: 0.5 }}>
+              {b.label}
+            </div>
+            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, lineHeight: 1.5 }}>
+              {b.description}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  )
+}
+
+function ModuleProgressPanel({ navigate }: { navigate: (path: string) => void }) {
+  return (
+    <Panel title="MODULE PROGRESS" accent={C.cyan} action={<Tag label={`${PROGRESS_STATS.modulesTotal} MODULES`} bg={C.cyanLt} />}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
+        {PROGRESS_MODULES.map(m => (
+          <div
+            key={m.id}
+            onClick={() => navigate(`/modules/${m.id}`)}
+            style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden', cursor: 'pointer' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, background: m.colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
+              <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
+              <Tag label={`${m.progress}%`} bg={m.progress === 100 ? C.greenLt : m.progress >= 50 ? C.yellowLt : C.mutedLt} />
+              <Tag label={`${m.quizzesPassed}/${m.quizzesTotal} QUIZZES`} bg={C.paper} />
+              <Tag label={`AVG ${m.avgScore}%`} bg={m.avgScore >= 80 ? C.greenLt : m.avgScore >= 65 ? C.yellowLt : C.redLt} />
+            </div>
+            <div style={{ padding: `${S[2]} ${S[3]}`, background: C.paper }}>
+              <Bar value={m.progress} color={m.progress === 100 ? C.green : m.color} height={10} shadow />
+            </div>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  )
+}
+
 export function StudentProgress() {
   const navigate = useNavigate()
-  const maxXp = Math.max(...BIWEEKLY_XP.map(d => d.xp), 1)
+  const isTablet = useBreakpoint() === 'tablet'
 
   return (
     <div className="dashboard-main">
@@ -58,6 +167,7 @@ export function StudentProgress() {
           <div style={{ padding: 0 }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
               {BIWEEKLY_XP.map((d, i) => {
+                const maxXp = Math.max(...BIWEEKLY_XP.map(d => d.xp), 1)
                 const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * 110)
                 const isNewWeek = i === 7
                 return (
@@ -65,13 +175,7 @@ export function StudentProgress() {
                     <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>
                       {d.xp > 0 ? `+${d.xp}` : '—'}
                     </span>
-                    <div style={{
-                      width: '100%', height: barH,
-                      background: d.xp === 0 ? C.cream : i < 7 ? C.mutedLt : C.yellow,
-                      border: `${BW.base} solid ${C.ink}`,
-                      borderRadius: `${R.sm} ${R.sm} 0 0`,
-                      boxShadow: d.xp > 0 ? mkShadow() : 'none',
-                    }} />
+                    <div style={{ width: '100%', height: barH, background: d.xp === 0 ? C.cream : i < 7 ? C.mutedLt : C.yellow, border: `${BW.base} solid ${C.ink}`, borderRadius: `${R.sm} ${R.sm} 0 0`, boxShadow: d.xp > 0 ? mkShadow() : 'none' }} />
                     <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
                       {d.label.split(' ')[1]}
                     </span>
@@ -92,140 +196,25 @@ export function StudentProgress() {
           </div>
         </Panel>
 
-        {/* Streak calendar + Module progress — 50:50 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: S[4], alignItems: 'stretch' }}>
-
-          {/* Streak calendar */}
-          <Panel title="STREAK CALENDAR" accent={C.orange}
-            action={<Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} />}>
-            <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: S[2] }}>
-
-              {/* Day headers */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
-                {DAY_HEADERS.map((d, i) => (
-                  <div key={i} style={{
-                    fontFamily: "'Archivo Black', sans-serif",
-                    fontSize: FS.xs, color: C.muted,
-                    textAlign: 'center', letterSpacing: 0.5,
-                  }}>
-                    {d}
-                  </div>
-                ))}
-              </div>
-
-              {/* Week rows */}
-              {WEEKS.map((week, wi) => (
-                <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
-                  {week.map((day, di) => (
-                    <div
-                      key={di}
-                      title={day.future ? 'Upcoming' : `${day.date}${day.xp > 0 ? ` · +${day.xp} XP` : ' · no activity'}`}
-                      style={{
-                        aspectRatio: '1',
-                        background: xpToColor(day.xp, day.future),
-                        border: `${BW.base} solid ${xpToBorder(day.xp, day.future)}`,
-                        borderRadius: R.sm,
-                        boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red),
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: S[0.5],
-                      }}
-                    >
-                      <span style={{
-                        fontFamily: "'Archivo Black', sans-serif",
-                        fontSize: FS['2xs'],
-                        color: day.future ? C.divider : C.ink,
-                        lineHeight: 1,
-                      }}>
-                        {new Date(day.date).getDate()}
-                      </span>
-                      {!day.future && (
-                        <span style={{
-                          fontFamily: "'Space Mono', monospace",
-                          fontSize: FS['2xs'],
-                          color: C.ink,
-                          lineHeight: 1,
-                        }}>
-                          {day.xp > 0 ? `+${day.xp} XP` : 'N/A'}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-
-              {/* Legend */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: S[3], marginTop: S[1] }}>
-                {[
-                  { color: C.greenLt, border: C.green,   label: 'DONE'     },
-                  { color: C.redLt,   border: C.red,     label: 'MISSED'   },
-                  { color: C.paper,   border: C.divider, label: 'UPCOMING' },
-                ].map(item => (
-                  <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: S[1] }}>
-                    <div style={{ width: 14, height: 14, background: item.color, border: `${BW.base} solid ${item.border}`, borderRadius: R.sm, boxShadow: item.border !== C.divider ? mkShadow('base', item.border) : 'none', flexShrink: 0 }} />
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted }}>{item.label}</span>
-                  </div>
-                ))}
-              </div>
+        {isTablet ? (
+          <>
+            {/* Tablet: Module progress full width, then Streak + Badges 50:50 */}
+            <ModuleProgressPanel navigate={navigate} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[4], alignItems: 'stretch' }}>
+              <StreakCalendarPanel />
+              <BadgesPanel limit={4} cols={2} />
             </div>
-          </Panel>
-
-          {/* Module progress */}
-          <Panel title="MODULE PROGRESS" accent={C.cyan} action={<Tag label={`${PROGRESS_STATS.modulesTotal} MODULES`} bg={C.cyanLt} />}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
-              {PROGRESS_MODULES.map(m => (
-                <div
-                  key={m.id}
-                  onClick={() => navigate(`/modules/${m.id}`)}
-                  style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden', cursor: 'pointer' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, background: m.colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
-                    <Tag label={`${m.progress}%`} bg={m.progress === 100 ? C.greenLt : m.progress >= 50 ? C.yellowLt : C.mutedLt} />
-                    <Tag label={`${m.quizzesPassed}/${m.quizzesTotal} QUIZZES`} bg={C.paper} />
-                    <Tag label={`AVG ${m.avgScore}%`} bg={m.avgScore >= 80 ? C.greenLt : m.avgScore >= 65 ? C.yellowLt : C.redLt} />
-                  </div>
-                  <div style={{ padding: `${S[2]} ${S[3]}`, background: C.paper }}>
-                    <Bar value={m.progress} color={m.progress === 100 ? C.green : m.color} height={10} shadow />
-                  </div>
-                </div>
-              ))}
+          </>
+        ) : (
+          <>
+            {/* Desktop: Streak calendar + Module progress 2fr 3fr, Badges full width */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: S[4], alignItems: 'stretch' }}>
+              <StreakCalendarPanel />
+              <ModuleProgressPanel navigate={navigate} />
             </div>
-          </Panel>
-
-        </div>
-
-        {/* Badges */}
-        <Panel title="BADGES" accent={C.purple} action={<Tag label={`${PROGRESS_STATS.totalBadges} EARNED`} bg={C.purpleLt} />}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: S[3], padding: 0 }}>
-            {BADGES.map(b => (
-              <div key={b.id} style={{
-                display: 'flex', flexDirection: 'column', gap: S[1.5],
-                padding: S[3],
-                background: b.earned ? b.colorLt : C.cream,
-                border: `${BW.base} solid ${b.earned ? C.ink : C.divider}`,
-                borderRadius: R.sm,
-                boxShadow: b.earned ? mkShadow() : 'none',
-                opacity: b.earned ? 1 : 0.55,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Tag label={b.earned ? 'EARNED' : 'LOCKED'} bg={b.earned ? b.colorLt : C.mutedLt} />
-                  {b.earned && b.earnedDate && (
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>{b.earnedDate}</span>
-                  )}
-                </div>
-                <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, letterSpacing: 0.5 }}>
-                  {b.label}
-                </div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, lineHeight: 1.5 }}>
-                  {b.description}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
+            <BadgesPanel cols={4} />
+          </>
+        )}
 
       </div>
     </div>

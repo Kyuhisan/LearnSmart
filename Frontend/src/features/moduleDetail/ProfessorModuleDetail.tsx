@@ -203,8 +203,7 @@ export function ProfessorModuleDetail() {
           ))}
         </div>
         <div className="module-detail-tabbar-right">
-          <div className="module-detail-progress-tag">{PROF_MODULE.students} STUDENTS</div>
-          <ComicBtn color={C.green} sm>+ ADD CONTENT</ComicBtn>
+          <Tag label={`${PROF_MODULE.students} STUDENTS`} bg={C.cyanLt} />
         </div>
       </div>
 

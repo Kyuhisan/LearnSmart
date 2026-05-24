@@ -5,6 +5,7 @@ import { ComicBox } from "../../components/ui/ComicBox";
 import { ComicBtn } from "../../components/ui/ComicBtn";
 import { Topbar } from "../../components/ui/Topbar";
 import { C, S, FS, BW, R, mkShadow } from "../../styles/tokens";
+import { useBreakpoint } from "../../hooks/useBreakpoint";
 import { PROF_CATEGORIES } from "./mockData";
 import { getModuliUcitelj, izbrisiModul, objaviModul } from "./moduleApi";
 import { useAuth } from "../../context/AuthContext";
@@ -251,6 +252,7 @@ function SkeletonRow({ color }: { color: string }) {
 
 export function ProfessorModules() {
   const { session } = useAuth();
+  const isTablet = useBreakpoint() === 'tablet';
   const [moduli, setModuli] = useState<BackendModul[]>([]);
   const [loading, setLoading] = useState(true);
   const [newModul, setNewModul] = useState(false);
@@ -291,8 +293,11 @@ export function ProfessorModules() {
 
   const handleObjavi = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    await objaviModul(session!.access_token, id);
-    nalozi();
+    try {
+      await objaviModul(session!.access_token, id);
+    } finally {
+      nalozi();
+    }
   };
 
   const handleUredi = (e: React.MouseEvent, mod: BackendModul) => {
@@ -352,7 +357,7 @@ export function ProfessorModules() {
       </div>
 
       {view === 'grid' ? (
-        <div className="modules-grid">
+        <div className={`modules-grid${isTablet ? ' modules-grid--2col' : ''}`}>
           {loading ? (
             COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
           ) : filtered.length === 0 ? (

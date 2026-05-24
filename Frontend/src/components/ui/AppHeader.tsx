@@ -1,11 +1,17 @@
 import { BitMascot } from './BitMascot'
 import { ComicBtn } from './ComicBtn'
 import { useTopbarContext } from '../../context/TopbarContext'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { C, S, FS, BW } from '../../styles/tokens'
 
 export function AppHeader() {
   const { config } = useTopbarContext()
   const { title, subtitle, back, actions } = config
+  const bp = useBreakpoint()
+  const isTablet = bp === 'tablet'
+
+  const logoWidth = isTablet ? '64px' : '220px'
+  const bitSize   = isTablet ? 40 : 48
 
   return (
     <div style={{
@@ -21,15 +27,18 @@ export function AppHeader() {
 
       {/* Logo section — yellow with dots */}
       <div style={{
-        width: '220px',
+        width: logoWidth,
         flexShrink: 0,
         background: C.yellow,
         borderRight: `${BW.thick} solid ${C.ink}`,
         display: 'flex',
         alignItems: 'center',
-        padding: `0 ${S[4]}`,
+        justifyContent: isTablet ? 'center' : 'flex-start',
+        paddingLeft: isTablet ? 0 : S[2],
+        paddingRight: isTablet ? 0 : S[4],
         position: 'relative',
         overflow: 'hidden',
+        transition: 'width 0.2s ease',
       }}>
         {/* Dot pattern */}
         <div style={{
@@ -41,15 +50,17 @@ export function AppHeader() {
           pointerEvents: 'none',
         }} />
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: S[2] }}>
-          <BitMascot size={32} mood="happy" />
-          <div>
-            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], color: C.ink, lineHeight: 1 }}>
-              LEARNSMART
+          <BitMascot size={bitSize} mood="happy" />
+          {!isTablet && (
+            <div>
+              <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], color: C.ink, lineHeight: 1 }}>
+                LEARNSMART
+              </div>
+              <div style={{ fontSize: FS.xs, color: C.ink, fontWeight: 700 }}>
+                w/ BIT
+              </div>
             </div>
-            <div style={{ fontSize: FS.xs, color: C.ink, fontWeight: 700 }}>
-              w/ BIT
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
