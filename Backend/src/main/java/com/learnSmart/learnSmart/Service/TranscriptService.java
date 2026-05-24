@@ -22,14 +22,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class TranscriptService {
 
     private final PredmetRepository predmetRepository;
@@ -177,11 +180,13 @@ public class TranscriptService {
 
         Process process = processBuilder.start();
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
 
-        while ((line = reader.readLine()) != null) {
-            System.out.println(line);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
         }
 
         int exitCode = process.waitFor();
@@ -193,6 +198,10 @@ public class TranscriptService {
     }
 
     private void saveAudioFile(IzvornaDatoteka videoDatoteka, String audioUrl, Path tmpAudio) throws IOException {
+        if (tmpAudio == null || tmpAudio.getFileName() == null) {
+            throw new IllegalStateException("Audio path invalid.");
+        }
+
         IzvornaDatoteka audioDatoteka = new IzvornaDatoteka();
         audioDatoteka.setPredmet(videoDatoteka.getPredmet());
         audioDatoteka.setImeDatoteke(tmpAudio.getFileName().toString());

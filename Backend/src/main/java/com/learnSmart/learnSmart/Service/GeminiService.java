@@ -85,6 +85,7 @@ public class GeminiService {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(10000);
         requestFactory.setReadTimeout(120000);
+        requestFactory.setReadTimeout(120000);
         return new RestTemplate(requestFactory);
     }
 

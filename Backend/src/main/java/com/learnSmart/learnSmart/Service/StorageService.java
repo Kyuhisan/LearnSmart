@@ -83,7 +83,7 @@ public class StorageService {
     public String uploadFile(Path filePath, String mimeType, UUID predmetId) throws IOException {
         String extension = filePath.getFileName().toString();
         extension = extension.contains(".") ? extension.substring(extension.lastIndexOf(".")) : "";
-        String fileName = UUID.randomUUID() + extension; // <--- to spremeni po zelji kasneje
+        String fileName = UUID.randomUUID() + extension; // <--- we can change the name if we want to
         String path = "modules/" + predmetId + "/" + fileName;
         String bucket = "learnsmart-media";
 
