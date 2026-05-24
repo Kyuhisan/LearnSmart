@@ -39,7 +39,7 @@ public class TranscriptService {
     @Value("${OPENAI_API_KEY}")
     private String openaiApiKey;
 
-    @Value("${GOOGLE-TTS-API-KEY}")
+    @Value("${GOOGLE_TTS_API_KEY}")
     private String googleTTSApiKey;
 
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
