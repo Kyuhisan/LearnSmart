@@ -6,6 +6,7 @@ import { StatCard } from '../../components/ui/StatCard'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import {
   ANALYTICS_STATS,
   WEEKLY_ACTIVITY,
@@ -123,6 +124,7 @@ function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (
 
 export function ProfessorAnalytics() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null)
+  const isTablet = useBreakpoint() === 'tablet'
 
   const maxSessions = Math.max(...WEEKLY_ACTIVITY.map(d => d.sessions))
   const filteredModules = selectedModule
@@ -201,10 +203,8 @@ export function ProfessorAnalytics() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
               {STYLE_BREAKDOWN.map(s => (
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: s.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{s.label}</span>
-                  <div style={{ flex: 1 }}>
-                    <Bar value={s.percent} color={s.color} height={12} shadow />
-                  </div>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: isTablet ? undefined : 100, flex: isTablet ? 1 : undefined, flexShrink: 0, letterSpacing: 0.5 }}>{s.label}</span>
+                  {!isTablet && <div style={{ flex: 1 }}><Bar value={s.percent} color={s.color} height={12} shadow /></div>}
                   <Tag label={`${s.percent}%`} bg={s.color} />
                 </div>
               ))}

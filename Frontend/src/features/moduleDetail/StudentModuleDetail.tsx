@@ -178,7 +178,7 @@ export function StudentModuleDetail() {
         title={MODULE.title}
         subtitle={`${MODULE.subject} · ${MODULE.progress}% complete`}
         back={() => navigate(-1)}
-        actions={<ComicBtn color={C.yellow}>✦ PRESENT</ComicBtn>}
+        actions={<ComicBtn sm color={C.cyan}>QUIZ ME →</ComicBtn>}
       />
 
       <div className="module-detail-tabbar">
@@ -196,8 +196,7 @@ export function StudentModuleDetail() {
           ))}
         </div>
         <div className="module-detail-tabbar-right">
-          <div className="module-detail-progress-tag">{MODULE.progress}% DONE</div>
-          <ComicBtn color={C.red} sm>QUIZ ME →</ComicBtn>
+          <Tag label={`${MODULE.progress}% DONE`} bg={C.greenLt} />
         </div>
       </div>
 

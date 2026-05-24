@@ -22,6 +22,7 @@ export function Tag({ label, bg = C.yellowLt, color = C.ink }: TagProps) {
       textTransform: 'uppercase',
       borderRadius: R.sm,
       filter: `drop-shadow(2px 2px 0 ${C.ink})`,
+      whiteSpace: 'nowrap',
     }}>
       {label}
     </span>

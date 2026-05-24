@@ -6,6 +6,7 @@ import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { IconBox } from '../../components/ui/IconBox'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { UPLOADED_FILES, UPLOAD_MODULE_OPTIONS, ACCEPTED_FILE_TYPES, type UploadedFile } from './mockData'
 
 const TYPE_COLOR: Record<UploadedFile['type'], string> = {
@@ -133,9 +134,76 @@ function FileRow({ file }: { file: UploadedFile }) {
   )
 }
 
+function DropZonePanel({ dragOver, setDragOver }: { dragOver: boolean; setDragOver: (v: boolean) => void }) {
+  return (
+    <Panel
+      title="DROP FILES HERE"
+      accent={C.yellow}
+      action={<Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} />}
+    >
+      <div
+        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={e => { e.preventDefault(); setDragOver(false) }}
+        style={{
+          border: `${BW.base} dashed ${dragOver ? C.yellow : C.muted}`,
+          borderRadius: R.base,
+          padding: S[8],
+          background: dragOver ? C.yellowLt : 'transparent',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: S[3],
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+        }}
+      >
+        <IconBox size={48} />
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink, textAlign: 'center' }}>
+          DRAG & DROP FILES HERE
+        </div>
+        <div style={{ fontSize: FS.sm, color: C.muted, textAlign: 'center' }}>
+          or click to browse from your computer
+        </div>
+        <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap', justifyContent: 'center', marginTop: S[1] }}>
+          {ACCEPTED_FILE_TYPES.map(ext => (
+            <Tag key={ext} label={ext.toUpperCase()} bg={C.cream} />
+          ))}
+        </div>
+      </div>
+    </Panel>
+  )
+}
+
+function AssignModulePanel({ selectedModule, setSelectedModule }: { selectedModule: string; setSelectedModule: (v: string) => void }) {
+  return (
+    <Panel title="ASSIGN TO MODULE" accent={C.cyan} action={<Tag label="SELECT" bg={C.cyanLt} />} overflow="visible">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
+        <ModuleSelect value={selectedModule} options={UPLOAD_MODULE_OPTIONS} onChange={setSelectedModule} />
+        <ComicBtn color={C.yellow} style={{ width: '100%', justifyContent: 'center' }}>
+          UPLOAD FILES
+        </ComicBtn>
+      </div>
+    </Panel>
+  )
+}
+
+function RecentUploadsPanel() {
+  return (
+    <Panel title="RECENT UPLOADS" accent={C.purple} action={<Tag label={`${UPLOADED_FILES.length} FILES`} bg={C.purpleLt} />}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+        {UPLOADED_FILES.map(file => (
+          <FileRow key={file.id} file={file} />
+        ))}
+      </div>
+    </Panel>
+  )
+}
+
 export function ProfessorUpload() {
   const [selectedModule, setSelectedModule] = useState(UPLOAD_MODULE_OPTIONS[0])
   const [dragOver, setDragOver] = useState(false)
+  const isTablet = useBreakpoint() === 'tablet'
 
   return (
     <div className="dashboard-main">
@@ -144,88 +212,23 @@ export function ProfessorUpload() {
         subtitle={`${UPLOADED_FILES.length} files uploaded · add PDFs, videos or audio to your modules`}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: S[4], alignItems: 'start' }}>
-
-        {/* Left — upload form */}
+      {isTablet ? (
+        /* Tablet: drop + assign side by side, recent uploads full width below */
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
-
-          {/* Drop zone */}
-          <Panel
-            title="DROP FILES HERE"
-            accent={C.yellow}
-            action={<Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} />}
-          >
-            <div
-              onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={e => { e.preventDefault(); setDragOver(false) }}
-              style={{
-                border: `${BW.base} dashed ${dragOver ? C.yellow : C.muted}`,
-                borderRadius: R.base,
-                padding: S[8],
-                background: dragOver ? C.yellowLt : 'transparent',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: S[3],
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <IconBox size={48} />
-              <div style={{
-                fontFamily: "'Archivo Black', sans-serif",
-                fontSize: FS.xl,
-                color: C.ink,
-                textAlign: 'center',
-              }}>
-                DRAG & DROP FILES HERE
-              </div>
-              <div style={{ fontSize: FS.sm, color: C.muted, textAlign: 'center' }}>
-                or click to browse from your computer
-              </div>
-              <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap', justifyContent: 'center', marginTop: S[1] }}>
-                {ACCEPTED_FILE_TYPES.map(ext => (
-                  <Tag key={ext} label={ext.toUpperCase()} bg={C.cream} />
-                ))}
-              </div>
-            </div>
-          </Panel>
-
-          {/* Module selector + submit */}
-          <Panel
-            title="ASSIGN TO MODULE"
-            accent={C.cyan}
-            action={<Tag label="SELECT" bg={C.cyanLt} />}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-              <ModuleSelect
-                value={selectedModule}
-                options={UPLOAD_MODULE_OPTIONS}
-                onChange={setSelectedModule}
-              />
-              <ComicBtn color={C.yellow} style={{ width: '100%', justifyContent: 'center' }}>
-                UPLOAD FILES
-              </ComicBtn>
-            </div>
-          </Panel>
-
+          <AssignModulePanel selectedModule={selectedModule} setSelectedModule={setSelectedModule} />
+          <DropZonePanel dragOver={dragOver} setDragOver={setDragOver} />
+          <RecentUploadsPanel />
         </div>
-
-        {/* Right — recent uploads */}
-        <Panel
-          title="RECENT UPLOADS"
-          accent={C.purple}
-          action={<Tag label={`${UPLOADED_FILES.length} FILES`} bg={C.purpleLt} />}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-            {UPLOADED_FILES.map(file => (
-              <FileRow key={file.id} file={file} />
-            ))}
+      ) : (
+        /* Desktop: left column (drop + assign stacked), right column (recent uploads) */
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: S[4], alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
+            <DropZonePanel dragOver={dragOver} setDragOver={setDragOver} />
+            <AssignModulePanel selectedModule={selectedModule} setSelectedModule={setSelectedModule} />
           </div>
-        </Panel>
-
-      </div>
+          <RecentUploadsPanel />
+        </div>
+      )}
     </div>
   )
 }

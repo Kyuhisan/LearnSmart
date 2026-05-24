@@ -141,6 +141,20 @@
   align-items: start;
 }
 
+.modules-grid > * {
+  min-width: 0;
+}
+
+.modules-grid--2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 1023px) {
+  .modules-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .modules-list {
   display: flex;
   flex-direction: column;

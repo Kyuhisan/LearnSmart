@@ -97,7 +97,7 @@ export function ProfessorDashboard() {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
                       <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md }}>{m.title.toUpperCase()}</span>
-                      {m.draft && <Tag label="○ DRAFT" bg={C.orangeLt} />}
+                      {m.draft && <span style={{ flexShrink: 0 }}><Tag label="○ DRAFT" bg={C.orangeLt} /></span>}
                     </div>
                     {!m.draft && (
                       <div style={{ marginTop: S[1] }}>

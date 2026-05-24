@@ -28,6 +28,9 @@ export function StatCard({ label, value, sub, bg = C.paper, style }: StatCardPro
         color: C.ink,
         lineHeight: 1,
         marginBottom: S[1],
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
       }}>
         {value}
       </div>

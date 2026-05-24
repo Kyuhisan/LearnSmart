@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
@@ -66,8 +67,44 @@ function QuestRow({ q, onToggle }: { q: { id: string; label: string; xp: number;
   )
 }
 
+function QuizItem({ q }: { q: typeof STUDENT_UPCOMING_QUIZZES[number] }) {
+  const bp = useBreakpoint()
+  const isTablet = bp === 'tablet'
+
+  if (isTablet) {
+    return (
+      <div style={{ padding: S[2], background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+          <div style={{ width: 32, height: 32, background: q.urgent ? C.redLt : C.mutedLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{q.title}</div>
+            <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{q.module}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: S[2] }}>
+          <Tag label={q.due} bg={q.urgent ? C.red : C.mutedLt} />
+          <ComicBtn sm color={q.urgent ? C.red : C.yellow}>GO →</ComicBtn>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], background: q.urgent ? C.redLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{q.title}</div>
+        <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{q.module}</div>
+      </div>
+      <Tag label={q.due} bg={q.urgent ? C.red : C.mutedLt} />
+      <ComicBtn sm color={q.urgent ? C.red : C.yellow}>GO →</ComicBtn>
+    </div>
+  )
+}
+
 export function StudentDashboard() {
   const navigate = useNavigate()
+  const bp = useBreakpoint()
+  const isTablet = bp === 'tablet'
   const [quests, setQuests] = useState(() => STUDENT_DAILY_QUESTS.map(q => ({ ...q })))
   const doneCount = quests.filter(q => q.done).length
   const totalXpToday = quests.filter(q => q.done).reduce((a, q) => a + q.xp, 0)
@@ -211,14 +248,7 @@ export function StudentDashboard() {
             action={<Tag label={`${STUDENT_UPCOMING_QUIZZES.length} DUE`} bg={C.redLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {STUDENT_UPCOMING_QUIZZES.map((q) => (
-                <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], background: q.urgent ? C.redLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{q.title}</div>
-                    <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{q.module}</div>
-                  </div>
-                  <Tag label={q.due} bg={q.urgent ? C.red : C.mutedLt} />
-                  <ComicBtn sm color={q.urgent ? C.red : C.yellow}>GO →</ComicBtn>
-                </div>
+                <QuizItem key={q.id} q={q} />
               ))}
             </div>
           </Panel>
@@ -227,8 +257,8 @@ export function StudentDashboard() {
         {/* Badges — full width */}
         <Panel title="BADGES" accent={C.orange} p={S[4]}
           action={<Tag label={`${STUDENT_BADGES.length} EARNED`} bg={C.orangeLt} />}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: S[3] }}>
-            {STUDENT_BADGES.map((badge) => (
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'repeat(4, 1fr)' : 'repeat(6, 1fr)', gap: S[3] }}>
+            {(isTablet ? STUDENT_BADGES.slice(0, 4) : STUDENT_BADGES).map((badge) => (
               <div key={badge.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1], padding: S[3], background: badge.bg, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), textAlign: 'center' }}>
                 <IconBox size={24} />
                 <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.ink, lineHeight: 1.3 }}>{badge.label}</div>

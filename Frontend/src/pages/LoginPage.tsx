@@ -1,7 +1,5 @@
 import { Navigate } from "react-router-dom"
 import { C, S } from "../styles/tokens"
-import { BitMascot } from "../components/ui/BitMascot"
-import { SpeechBubble } from "../components/ui/SpeechBubble"
 import { ComicBox } from "../components/ui/ComicBox"
 import { ComicBtn } from "../components/ui/ComicBtn"
 import { Tag } from "../components/ui/Tag"
@@ -17,17 +15,7 @@ export function LoginPage() {
     <div className="login-page">
       {/* LEFT */}
       <div className="login-left">
-        <div className="login-mascot-row">
-          <BitMascot size={130} mood="happy" float />
-          <SpeechBubble color={C.yellow} side="left">
-            <div style={{ fontSize: '0.75rem', lineHeight: 1.4 }}>
-              <span style={{ fontFamily: "'Archivo Black', sans-serif", color: C.ink }}>BEEP!</span><br />
-              <span style={{ fontFamily: "'Manrope', sans-serif", fontWeight: 400, color: C.ink }}>Ready to learn smarter?</span>
-            </div>
-          </SpeechBubble>
-        </div>
-
-        <div className="login-powered-by">
+<div className="login-powered-by">
           <span className="login-powered-by-text">POWERED BY AI</span>
         </div>
 
