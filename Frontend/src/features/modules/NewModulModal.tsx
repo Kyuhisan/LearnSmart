@@ -5,7 +5,7 @@ import { ustvariModul } from './moduleApi'
 import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleLibrary.css'
 
-import { ALL_TAGS, TAG_COLORS } from './ProfessorModules'
+import { ALL_TAGS, TAG_COLORS } from './moduleTags'
 
 interface Props {
   onClose: () => void

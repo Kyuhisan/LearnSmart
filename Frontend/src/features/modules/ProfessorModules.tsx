@@ -16,21 +16,7 @@ import "../../styles/moduleLibrary.css";
 
 const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
 
-export const ALL_TAGS = ['CORE', 'MATH', 'HANDS-ON', 'ADVANCED', 'THEORY', 'AI', 'PROGRAMMING', 'DATA', 'WEB', 'SCIENCE', 'LANGUAGE', 'DESIGN']
-export const TAG_COLORS: Record<string, string> = {
-  CORE:        C.cyanLt,
-  ADVANCED:    C.purpleLt,
-  THEORY:      C.greenLt,
-  MATH:        C.yellowLt,
-  'HANDS-ON':  C.pinkLt,
-  AI:          C.purpleLt,
-  PROGRAMMING: C.cyanLt,
-  DATA:        C.orangeLt,
-  WEB:         C.greenLt,
-  SCIENCE:     C.cyanLt,
-  LANGUAGE:    C.pinkLt,
-  DESIGN:      C.yellowLt,
-}
+import { ALL_TAGS, TAG_COLORS } from './moduleTags'
 const STAR_LABELS: Record<number, string> = { 1:'★', 2:'★★', 3:'★★★', 4:'★★★★', 5:'★★★★★' }
 
 interface BackendModul {
@@ -375,12 +361,16 @@ export function ProfessorModules() {
     nalozi();
   }, [nalozi]);
 
-  useEffect(() => {
-    getModuliJavni().then(data => {
-      setPublModuli(data);
-      setLoadingPubl(false);
-    });
+  const naloziPubl = useCallback(async () => {
+    const data = await getModuliJavni();
+    setPublModuli(data);
+    setLoadingPubl(false);
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    naloziPubl();
+  }, [naloziPubl]);
 
   const getCategoryCount = (cat: string): number => {
     if (cat === 'ALL') return moduli.length + publModuli.length
@@ -405,6 +395,7 @@ export function ProfessorModules() {
       await objaviModul(session!.access_token, id);
     } finally {
       nalozi();
+      naloziPubl();
     }
   };
 
@@ -414,6 +405,7 @@ export function ProfessorModules() {
       await umaknjiModul(session!.access_token, id);
     } finally {
       nalozi();
+      naloziPubl();
     }
   };
 

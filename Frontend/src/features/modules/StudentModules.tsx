@@ -6,7 +6,7 @@ import { Topbar } from '../../components/ui/Topbar'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { getModuliJavni } from './moduleApi'
-import { ALL_TAGS, TAG_COLORS } from './ProfessorModules'
+import { ALL_TAGS, TAG_COLORS } from './moduleTags'
 import { Panel } from '../../components/ui/Panel'
 import '../../styles/moduleLibrary.css'
 
