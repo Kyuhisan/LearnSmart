@@ -109,7 +109,11 @@ public class VideoTranscriptionService {
 
             if (tmpAudio != null) {
                 Files.deleteIfExists(tmpAudio);
-                Files.deleteIfExists(tmpVideo.getParent());
+
+                Path parent = tmpVideo.getParent();
+                if (parent != null) {
+                    Files.deleteIfExists(parent);
+                }
             }
         }
     }
