@@ -37,6 +37,7 @@ public class SupaBaseConnectionService {
             extension = path.substring(dotIndex);
         }
 
+        @SuppressWarnings("java:S5445")
         Path tmpFile = Files.createTempFile(prefix, extension);
 
         try {

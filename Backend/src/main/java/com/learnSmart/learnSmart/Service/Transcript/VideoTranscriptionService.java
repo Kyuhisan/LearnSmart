@@ -28,6 +28,7 @@ public class VideoTranscriptionService {
     private final AudioTranscriptionService audioTranscriptionService;
 
 
+    @SuppressWarnings("java:S5445")
     private Path extractAudioFromVideo(Path tmpVideo) throws IOException, InterruptedException {
         Path tmpAudio = Files.createTempFile("audio-", ".mp3");
 

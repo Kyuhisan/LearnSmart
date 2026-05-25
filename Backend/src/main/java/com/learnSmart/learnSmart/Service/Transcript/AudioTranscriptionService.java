@@ -20,7 +20,6 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("unchecked")
 public class AudioTranscriptionService {
 
     @Value("${OPENAI_API_KEY}")
@@ -29,6 +28,7 @@ public class AudioTranscriptionService {
     private final SupaBaseConnectionService connectionService;
 
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public String transcribeAudio(Path tmpFile) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -48,7 +48,7 @@ public class AudioTranscriptionService {
                 Map.class
         );
 
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        Map<String, Object> responseBody = response.getBody();
 
         if (responseBody == null || !responseBody.containsKey("text")) {
             throw new IOException("Invalid transcription response");
