@@ -44,3 +44,11 @@ export async function objaviModul(token: string, id: string) {
   })
   return res.json()
 }
+
+export async function umaknjiModul(token: string, id: string) {
+  const res = await fetch(`${API}/moduli/${id}/umakni`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}

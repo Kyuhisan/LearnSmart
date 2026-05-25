@@ -96,4 +96,15 @@ public class PredmetController {
         }
         return ResponseEntity.ok(predmetService.objavi(id, uciteljId));
     }
+
+    @PatchMapping("/{id}/umakni")
+    public ResponseEntity<?> umakni(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
+        return ResponseEntity.ok(predmetService.umakni(id, uciteljId));
+    }
 }

@@ -57,6 +57,7 @@ public class PredmetService {
         predmet.setOpis(dto.getOpis());
         predmet.setKodaVpisa(dto.getKodaVpisa());
         predmet.setTezavnost(dto.getTezavnost());
+        predmet.setKategorije(dto.getKategorije());
         return toResponseWithProfil(predmetRepository.save(predmet));
     }
 
@@ -76,6 +77,16 @@ public class PredmetService {
             throw new RuntimeException(NI_DOVOLJENJA);
         }
         predmet.setJeObjavljen(true);
+        return toResponseWithProfil(predmetRepository.save(predmet));
+    }
+
+    public PredmetResponseDTO umakni(UUID id, UUID uciteljId) {
+        Predmet predmet = predmetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
+        if (!predmet.getUciteljId().equals(uciteljId)) {
+            throw new RuntimeException(NI_DOVOLJENJA);
+        }
+        predmet.setJeObjavljen(false);
         return toResponseWithProfil(predmetRepository.save(predmet));
     }
 

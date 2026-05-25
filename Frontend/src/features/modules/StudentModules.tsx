@@ -6,24 +6,13 @@ import { Topbar } from '../../components/ui/Topbar'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { getModuliJavni } from './moduleApi'
+import { ALL_TAGS, TAG_COLORS } from './moduleTags'
 import { Panel } from '../../components/ui/Panel'
 import '../../styles/moduleLibrary.css'
 
 const COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
 
-const MOCK_CATEGORIES = ['CORE', 'MATH', 'HANDS-ON', 'ADVANCED', 'THEORY']
-const CATEGORY_COLORS: Record<string, string> = {
-  CORE:       C.cyanLt,
-  ADVANCED:   C.purpleLt,
-  THEORY:     C.greenLt,
-  MATH:       C.yellowLt,
-  'HANDS-ON': C.pinkLt,
-}
 const STAR_LABELS: Record<number, string> = { 1:'★', 2:'★★', 3:'★★★', 4:'★★★★', 5:'★★★★★' }
-
-function getCategory(index: number): string {
-  return MOCK_CATEGORIES[index % MOCK_CATEGORIES.length]
-}
 
 function isNew(ustvarjenOb: string): boolean {
   return (Date.now() - new Date(ustvarjenOb).getTime()) / (1000 * 60 * 60 * 24) <= 30
@@ -37,11 +26,12 @@ interface BackendModul {
   tezavnost: number
   ustvarjenOb: string
   uciteljImePriimek: string
+  kategorije: string[] | null
 }
 
-function ModuleCard({ mod, color, index }: { mod: BackendModul; color: string; index: number }) {
+function ModuleCard({ mod, color }: { mod: BackendModul; color: string }) {
   const navigate = useNavigate()
-  const category = getCategory(index)
+  const tags = mod.kategorije ?? []
   const showNew = isNew(mod.ustvarjenOb)
 
   return (
@@ -72,13 +62,10 @@ function ModuleCard({ mod, color, index }: { mod: BackendModul; color: string; i
         borderBottom: `1px solid ${C.ink}`,
         borderTopLeftRadius: R.sm, borderTopRightRadius: R.sm,
         padding: S[3], paddingTop: S[5],
-        display: 'flex', flexDirection: 'column', gap: S[2],
+        display: 'flex', flexDirection: 'column', gap: S[2], flex: 1,
       }}>
-        {/* Stars + category tags */}
-        <div style={{ display: 'flex', gap: S[1.5], alignSelf: 'flex-start' }}>
-          <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
-          <Tag label={category} bg={CATEGORY_COLORS[category]} />
-        </div>
+        {/* Difficulty */}
+        <div><Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} /></div>
 
         {/* Title */}
         <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink, lineHeight: 1.25, wordBreak: 'break-word' }}>
@@ -89,6 +76,13 @@ function ModuleCard({ mod, color, index }: { mod: BackendModul; color: string; i
         <div style={{ fontSize: FS.sm, color: C.ink, opacity: 0.7 }}>
           Prof. {mod.uciteljImePriimek}
         </div>
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: S[1.5] }}>
+            {tags.map(t => <Tag key={t} label={t} bg={TAG_COLORS[t] ?? C.mutedLt} />)}
+          </div>
+        )}
       </div>
 
       {/* White footer — progress */}
@@ -108,10 +102,10 @@ function ModuleCard({ mod, color, index }: { mod: BackendModul; color: string; i
   )
 }
 
-function ModuleListRow({ mod, color, index }: { mod: BackendModul; color: string; index: number }) {
+function ModuleListRow({ mod, color }: { mod: BackendModul; color: string }) {
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
-  const category = getCategory(index)
+  const tags = mod.kategorije ?? []
 
   return (
     <div
@@ -136,9 +130,9 @@ function ModuleListRow({ mod, color, index }: { mod: BackendModul; color: string
         </div>
 
         {/* Tags */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: S[1.5] }}>
           <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
-          <Tag label={category} bg={CATEGORY_COLORS[category]} />
+          {tags.map(t => <Tag key={t} label={t} bg={TAG_COLORS[t] ?? C.mutedLt} />)}
         </div>
 
         {/* Divider */}
@@ -155,7 +149,7 @@ function ModuleListRow({ mod, color, index }: { mod: BackendModul; color: string
   )
 }
 
-const STUDENT_CATEGORIES = ['ALL', ...MOCK_CATEGORIES]
+const STUDENT_CATEGORIES = ['ALL', ...ALL_TAGS]
 
 function SkeletonCard({ color }: { color: string }) {
   return (
@@ -219,12 +213,12 @@ export function StudentModules() {
 
   const getCategoryCount = (cat: string): number => {
     if (cat === 'ALL') return moduli.length
-    return moduli.filter((_, i) => getCategory(i) === cat).length
+    return moduli.filter(m => m.kategorije?.includes(cat)).length
   }
 
-  const filtered = moduli.filter((m, i) => {
+  const filtered = moduli.filter(m => {
     const matchesSearch = m.naziv.toLowerCase().includes(search.toLowerCase())
-    const matchesCategory = activeCategory === 'ALL' || getCategory(i) === activeCategory
+    const matchesCategory = activeCategory === 'ALL' || m.kategorije?.includes(activeCategory)
     return matchesSearch && matchesCategory
   })
 
@@ -267,7 +261,7 @@ export function StudentModules() {
           {loading
             ? COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
             : filtered.map((mod, i) => (
-                <ModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} />
+                <ModuleCard key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} />
               ))
           }
         </div>
@@ -277,7 +271,7 @@ export function StudentModules() {
             {loading
               ? COLORS.map((color, i) => <SkeletonRow key={i} color={color} />)
               : filtered.map((mod, i) => (
-                  <ModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} index={i} />
+                  <ModuleListRow key={mod.id} mod={mod} color={COLORS[i % COLORS.length]} />
                 ))
             }
           </div>

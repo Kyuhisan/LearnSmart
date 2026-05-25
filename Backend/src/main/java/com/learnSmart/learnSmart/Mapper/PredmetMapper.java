@@ -20,6 +20,7 @@ public class PredmetMapper {
         dto.setUstvarjenOb(predmet.getUstvarjenOb());
         dto.setUciteljId(predmet.getUciteljId());
         dto.setUciteljImePriimek(profil != null ? profil.getImePriimek() : "Neznan");
+        dto.setKategorije(predmet.getKategorije());
         return dto;
     }
 
@@ -30,6 +31,7 @@ public class PredmetMapper {
         predmet.setKodaVpisa(dto.getKodaVpisa());
         predmet.setJeObjavljen(dto.getJeObjavljen() != null && dto.getJeObjavljen());
         predmet.setTezavnost(dto.getTezavnost());
+        predmet.setKategorije(dto.getKategorije());
         predmet.setUciteljId(uciteljId);
         predmet.setUstvarjenOb(java.time.OffsetDateTime.now());
         return predmet;
