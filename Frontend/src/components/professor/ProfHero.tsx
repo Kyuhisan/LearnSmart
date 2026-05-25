@@ -7,7 +7,6 @@ import { useBreakpoint } from '../../hooks/useBreakpoint'
 interface ProfHeroProps {
   readonly username: string
   readonly isTeacher: boolean
-  readonly onSignOut: () => void
   readonly onSettings?: () => void
   readonly level?: number
   readonly learningType?: string
@@ -16,7 +15,7 @@ interface ProfHeroProps {
 }
 
 
-export function ProfHero({ username, isTeacher, onSignOut, onSettings, level, learningType, streak, onRetakeVark }: ProfHeroProps) {
+export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark }: ProfHeroProps) {
   const mobile = useBreakpoint() === 'mobile'
 
   const avatar = (

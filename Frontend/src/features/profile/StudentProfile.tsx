@@ -42,7 +42,6 @@ export function StudentProfile() {
         <ProfHero
           username={profil.username}
           isTeacher={false}
-          onSignOut={handleSignOut}
           level={STUDENT_PROFILE.level}
           learningType={styleInfo.label.toUpperCase()}
           streak={STUDENT_PROFILE.streak}
