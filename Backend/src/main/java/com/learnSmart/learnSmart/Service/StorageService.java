@@ -7,6 +7,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.UUID;
 
 @Service
@@ -24,7 +26,7 @@ public class StorageService {
     private void validateFile(MultipartFile file) {
         String mimeType = file.getContentType();
 
-        if (mimeType == null || (!mimeType.equals("application/pdf") && !mimeType.equals("video/mp4") && !mimeType.startsWith("image/"))) {
+        if (mimeType == null || (!mimeType.equals("application/pdf") && !mimeType.startsWith("video/") && !mimeType.startsWith("image/") && !mimeType.startsWith("audio/"))) {
             throw new IllegalArgumentException("Unsupported file type: " + mimeType);
         }
 
@@ -76,6 +78,35 @@ public class StorageService {
                 request,
                 byte[].class
         );
+    }
+
+    public String uploadFile(Path filePath, String mimeType, UUID predmetId) throws IOException {
+        Path fileNamePath = filePath.getFileName();
+
+        if (fileNamePath == null) {
+            throw new IllegalArgumentException("Invalid file path.");
+        }
+
+        String extension = fileNamePath.toString();
+        extension = extension.contains(".") ? extension.substring(extension.lastIndexOf(".")) : "";
+        String fileName = UUID.randomUUID() + extension; // <--- we can change the name if we want to
+        String path = "modules/" + predmetId + "/" + fileName;
+        String bucket = "learnsmart-media";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apikey", supabaseServiceKey);
+        headers.set("Authorization", "Bearer " + supabaseServiceKey);
+        headers.setContentType(MediaType.parseMediaType(mimeType));
+
+        byte[] bytes = Files.readAllBytes(filePath);
+        HttpEntity<byte[]> request = new HttpEntity<>(bytes, headers);
+        restTemplate.exchange(
+                supabaseUrl + "/storage/v1/object/" + bucket + "/" +path,
+                HttpMethod.POST,
+                request,
+                byte[].class
+        );
+        return buildPublicURL(bucket, path);
     }
 
     private String buildPublicURL(String bucket, String path) {

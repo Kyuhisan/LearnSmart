@@ -292,7 +292,7 @@ export function QuizSession({ onClose }: QuizSessionProps) {
               )}
             </ComicBox>
 
-            <div style={{ display: 'flex', justifyContent: step === 'feedback' ? 'flex-end' : 'flex-end', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
               {step === 'question' && (
                 <span style={{ fontSize: FS.base, color: C.muted, fontWeight: 600 }}>Select one answer</span>
               )}

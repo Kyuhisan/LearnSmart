@@ -16,15 +16,10 @@ const ACTIVITY: ActivityItem[] = [
 ]
 
 export function ProfessorProfile() {
-  const { profil, signOut } = useAuth()
+  const { profil } = useAuth()
   const navigate = useNavigate()
 
   if (!profil) return null
-
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
 
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>
@@ -35,16 +30,16 @@ export function ProfessorProfile() {
       />
 
       <div className="prof-content">
-        <ProfHero username={profil.username} isTeacher onSignOut={handleSignOut} onSettings={() => navigate('/settings')} />
+        <ProfHero username={profil.username} isTeacher onSettings={() => navigate('/settings')} />
 
-        <div className="prof-stats-row">
-          <StatCard label="STUDENTS"  value="248" sub="134 active today"   bg={C.yellowLt} style={{ flex: 1 }} />
-          <StatCard label="MODULES"   value="12"  sub="4 published"        bg={C.greenLt}  style={{ flex: 1 }} />
-          <StatCard label="QUIZZES"   value="89"  sub="11 AI-pending"      bg={C.pinkLt}   style={{ flex: 1 }} />
-          <StatCard label="AVG SCORE" value="78%" sub="↑ 4% vs last term"  bg={C.purpleLt} style={{ flex: 1 }} />
+        <div className="quiz-stat-grid">
+          <StatCard label="STUDENTS"  value="248" sub="134 active today"   bg={C.yellowLt} />
+          <StatCard label="MODULES"   value="12"  sub="4 published"        bg={C.greenLt}  />
+          <StatCard label="QUIZZES"   value="89"  sub="11 AI-pending"      bg={C.pinkLt}   />
+          <StatCard label="AVG SCORE" value="78%" sub="↑ 4% vs last term"  bg={C.purpleLt} />
         </div>
 
-        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" />
+        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" showBadge={false} />
       </div>
     </div>
   )

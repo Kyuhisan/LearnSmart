@@ -46,7 +46,13 @@ public class IzvornaDatoteka {
     @Column(name = "manjsi_transcript", columnDefinition = "text")
     private String manjsiTranscript;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nadrejena_datoteka_id")
+    private IzvornaDatoteka generiranaIz;
+
+    @OneToMany(mappedBy = "generiranaIz", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<IzvornaDatoteka> generiraneDatoteke;
+
     @OneToMany(mappedBy = "izvornaDatoteka", cascade = CascadeType.ALL)
     private List<Interakcija> interakcije;
-
 }

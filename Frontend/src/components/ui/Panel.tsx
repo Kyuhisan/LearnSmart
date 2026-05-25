@@ -49,7 +49,7 @@ export function Panel({
         }}>
           {title}
         </div>
-        {action}
+        {action && <div style={{ flexShrink: 0 }}>{action}</div>}
       </div>
       <div style={{ padding: p }}>{children}</div>
     </div>
