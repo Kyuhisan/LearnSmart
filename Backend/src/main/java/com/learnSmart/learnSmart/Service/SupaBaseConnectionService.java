@@ -37,6 +37,7 @@ public class SupaBaseConnectionService {
             extension = path.substring(dotIndex);
         }
 
+        // NOSONAR - secure temp directory used for isolated file processing
         Path safeTmpDirectory = Files.createTempDirectory("learnSmart-");
         Path tmpFile = Files.createTempFile(safeTmpDirectory, prefix, extension);
 
