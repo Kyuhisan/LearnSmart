@@ -7,7 +7,7 @@ import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Service.StorageService;
-import com.learnSmart.learnSmart.Service.TranscriptService;
+import com.learnSmart.learnSmart.Service.Transcript.TranscriptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
