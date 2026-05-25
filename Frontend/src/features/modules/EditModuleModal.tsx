@@ -5,6 +5,8 @@ import { urediModul } from './moduleApi'
 import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleLibrary.css'
 
+import { ALL_TAGS, TAG_COLORS } from './ProfessorModules'
+
 interface BackendModul {
   id: string
   naziv: string
@@ -12,6 +14,7 @@ interface BackendModul {
   kodaVpisa: string
   jeObjavljen: boolean
   tezavnost: number
+  kategorije: string[] | null
 }
 
 interface Props {
@@ -26,6 +29,7 @@ export function EditModuleModal({ mod, onClose, onSave }: Props) {
   const [opis, setOpis] = useState(mod.opis ?? '')
   const [kodaVpisa, setKodaVpisa] = useState(mod.kodaVpisa ?? '')
   const [tezavnost, setTezavnost] = useState(mod.tezavnost ?? 1)
+  const [kategorije, setKategorije] = useState<string[]>(mod.kategorije ?? [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -33,7 +37,7 @@ export function EditModuleModal({ mod, onClose, onSave }: Props) {
     if (!naziv.trim()) { setError('Title can not be empty'); return }
     if (!kodaVpisa.trim()) { setError('Course code can not be empty'); return }
     setSaving(true)
-    await urediModul(session!.access_token, mod.id, { naziv, opis, kodaVpisa, tezavnost })
+    await urediModul(session!.access_token, mod.id, { naziv, opis, kodaVpisa, tezavnost, kategorije })
     setSaving(false)
     onSave()
     onClose()
@@ -62,6 +66,22 @@ export function EditModuleModal({ mod, onClose, onSave }: Props) {
       <div className="modal-field">
         <label className="modal-label">COURSE CODE</label>
         <input className="modal-input" value={kodaVpisa} onChange={e => setKodaVpisa(e.target.value)} />
+      </div>
+
+      <div className="modal-field">
+        <label className="modal-label">CATEGORY</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {ALL_TAGS.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setKategorije(prev => prev.includes(cat) ? prev.filter(t => t !== cat) : [...prev, cat])}
+              className={`modules-filter-btn ${kategorije.includes(cat) ? 'active' : ''}`}
+              style={kategorije.includes(cat) ? { background: TAG_COLORS[cat] } : {}}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="modal-field">

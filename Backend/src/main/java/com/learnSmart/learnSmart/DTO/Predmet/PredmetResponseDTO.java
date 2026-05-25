@@ -18,4 +18,5 @@ public class PredmetResponseDTO {
     private OffsetDateTime ustvarjenOb;
     private UUID uciteljId;
     private String uciteljImePriimek;
+    private java.util.List<String> kategorije;
 }

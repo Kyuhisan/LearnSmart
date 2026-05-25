@@ -22,4 +22,6 @@ public class PredmetRequestDTO {
 
     @Min(1) @Max(5)
     private Integer tezavnost;
+
+    private java.util.List<String> kategorije;
 }

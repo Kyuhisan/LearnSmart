@@ -51,6 +51,10 @@ public class Predmet {
     @Column(name = "koraki_obdelave", columnDefinition = "jsonb")
     private String korakiObdelave;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "kategorije", columnDefinition = "jsonb")
+    private java.util.List<String> kategorije;
+
     @Column (name = "status")
     private String status;
 
