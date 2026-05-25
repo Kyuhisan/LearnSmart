@@ -62,13 +62,10 @@ function ModuleCard({ mod, color }: { mod: BackendModul; color: string }) {
         borderBottom: `1px solid ${C.ink}`,
         borderTopLeftRadius: R.sm, borderTopRightRadius: R.sm,
         padding: S[3], paddingTop: S[5],
-        display: 'flex', flexDirection: 'column', gap: S[2],
+        display: 'flex', flexDirection: 'column', gap: S[2], flex: 1,
       }}>
-        {/* Stars + category tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: S[1.5], alignSelf: 'flex-start' }}>
-          <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
-          {tags.map(t => <Tag key={t} label={t} bg={TAG_COLORS[t] ?? C.mutedLt} />)}
-        </div>
+        {/* Difficulty */}
+        <div><Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} /></div>
 
         {/* Title */}
         <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink, lineHeight: 1.25, wordBreak: 'break-word' }}>
@@ -79,6 +76,13 @@ function ModuleCard({ mod, color }: { mod: BackendModul; color: string }) {
         <div style={{ fontSize: FS.sm, color: C.ink, opacity: 0.7 }}>
           Prof. {mod.uciteljImePriimek}
         </div>
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: S[1.5] }}>
+            {tags.map(t => <Tag key={t} label={t} bg={TAG_COLORS[t] ?? C.mutedLt} />)}
+          </div>
+        )}
       </div>
 
       {/* White footer — progress */}
