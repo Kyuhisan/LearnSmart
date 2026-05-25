@@ -98,38 +98,53 @@ function ModuleSelect({ value, options, onChange }: {
 
 function FileRow({ file }: { file: UploadedFile }) {
   const status = STATUS_CONFIG[file.status]
+  const isMobile = useBreakpoint() === 'mobile'
   return (
-    <ComicBox bg={C.cream} p={S[2]} style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
-      <div style={{
-        width: 36, height: 36,
-        background: TYPE_COLOR[file.type],
-        border: `${BW.base} solid ${C.ink}`,
-        borderRadius: R.base,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        <IconBox size={16} />
-      </div>
+    <ComicBox bg={C.cream} p={S[2]} style={{ display: 'flex', flexDirection: 'column', gap: S[1] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
+        {!isMobile && (
+          <div style={{
+            width: 36, height: 36,
+            background: TYPE_COLOR[file.type],
+            border: `${BW.base} solid ${C.ink}`,
+            borderRadius: R.base,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <IconBox size={16} />
+          </div>
+        )}
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontFamily: "'Archivo Black', sans-serif",
-          fontSize: FS.sm,
-          color: C.ink,
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>
-          {file.name}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "'Archivo Black', sans-serif",
+            fontSize: FS.sm,
+            color: C.ink,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {file.name}
+          </div>
+          <div style={{ fontSize: FS.xs, color: C.muted, marginTop: 2 }}>
+            {file.module} · {file.size} · {file.uploadedAt}
+          </div>
         </div>
-        <div style={{ fontSize: FS.xs, color: C.muted, marginTop: 2 }}>
-          {file.module} · {file.size} · {file.uploadedAt}
+
+        {!isMobile && <Tag label={status.label} bg={status.bg} />}
+        {!isMobile && (
+          <div onClick={e => e.stopPropagation()}>
+            <ComicBtn sm color={C.redLt} style={{ width: S[8], height: S[8], padding: 0, justifyContent: 'center', fontSize: FS.md, lineHeight: 1 }}>✕</ComicBtn>
+          </div>
+        )}
+      </div>
+
+      {isMobile && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Tag label={status.label} bg={status.bg} />
+          <div onClick={e => e.stopPropagation()}>
+            <ComicBtn sm color={C.redLt} style={{ width: S[8], height: S[8], padding: 0, justifyContent: 'center', fontSize: FS.md, lineHeight: 1 }}>✕</ComicBtn>
+          </div>
         </div>
-      </div>
-
-      <Tag label={status.label} bg={status.bg} />
-
-      <div onClick={e => e.stopPropagation()}>
-        <ComicBtn sm color={C.redLt} style={{ width: S[8], height: S[8], padding: 0, justifyContent: 'center', fontSize: FS.md, lineHeight: 1 }}>✕</ComicBtn>
-      </div>
+      )}
     </ComicBox>
   )
 }

@@ -8,6 +8,7 @@ import { Panel } from '../../components/ui/Panel'
 import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { useNavigate } from 'react-router-dom'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import {
   PROFESSOR_STATS,
@@ -37,6 +38,7 @@ function TopPerformerRow({ s, onClick }: { s: typeof PROFESSOR_TOP_PERFORMERS[nu
 
 export function ProfessorDashboard() {
   const navigate = useNavigate()
+  const isMobile = useBreakpoint() === 'mobile'
   return (
     <div className="dashboard-main">
 
@@ -60,11 +62,11 @@ export function ProfessorDashboard() {
         </div>
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: S[3] }}>
+        <div className="quiz-stat-grid">
           {PROFESSOR_STATS.map((s) => (
             <ComicBox key={s.label} bg={s.bg} p={S[4]}>
-              <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], lineHeight: 1, color: s.dark ? C.paper : C.ink }}>{s.value}</div>
-              <div style={{ fontSize: FS.xs, fontWeight: 800, letterSpacing: 1, marginTop: S[1], fontFamily: "'Archivo Black', sans-serif", color: s.dark ? C.paper : C.ink }}>{s.label}</div>
+              <div className="stat-card-value" style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], lineHeight: 1, color: s.dark ? C.paper : C.ink }}>{s.value}</div>
+              <div className="stat-card-label" style={{ fontSize: FS.xs, fontWeight: 800, letterSpacing: 1, marginTop: S[1], fontFamily: "'Archivo Black', sans-serif", color: s.dark ? C.paper : C.ink }}>{s.label}</div>
             </ComicBox>
           ))}
         </div>
@@ -79,9 +81,9 @@ export function ProfessorDashboard() {
                 Upload a PDF → AI extracts quiz questions → You review &amp; approve.
               </div>
             </div>
-            <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
-              <ComicBtn color={C.yellow} onClick={() => navigate('/upload')}>UPLOAD</ComicBtn>
-              <ComicBtn color={C.pink} dark onClick={() => navigate('/ai-quiz-builder')}>AI BUILDER</ComicBtn>
+            <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
+              <ComicBtn sm color={C.yellow} onClick={() => navigate('/upload')}>UPLOAD</ComicBtn>
+              <ComicBtn sm color={C.pink} dark style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/ai-quiz-builder')}>AI BUILDER</ComicBtn>
             </div>
           </div>
         </ComicBox>
@@ -93,30 +95,40 @@ export function ProfessorDashboard() {
           <Panel title="YOUR MODULES" accent={C.yellow} p={S[4]} action={<ComicBtn sm color={C.green}>+ NEW</ComicBtn>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {PROFESSOR_MODULES.map((m) => (
-                <div key={m.title} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: S[2], background: m.draft ? C.cream : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md }}>{m.title.toUpperCase()}</span>
-                      {m.draft && <span style={{ flexShrink: 0 }}><Tag label="○ DRAFT" bg={C.orangeLt} /></span>}
-                    </div>
-                    {!m.draft && (
-                      <div style={{ marginTop: S[1] }}>
-                        <Bar value={m.completion} color={C.green} height="5px" />
+                <div key={m.title} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? S[1] : S[3], padding: S[2], background: m.draft ? C.cream : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                  {isMobile ? (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title.toUpperCase()}</span>
+                        {m.draft && <Tag label="○ DRAFT" bg={C.orangeLt} />}
                       </div>
-                    )}
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'] }}>{m.students}</div>
-                    <div style={{ fontSize: FS['2xs'], fontWeight: 800, letterSpacing: 0.5 }}>STUDENTS</div>
-                  </div>
-                  <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>{m.students} STUDENTS</span>
+                        <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md }}>{m.title.toUpperCase()}</span>
+                          {m.draft && <span style={{ flexShrink: 0 }}><Tag label="○ DRAFT" bg={C.orangeLt} /></span>}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'] }}>{m.students}</div>
+                        <div style={{ fontSize: FS['2xs'], fontWeight: 800, letterSpacing: 0.5 }}>STUDENTS</div>
+                      </div>
+                      <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
           </Panel>
 
           {/* Pending quizzes */}
-          <Panel title="PENDING QUIZZES" accent={C.red} p={S[4]} action={<Tag label={`${PROFESSOR_PENDING_QUIZZES.length} AWAITING REVIEW`} bg={C.redLt} />}>
+          <Panel title="PENDING QUIZZES" accent={C.red} p={S[4]}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {PROFESSOR_PENDING_QUIZZES.map((q) => (
                 <div key={q.module} style={{ padding: S[2], background: C.redLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
@@ -140,17 +152,20 @@ export function ProfessorDashboard() {
             action={<Tag label="134 STUDENTS" bg={C.purpleLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: S[4] }}>
               {PROFESSOR_STYLE_MIX.map((t) => (
-                <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: t.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{t.label.toUpperCase()}</span>
-                  <div style={{ flex: 1 }}><Bar value={t.percent} color={t.color} height={12} shadow /></div>
-                  <Tag label={`${t.percent}%`} bg={t.color} />
+                <div key={t.label} style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[1.5]} ${S[3]}`, background: t.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: S[3], justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{t.label.toUpperCase()}</span>
+                    {!isMobile && <div style={{ flex: 1 }}><Bar value={t.percent} color={t.color} height={12} shadow /></div>}
+                    <Tag label={`${t.percent}%`} bg={t.color} />
+                  </div>
+                  {isMobile && <Bar value={t.percent} color={t.color} height={12} shadow />}
                 </div>
               ))}
             </div>
           </Panel>
 
           {/* Top performers */}
-          <Panel title="TOP PERFORMING STUDENTS" accent={C.green} p={S[4]} action={<Tag label="RANKED BY SCORE" bg={C.greenLt} />}>
+          <Panel title="TOP PERFORMING STUDENTS" accent={C.green} p={S[4]}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {PROFESSOR_TOP_PERFORMERS.map((s) => (
                 <TopPerformerRow key={s.id} s={s} onClick={() => navigate(`/students/${s.id}`)} />

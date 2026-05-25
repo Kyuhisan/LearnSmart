@@ -20,14 +20,23 @@ import {
 
 
 function ModuleOverviewRow({ m, onDetails }: { m: ModuleStats; onDetails: () => void }) {
+  const isMobile = useBreakpoint() === 'mobile'
   return (
     <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, background: m.colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
-        <Tag label={`${m.students} students`} bg={C.mutedLt} />
-        <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />
-        <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onDetails}>DETAILS</ComicBtn>
+      <div style={{ display: 'flex', flexDirection: 'column', background: m.colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}` }}>
+          {!isMobile && <div style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />}
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
+          {!isMobile && <Tag label={`${m.students} students`} bg={C.mutedLt} />}
+          {!isMobile && <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />}
+          <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onDetails}>DETAILS</ComicBtn>
+        </div>
+        {isMobile && (
+          <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap', padding: `0 ${S[3]} ${S[2]}` }}>
+            <Tag label={`${m.students} students`} bg={C.mutedLt} />
+            <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />
+          </div>
+        )}
       </div>
       <div style={{ padding: `${S[2]} ${S[3]}`, background: C.paper }}>
         <Bar value={m.avgCompletion} color={m.color} height={12} shadow />
@@ -36,26 +45,46 @@ function ModuleOverviewRow({ m, onDetails }: { m: ModuleStats; onDetails: () => 
   )
 }
 
-function ModuleDetailView({ detail, module: m }: { detail: ModuleDetail; module: ModuleStats }) {
+function ModuleDetailView({ detail, module: m, isMobile }: { detail: ModuleDetail; module: ModuleStats; isMobile: boolean }) {
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], paddingBottom: S[3], borderBottom: `${BW.base} solid ${C.divider}` }}>
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />
-        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
-        <Tag label={`${m.students} students`} bg={C.mutedLt} />
-        <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], paddingBottom: S[3], borderBottom: `${BW.base} solid ${C.divider}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+          {!isMobile && <div style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />}
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
+          {!isMobile && <Tag label={`${m.students} students`} bg={C.mutedLt} />}
+          {!isMobile && <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />}
+        </div>
+        {isMobile && (
+          <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
+            <Tag label={`${m.students} students`} bg={C.mutedLt} />
+            <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />
+          </div>
+        )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr repeat(3, 1fr)', gap: S[3], paddingBottom: S[2], borderBottom: `${BW.base} solid ${C.divider}` }}>
-        {['QUIZ', 'AVG SCORE', 'SUBMISSIONS', 'PASS RATE'].map(h => (
-          <span key={h} style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 1 }}>{h}</span>
-        ))}
-      </div>
+      {!isMobile && (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr repeat(3, 1fr)', gap: S[3], paddingBottom: S[2], borderBottom: `${BW.base} solid ${C.divider}` }}>
+          {['QUIZ', 'AVG SCORE', 'SUBMISSIONS', 'PASS RATE'].map(h => (
+            <span key={h} style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 1 }}>{h}</span>
+          ))}
+        </div>
+      )}
       {detail.quizzes.map(q => (
-        <div key={q.quiz} style={{ display: 'grid', gridTemplateColumns: '2fr repeat(3, 1fr)', gap: S[3], alignItems: 'center' }}>
+        <div key={q.quiz} style={isMobile ? { display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} 0`, borderBottom: `1px solid ${C.divider}` } : { display: 'grid', gridTemplateColumns: '2fr repeat(3, 1fr)', gap: S[3], alignItems: 'center' }}>
           <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{q.quiz}</span>
-          <Tag label={`${q.avgScore}%`} bg={q.avgScore >= 80 ? C.greenLt : q.avgScore >= 70 ? C.yellowLt : C.redLt} />
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.sm, color: C.ink }}>{q.submissions}</span>
-          <Tag label={`${q.passRate}%`} bg={q.passRate >= 80 ? C.greenLt : q.passRate >= 65 ? C.yellowLt : C.redLt} />
+          {isMobile ? (
+            <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
+              <Tag label={`AVG ${q.avgScore}%`} bg={q.avgScore >= 80 ? C.greenLt : q.avgScore >= 70 ? C.yellowLt : C.redLt} />
+              <Tag label={`${q.submissions} submitted`} bg={C.mutedLt} />
+              <Tag label={`${q.passRate}% passed`} bg={q.passRate >= 80 ? C.greenLt : q.passRate >= 65 ? C.yellowLt : C.redLt} />
+            </div>
+          ) : (
+            <>
+              <Tag label={`${q.avgScore}%`} bg={q.avgScore >= 80 ? C.greenLt : q.avgScore >= 70 ? C.yellowLt : C.redLt} />
+              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.sm, color: C.ink }}>{q.submissions}</span>
+              <Tag label={`${q.passRate}%`} bg={q.passRate >= 80 ? C.greenLt : q.passRate >= 65 ? C.yellowLt : C.redLt} />
+            </>
+          )}
         </div>
       ))}
     </>
@@ -124,7 +153,9 @@ function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (
 
 export function ProfessorAnalytics() {
   const [selectedModule, setSelectedModule] = useState<string | null>(null)
-  const isTablet = useBreakpoint() === 'tablet'
+  const bp = useBreakpoint()
+  const isTablet = bp === 'tablet'
+  const isMobile = bp === 'mobile'
 
   const maxSessions = Math.max(...WEEKLY_ACTIVITY.map(d => d.sessions))
   const filteredModules = selectedModule
@@ -142,14 +173,14 @@ export function ProfessorAnalytics() {
 
         {/* Module selector */}
         <Panel title="VIEW" accent={C.yellow} overflow="visible"
-          action={activeModule ? <Tag label={activeModule.title} bg={activeModule.colorLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />}>
+          action={!isMobile ? (activeModule ? <Tag label={activeModule.title} bg={activeModule.colorLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
           <div style={{ padding: 0 }}>
             <ModuleDropdown value={selectedModule} onChange={setSelectedModule} />
           </div>
         </Panel>
 
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: S[3] }}>
+        <div className="quiz-stat-grid">
           <StatCard
             label="ACTIVE STUDENTS"
             value={activeModule ? activeModule.students : `${ANALYTICS_STATS.activeStudents} / ${ANALYTICS_STATS.totalStudents}`}
@@ -181,7 +212,7 @@ export function ProfessorAnalytics() {
 
           {/* Weekly activity chart */}
           <Panel title="WEEKLY ACTIVITY" accent={C.yellow}
-            action={activeModule ? <Tag label={activeModule.title} bg={activeModule.colorLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />}>
+            action={!isMobile ? (activeModule ? <Tag label={activeModule.title} bg={activeModule.colorLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
                 {WEEKLY_ACTIVITY.map(d => {
@@ -203,8 +234,8 @@ export function ProfessorAnalytics() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
               {STYLE_BREAKDOWN.map(s => (
                 <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: s.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: isTablet ? undefined : 100, flex: isTablet ? 1 : undefined, flexShrink: 0, letterSpacing: 0.5 }}>{s.label}</span>
-                  {!isTablet && <div style={{ flex: 1 }}><Bar value={s.percent} color={s.color} height={12} shadow /></div>}
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: (isTablet || isMobile) ? undefined : 100, flex: (isTablet || isMobile) ? 1 : undefined, flexShrink: 0, letterSpacing: 0.5 }}>{s.label}</span>
+                  {!(isTablet || isMobile) && <div style={{ flex: 1 }}><Bar value={s.percent} color={s.color} height={12} shadow /></div>}
                   <Tag label={`${s.percent}%`} bg={s.color} />
                 </div>
               ))}
@@ -240,10 +271,8 @@ export function ProfessorAnalytics() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
               {CONCEPT_MASTERY.map(c => (
                 <div key={c.concept} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: c.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 160, flexShrink: 0 }}>{c.concept}</span>
-                  <div style={{ flex: 1 }}>
-                    <Bar value={c.mastery} color={c.color} height={12} shadow />
-                  </div>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: isMobile ? undefined : 160, flex: isMobile ? 1 : undefined, flexShrink: 0 }}>{c.concept}</span>
+                  {!isMobile && <div style={{ flex: 1 }}><Bar value={c.mastery} color={c.color} height={12} shadow /></div>}
                   <Tag label={`${c.mastery}%`} bg={c.mastery >= 75 ? C.greenLt : c.mastery >= 50 ? C.yellowLt : C.redLt} />
                 </div>
               ))}
@@ -261,7 +290,7 @@ export function ProfessorAnalytics() {
             ))}
 
             {activeModuleDetail && activeModule && (
-              <ModuleDetailView detail={activeModuleDetail} module={activeModule} />
+              <ModuleDetailView detail={activeModuleDetail} module={activeModule} isMobile={isMobile} />
             )}
           </div>
         </Panel>
