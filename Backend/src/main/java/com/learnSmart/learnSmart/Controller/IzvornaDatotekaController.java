@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Controller;
 
 import com.learnSmart.learnSmart.DTO.IzvornaDatotekaRequest;
+import com.learnSmart.learnSmart.DTO.Upload.IzvornaDatotekaResponseDTO;
 import com.learnSmart.learnSmart.DTO.Upload.UploadResponseDTO;
 import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
@@ -11,6 +12,9 @@ import com.learnSmart.learnSmart.Service.Transcript.TranscriptService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,13 +70,39 @@ public class IzvornaDatotekaController {
         return izvornaDatotekaRepository.save(izvornaDatoteka);
     }
 
+    @GetMapping("/moje")
+    public ResponseEntity<List<IzvornaDatotekaResponseDTO>> getMoje(@AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        List<IzvornaDatotekaResponseDTO> result = izvornaDatotekaRepository
+                .findByPredmet_UciteljIdOrderByUstvarjenObDesc(uciteljId)
+                .stream()
+                .map(d -> new IzvornaDatotekaResponseDTO(
+                        d.getId(),
+                        d.getImeDatoteke(),
+                        d.getUrl(),
+                        d.getTip(),
+                        d.getVelikostBytes(),
+                        d.getProcessingStatus(),
+                        d.getUstvarjenOb(),
+                        d.getPredmet().getId(),
+                        d.getPredmet().getNaziv()
+                ))
+                .toList();
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping(value = {"/upload"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UploadResponseDTO> upload(
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam("file") List<MultipartFile> files,
             @RequestParam("predmetId") UUID predmetId
     ) {
         try {
+            UUID uciteljId = UUID.fromString(jwt.getSubject());
             Predmet predmet = predmetRepository.findById(predmetId).orElseThrow(() -> new IllegalArgumentException("Subject does not exist."));
+            if (!predmet.getUciteljId().equals(uciteljId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(UploadResponseDTO.error("Access denied."));
+            }
 
             List<Map<String, Object>> uploadedFiles = new ArrayList<>();
 
