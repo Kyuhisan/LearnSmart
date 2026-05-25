@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@SuppressFBWarnings("VA_FORMAT_STRING_USES_NEWLINE")
 public class GeminiService {
 
     @Value("${gemini.api.key}")
