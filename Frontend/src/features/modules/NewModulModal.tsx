@@ -5,6 +5,8 @@ import { ustvariModul } from './moduleApi'
 import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleLibrary.css'
 
+import { ALL_TAGS, TAG_COLORS } from './moduleTags'
+
 interface Props {
   onClose: () => void
   onSave: () => void
@@ -16,6 +18,7 @@ export function NewModuleModal({ onClose, onSave }: Props) {
   const [opis, setOpis] = useState('')
   const [kodaVpisa, setKodaVpisa] = useState('')
   const [tezavnost, setTezavnost] = useState(1)
+  const [kategorije, setKategorije] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -23,7 +26,7 @@ export function NewModuleModal({ onClose, onSave }: Props) {
     if (!naziv.trim()) { setError('Naziv ne sme biti prazen'); return }
     if (!kodaVpisa.trim()) { setError('Koda vpisa ne sme biti prazna'); return }
     setSaving(true)
-    await ustvariModul(session!.access_token, { naziv, opis, kodaVpisa, tezavnost, jeObjavljen: false })
+    await ustvariModul(session!.access_token, { naziv, opis, kodaVpisa, tezavnost, kategorije, jeObjavljen: false })
     setSaving(false)
     onSave()
     onClose()
@@ -51,6 +54,22 @@ export function NewModuleModal({ onClose, onSave }: Props) {
         <div className="modal-field">
           <label className="modal-label">COURSE CODE</label>
           <input className="modal-input" value={kodaVpisa} onChange={e => setKodaVpisa(e.target.value)} placeholder="E.g., MAT-001" />
+        </div>
+
+        <div className="modal-field">
+          <label className="modal-label">CATEGORY</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {ALL_TAGS.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setKategorije(prev => prev.includes(cat) ? prev.filter(t => t !== cat) : [...prev, cat])}
+                className={`modules-filter-btn ${kategorije.includes(cat) ? 'active' : ''}`}
+                style={kategorije.includes(cat) ? { background: TAG_COLORS[cat] } : {}}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="modal-field">

@@ -1,4 +1,4 @@
-package com.learnSmart.learnSmart.Service;
+package com.learnSmart.learnSmart.Service.Transcript;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
@@ -7,11 +7,10 @@ import com.learnSmart.learnSmart.Model.VsebinaPredmet;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.VsebinaPredmetRepository;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
+import com.learnSmart.learnSmart.Service.GeminiService;
+import com.learnSmart.learnSmart.Service.StorageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,246 +18,44 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import java.io.*;
-import java.net.*;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.nio.file.*;
 import java.time.OffsetDateTime;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class TranscriptService {
-
-    private final PredmetRepository predmetRepository;
-    @Value("${SUPABASE_SERVICE_KEY}")
-    private String supabaseServiceKey;
-
-    @Value("${OPENAI_API_KEY}")
-    private String openaiApiKey;
 
     @Value("${GOOGLE_TTS_API_KEY}")
     private String googleTTSApiKey;
 
+    private final PredmetRepository predmetRepository;
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
     private final StorageService storageService;
-    private final GeminiService geminiService;
     private final VsebinaPredmetRepository vsebinaPredmetRepository;
+    private final GeminiService geminiService;
 
-    public TranscriptService
-            (
-            IzvornaDatotekaRepository izvornaDatotekaRepository,
-            StorageService storageService,
-            PredmetRepository predmetRepository,
-            GeminiService geminiService,
-            VsebinaPredmetRepository vsebinaPredmetRepository
-    ) {
-        this.izvornaDatotekaRepository = izvornaDatotekaRepository;
-        this.storageService = storageService;
-        this.predmetRepository = predmetRepository;
-        this.geminiService = geminiService;
-        this.vsebinaPredmetRepository = vsebinaPredmetRepository;
-    }
-
-
-    //HTTP CONNECTION
-    private HttpURLConnection createConnection(URL url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestProperty("apikey", supabaseServiceKey);
-        connection.setRequestProperty("Authorization", "Bearer " + supabaseServiceKey);
-        return connection;
-    }
-
-
-    //GENERIC FILE DOWNLOAD
-    private Path downloadFile(String fileURL, String prefix) throws IOException {
-        URL url = new URL(fileURL);
-        HttpURLConnection connection = createConnection(url);
-
-        String extension = ".tmp";
-        String path = url.getPath();
-        int dotIndex = path.lastIndexOf('.');
-
-        if (dotIndex != -1) {
-            extension = path.substring(dotIndex);
-        }
-
-        Path tmpFile = Files.createTempFile(prefix, extension);
-
-        try {
-            Files.copy(
-                    connection.getInputStream(),
-                    tmpFile,
-                    StandardCopyOption.REPLACE_EXISTING);
-
-            return tmpFile;
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-
-    // PDF file
-    private String extractFromPdf(String fileURL) throws IOException {
-        URL url = new URL(fileURL);
-        HttpURLConnection connection = createConnection(url);
-
-        try (
-                InputStream inputStream = connection.getInputStream();
-                PDDocument pdDocument = Loader.loadPDF(inputStream.readAllBytes())
-        ) {
-            PDFTextStripper pdfTextStripper = new PDFTextStripper();
-            String text = pdfTextStripper.getText(pdDocument);
-            return text;
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-
-    // AUDIO files
-    private String transcribeAudio(Path tmpFile) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.setBearerAuth(openaiApiKey);
-
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new FileSystemResource(tmpFile.toFile()));
-        body.add("model", "whisper-1");
-
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
-
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                "https://api.openai.com/v1/audio/transcriptions",
-                request,
-                Map.class
-        );
-
-        Map responseBody = response.getBody();
-
-        if (responseBody == null || !responseBody.containsKey("text")) {
-            throw new IOException("Invalid transcription response");
-        }
-
-        return (String) responseBody.get("text");
-    }
-
-
-    private String extractFromAudio(String fileURL) throws IOException {
-        Path tmpFile = downloadFile(fileURL, "audio-");
-
-        try {
-            return transcribeAudio(tmpFile);
-        } finally {
-            Files.deleteIfExists(tmpFile);
-        }
-    }
-
-
-    // MP4
-    private Path extractAudioFromVideo(Path tmpVideo) throws IOException, InterruptedException {
-        Path tmpAudio = Files.createTempFile("audio-", ".mp3");
-
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "ffmpeg",
-                "-y",
-                "-i",
-                tmpVideo.toString(),
-                "-vn",
-                "-acodec",
-                "mp3",
-                tmpAudio.toString()
-        );
-        processBuilder.redirectErrorStream(true);
-
-        Process process = processBuilder.start();
-
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
-            }
-        }
-
-        int exitCode = process.waitFor();
-
-        if (exitCode != 0) {
-            throw new IOException("FFmpeg audio extraction failed.");
-        }
-        return tmpAudio;
-    }
-
-    private void saveAudioFile(IzvornaDatoteka videoDatoteka, String audioUrl, Path tmpAudio) throws IOException {
-        if (tmpAudio == null) {
-            throw new IllegalStateException("Audio path invalid.");
-        }
-
-        Path fileNamePath = tmpAudio.getFileName();
-
-        if (fileNamePath == null) {
-            throw new IllegalStateException("Audio path invalid.");
-        }
-
-        IzvornaDatoteka audioDatoteka = new IzvornaDatoteka();
-        audioDatoteka.setPredmet(videoDatoteka.getPredmet());
-        audioDatoteka.setImeDatoteke(fileNamePath.toString());
-        audioDatoteka.setUrl(audioUrl);
-        audioDatoteka.setTip("AUDIO");
-        audioDatoteka.setProcessingStatus("done");
-        audioDatoteka.setUstvarjenOb(OffsetDateTime.now());
-        audioDatoteka.setVelikostBytes(Files.size(tmpAudio));
-        audioDatoteka.setGeneriranaIz(videoDatoteka);
-
-        izvornaDatotekaRepository.save(audioDatoteka);
-    }
-
-
-    private String extractFromMp4(IzvornaDatoteka videoDatoteka) throws IOException {
-        UUID predmetId = videoDatoteka.getPredmet().getId();
-        Path tmpVideo = downloadFile(videoDatoteka.getUrl(), "video-");
-        Path tmpAudio = null;
-
-        try {
-            tmpAudio = extractAudioFromVideo(tmpVideo);
-
-            String audioUrl = storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);
-            saveAudioFile(videoDatoteka, audioUrl, tmpAudio);
-            return transcribeAudio(tmpAudio);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Video processing interrupted." ,e);
-
-        } finally {
-            Files.deleteIfExists(tmpVideo);
-
-            if (tmpAudio != null) {
-                Files.deleteIfExists(tmpAudio);
-            }
-        }
-    }
+    private final PdfTranscriptService pdfTranscriptService;
+    private final AudioTranscriptionService audioTranscriptionService;
+    private final VideoTranscriptionService videoTranscriptionService;
 
 
     public String extractTranscript(IzvornaDatoteka datoteka) throws IOException {
         return switch (datoteka.getTip()) {
-            case "PDF" -> extractFromPdf(datoteka.getUrl());
-            case "AUDIO" -> extractFromAudio(datoteka.getUrl());
-            case "VIDEO" -> extractFromMp4(datoteka);
+            case "PDF" -> pdfTranscriptService.extractFromPdf(datoteka.getUrl());
+            case "AUDIO" -> audioTranscriptionService.extractFromAudio(datoteka.getUrl());
+            case "VIDEO" -> videoTranscriptionService.extractFromMp4(datoteka);
             default -> throw new IOException("Unsupported file type.");
         };
     }
 
 
-    private void updateCombinedTranscript(UUID predmetId) throws IOException {
+    private void updateCombinedTranscript(UUID predmetId){
         List<IzvornaDatoteka> doneDatoteka = izvornaDatotekaRepository.findByPredmetIdAndProcessingStatus(predmetId, "done");
 
         StringBuilder combined = new StringBuilder();
