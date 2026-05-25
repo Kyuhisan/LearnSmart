@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 @Service
@@ -18,7 +19,7 @@ public class PdfTranscriptService {
     private final SupaBaseConnectionService connectionService;
 
     public String extractFromPdf(String fileURL) throws IOException {
-        URL url = new URL(fileURL);
+        URL url = URI.create(fileURL).toURL();
         HttpURLConnection connection = connectionService.createConnection(url);
 
         try (
@@ -26,8 +27,7 @@ public class PdfTranscriptService {
                 PDDocument pdDocument = Loader.loadPDF(inputStream.readAllBytes())
         ) {
             PDFTextStripper pdfTextStripper = new PDFTextStripper();
-            String text = pdfTextStripper.getText(pdDocument);
-            return text;
+            return pdfTextStripper.getText(pdDocument);
         } finally {
             connection.disconnect();
         }

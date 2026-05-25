@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @SuppressFBWarnings("VA_FORMAT_STRING_USES_NEWLINE")
+@SuppressWarnings("rawtypes")
 public class GeminiService {
 
     @Value("${gemini.api.key}")
@@ -41,6 +42,7 @@ public class GeminiService {
                 Map.class
         );
     }
+
 
     public LearningStyleResponse classify(List<String> answers) {
         log.info("GeminiService classify answers: {}", answers.size());

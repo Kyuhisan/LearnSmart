@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,8 +24,9 @@ public class SupaBaseConnectionService {
         return connection;
     }
 
+    @SuppressWarnings("java:S5445")
     public Path downloadFile(String fileURL, String prefix) throws IOException {
-        URL url = new URL(fileURL);
+        URL url = URI.create(fileURL).toURL();
         HttpURLConnection connection = createConnection(url);
 
         String extension = ".tmp";

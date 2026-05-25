@@ -20,6 +20,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("unchecked")
 public class AudioTranscriptionService {
 
     @Value("${OPENAI_API_KEY}")
@@ -47,7 +48,7 @@ public class AudioTranscriptionService {
                 Map.class
         );
 
-        Map responseBody = response.getBody();
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
 
         if (responseBody == null || !responseBody.containsKey("text")) {
             throw new IOException("Invalid transcription response");

@@ -5,6 +5,7 @@ import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Service.StorageService;
 import com.learnSmart.learnSmart.Service.SupaBaseConnectionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VideoTranscriptionService {
 
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
@@ -48,7 +50,7 @@ public class VideoTranscriptionService {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                log.info("FFmpeg line: {}", line);
             }
         }
 

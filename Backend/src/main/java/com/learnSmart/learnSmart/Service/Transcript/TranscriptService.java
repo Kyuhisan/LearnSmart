@@ -55,7 +55,7 @@ public class TranscriptService {
     }
 
 
-    private void updateCombinedTranscript(UUID predmetId) throws IOException {
+    private void updateCombinedTranscript(UUID predmetId){
         List<IzvornaDatoteka> doneDatoteka = izvornaDatotekaRepository.findByPredmetIdAndProcessingStatus(predmetId, "done");
 
         StringBuilder combined = new StringBuilder();
