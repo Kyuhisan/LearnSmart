@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { TopbarProvider } from "./context/TopbarContext";
+import { WakeBackend } from "./components/ui/WakeBackend";
 import { BitMascot } from "./components/ui/BitMascot";
 import { Callback } from "./pages/Callback";
 import { LoginPage } from "./pages/LoginPage";
@@ -56,6 +57,7 @@ function QuestionnairePage() {
 
 function App() {
   return (
+    <WakeBackend>
     <AuthProvider>
       <TopbarProvider>
       <BrowserRouter>
@@ -193,6 +195,7 @@ function App() {
       </BrowserRouter>
       </TopbarProvider>
     </AuthProvider>
+    </WakeBackend>
   );
 }
 
