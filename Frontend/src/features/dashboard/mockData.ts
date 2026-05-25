@@ -51,6 +51,50 @@ export const STUDENT_LEARNING_TYPE = {
   ],
 }
 
+// Representative VARK bar values per dominant style (used when only the dominant style is known)
+export const VARK_PROFILES: Record<string, { label: string; description: string; vark: { key: string; score: number; color: string }[] }> = {
+  visual: {
+    label: 'VISUAL LEARNER',
+    description: 'You absorb information best through diagrams, charts, and visual representations. Modules are tailored to show you concept maps and video content first.',
+    vark: [
+      { key: 'V', score: 82, color: C.purple },
+      { key: 'A', score: 25, color: C.cyan   },
+      { key: 'R', score: 48, color: C.green  },
+      { key: 'K', score: 34, color: C.orange },
+    ],
+  },
+  auditory: {
+    label: 'AUDITORY LEARNER',
+    description: 'You learn most effectively through listening, discussion, and verbal explanation. Modules highlight audio content, lectures, and spoken summaries for you.',
+    vark: [
+      { key: 'V', score: 30, color: C.purple },
+      { key: 'A', score: 85, color: C.cyan   },
+      { key: 'R', score: 40, color: C.green  },
+      { key: 'K', score: 35, color: C.orange },
+    ],
+  },
+  reading: {
+    label: 'READ / WRITE LEARNER',
+    description: 'You process information best through written text, notes, and structured lists. Modules prioritise reading materials and written summaries for you.',
+    vark: [
+      { key: 'V', score: 35, color: C.purple },
+      { key: 'A', score: 28, color: C.cyan   },
+      { key: 'R', score: 88, color: C.green  },
+      { key: 'K', score: 30, color: C.orange },
+    ],
+  },
+  kinesthetic: {
+    label: 'KINESTHETIC LEARNER',
+    description: 'You learn best through hands-on practice, real examples, and case studies. Modules lead with practical exercises and real-world applications for you.',
+    vark: [
+      { key: 'V', score: 32, color: C.purple },
+      { key: 'A', score: 30, color: C.cyan   },
+      { key: 'R', score: 38, color: C.green  },
+      { key: 'K', score: 84, color: C.orange },
+    ],
+  },
+}
+
 export interface DailyQuest {
   id: string
   label: string

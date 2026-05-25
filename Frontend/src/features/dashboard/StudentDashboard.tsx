@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBtn } from '../../components/ui/ComicBtn'
@@ -14,11 +15,11 @@ import {
   STUDENT_STATS,
   STUDENT_RECENT_MODULES,
   STUDENT_UPCOMING_QUIZZES,
-  STUDENT_LEARNING_TYPE,
   STUDENT_DAILY_QUESTS,
   STUDENT_BIT_PICKS,
   STUDENT_LEADERBOARD,
   STUDENT_BADGES,
+  VARK_PROFILES,
 } from './mockData'
 
 const STAT_COLS = [
@@ -136,13 +137,17 @@ function QuizItem({ q }: { q: typeof STUDENT_UPCOMING_QUIZZES[number] }) {
 
 export function StudentDashboard() {
   const navigate = useNavigate()
+  const { profil } = useAuth()
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
   const [quests, setQuests] = useState(() => STUDENT_DAILY_QUESTS.map(q => ({ ...q })))
   const doneCount = quests.filter(q => q.done).length
   const totalXpToday = quests.filter(q => q.done).reduce((a, q) => a + q.xp, 0)
-  const info = STYLE_INFO[STUDENT_LEARNING_TYPE.style]
+
+  const styleKey = profil?.ucniTip && VARK_PROFILES[profil.ucniTip] ? profil.ucniTip : null
+  const styleProfile = styleKey ? VARK_PROFILES[styleKey] : null
+  const info = styleKey ? STYLE_INFO[styleKey as keyof typeof STYLE_INFO] : STYLE_INFO.visual
 
   function toggleQuest(id: string) {
     setQuests(prev => prev.map(q => q.id === id ? { ...q, done: !q.done } : q))
@@ -153,7 +158,7 @@ export function StudentDashboard() {
       <Topbar
         title="HOME BASE"
         subtitle={`Day ${STUDENT_STATS.streak} streak · Keep it going!`}
-        actions={<><ComicBtn sm color={C.cyan}>2 NEW</ComicBtn><ComicBtn sm color={C.paper}>SEARCH</ComicBtn></>}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn>}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
@@ -186,25 +191,34 @@ export function StudentDashboard() {
 
           <Panel title="YOUR LEARNING TYPE" accent={info.bg} p={S[4]}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: info.bg, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <IconBox size={20} />
+              {!styleProfile ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3], padding: `${S[4]} 0`, color: C.muted }}>
+                  <BitMascot size={48} mood="thinking" float />
+                  <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center' }}>COMPLETE THE VARK QUIZ TO DISCOVER YOUR STYLE</div>
                 </div>
-                <div>
-                  <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink }}>{STUDENT_LEARNING_TYPE.label}</div>
-                  <div style={{ fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>Based on your VARK profile</div>
-                </div>
-              </div>
-              <div style={{ fontSize: FS.xs, color: C.ink, lineHeight: 1.6 }}>{STUDENT_LEARNING_TYPE.description}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
-                {STUDENT_LEARNING_TYPE.vark.map((v) => (
-                  <div key={v.key} style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, width: 20, flexShrink: 0, color: C.ink }}>{v.key}</span>
-                    <div style={{ flex: 1 }}><Bar value={v.score} color={v.color} shadow /></div>
-                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, width: 28, textAlign: 'right', color: C.muted }}>{v.score}</span>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
+                    <div style={{ width: 44, height: 44, borderRadius: '50%', background: info.bg, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <IconBox size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink }}>{styleProfile.label}</div>
+                      <div style={{ fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>Based on your VARK profile</div>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <div style={{ fontSize: FS.xs, color: C.ink, lineHeight: 1.6 }}>{styleProfile.description}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
+                    {styleProfile.vark.map((v) => (
+                      <div key={v.key} style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, width: 20, flexShrink: 0, color: C.ink }}>{v.key}</span>
+                        <div style={{ flex: 1 }}><Bar value={v.score} color={v.color} shadow /></div>
+                        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, width: 28, textAlign: 'right', color: C.muted }}>{v.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </Panel>
 
