@@ -16,15 +16,10 @@ const ACTIVITY: ActivityItem[] = [
 ]
 
 export function ProfessorProfile() {
-  const { profil, signOut } = useAuth()
+  const { profil } = useAuth()
   const navigate = useNavigate()
 
   if (!profil) return null
-
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
 
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>

@@ -18,15 +18,10 @@ const ACTIVITY: ActivityItem[] = [
 ]
 
 export function StudentProfile() {
-  const { profil, signOut } = useAuth()
+  const { profil } = useAuth()
   const navigate = useNavigate()
 
   if (!profil) return null
-
-  const handleSignOut = async () => {
-    await signOut()
-    navigate('/')
-  }
 
   const styleInfo = STYLE_INFO[STUDENT_PROFILE.learningStyle]
 
