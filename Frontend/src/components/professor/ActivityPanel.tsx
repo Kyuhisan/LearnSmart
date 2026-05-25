@@ -1,6 +1,7 @@
 import { Panel } from '../ui/Panel'
 import { IconBox } from '../ui/IconBox'
 import { C, S, FS, BW, R } from '../../styles/tokens'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 
 export interface ActivityItem {
   iconBg: string
@@ -13,9 +14,11 @@ interface ActivityPanelProps {
   readonly items: ActivityItem[]
   readonly title?: string
   readonly accent?: string
+  readonly showBadge?: boolean
 }
 
-export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.yellow }: ActivityPanelProps) {
+export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.yellow, showBadge = true }: ActivityPanelProps) {
+  const isMobile = useBreakpoint() === 'mobile'
   return (
     <Panel title={title} accent={accent}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -58,18 +61,20 @@ export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.y
               </div>
             </div>
 
-            <div style={{
-              fontFamily: "'Archivo Black', sans-serif",
-              fontSize: FS['2xs'],
-              color: C.ink,
-              border: `${BW.thin} solid ${C.ink}`,
-              borderRadius: R.sm,
-              padding: `${S[1]} ${S[2]}`,
-              letterSpacing: '0.05em',
-              whiteSpace: 'nowrap',
-            }}>
-              {item.badge}
-            </div>
+            {(showBadge || !isMobile) && (
+              <div style={{
+                fontFamily: "'Archivo Black', sans-serif",
+                fontSize: FS['2xs'],
+                color: C.ink,
+                border: `${BW.thin} solid ${C.ink}`,
+                borderRadius: R.sm,
+                padding: `${S[1]} ${S[2]}`,
+                letterSpacing: '0.05em',
+                whiteSpace: 'nowrap',
+              }}>
+                {item.badge}
+              </div>
+            )}
 
           </div>
         ))}

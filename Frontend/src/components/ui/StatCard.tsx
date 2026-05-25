@@ -13,7 +13,7 @@ interface StatCardProps {
 export function StatCard({ label, value, sub, bg = C.paper, style }: StatCardProps) {
   return (
     <ComicBox bg={bg} p={S[4]} style={style}>
-      <div style={{
+      <div className="stat-card-label" style={{
         fontFamily: "'Archivo Black', sans-serif",
         fontSize: FS.xs,
         color: C.muted,
@@ -22,7 +22,7 @@ export function StatCard({ label, value, sub, bg = C.paper, style }: StatCardPro
       }}>
         {label}
       </div>
-      <div style={{
+      <div className="stat-card-value" style={{
         fontFamily: "'Archivo Black', sans-serif",
         fontSize: FS['5xl'],
         color: C.ink,
@@ -34,7 +34,7 @@ export function StatCard({ label, value, sub, bg = C.paper, style }: StatCardPro
       }}>
         {value}
       </div>
-      <div style={{
+      <div className="stat-card-sub" style={{
         fontSize: FS.sm,
         color: C.muted,
         fontWeight: 600,

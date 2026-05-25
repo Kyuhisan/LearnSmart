@@ -75,6 +75,7 @@ export function Sidebar({ vloga, username }: SidebarProps) {
   const bp = useBreakpoint()
   const isTeacher = vloga === 'ucitelj'
   const items = isTeacher ? teacherItems : studentItems
+  const isMobile = bp === 'mobile'
   const compact = bp === 'tablet'
 
   const isActive = (path: string) =>
@@ -86,6 +87,32 @@ export function Sidebar({ vloga, username }: SidebarProps) {
     navigate('/')
   }
 
+  // ─── Mobile: bottom footer nav ───────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <nav className="sidebar-mobile">
+        {items.filter(item => item.path !== '/profile').map(item => (
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            title={item.label}
+            className={`sidebar-mobile-btn${isActive(item.path) ? ' active' : ''}`}
+          >
+            {item.icon}
+          </button>
+        ))}
+        <button
+          onClick={handleLogout}
+          title="Sign out"
+          className="sidebar-mobile-btn sidebar-mobile-btn--signout"
+        >
+          {Icons.signout}
+        </button>
+      </nav>
+    )
+  }
+
+  // ─── Tablet / Desktop ─────────────────────────────────────────────────────────
   return (
     <div className={`sidebar${compact ? ' sidebar--compact' : ''}`}>
 

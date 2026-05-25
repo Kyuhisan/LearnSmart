@@ -50,34 +50,30 @@ export function StudentProfile() {
           onSettings={() => navigate('/settings')}
         />
 
-        <div className="prof-stats-row">
+        <div className="quiz-stat-grid">
           <StatCard
             label="XP TOTAL"
             value={STUDENT_STATS.xp.toLocaleString()}
             sub={`↑ ${STUDENT_STATS.xpRankDelta} positions this week`}
             bg={C.yellowLt}
-            style={{ flex: 1 }}
           />
           <StatCard
             label="QUIZZES"
             value={STUDENT_STATS.quizzes}
             sub={`avg. ${STUDENT_STATS.avgScore}% score`}
             bg={C.cyanLt}
-            style={{ flex: 1 }}
           />
           <StatCard
             label="STREAK"
             value={`${STUDENT_STATS.streak}d`}
             sub={`best: ${STUDENT_STATS.bestStreak} days`}
             bg={C.redLt}
-            style={{ flex: 1 }}
           />
           <StatCard
             label="ACHIEVEMENTS"
             value={STUDENT_STATS.badges}
             sub={`${STUDENT_STATS.badgesInProgress} in progress`}
             bg={C.purpleLt}
-            style={{ flex: 1 }}
           />
         </div>
 
@@ -86,7 +82,7 @@ export function StudentProfile() {
           varkScores={STUDENT_PROFILE.varkScores}
         />
 
-        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" />
+        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} />
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
+import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { LEADERBOARD, LEADERBOARD_STATS, type LeaderboardEntry } from './mockData'
 
@@ -54,7 +55,7 @@ function PodiumCard({ entry, position }: { entry: LeaderboardEntry; position: 0 
   )
 }
 
-function LeaderboardRow({ entry, filter }: { entry: LeaderboardEntry; filter: Filter }) {
+function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; filter: Filter; isMobile: boolean }) {
   const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
   const isTop3 = entry.rank <= 3
@@ -65,23 +66,88 @@ function LeaderboardRow({ entry, filter }: { entry: LeaderboardEntry; filter: Fi
     else navigate(`/students/${entry.id}`)
   }
 
+  const sharedWrapStyle = {
+    padding: `${S[2.5]} ${S[3]}`,
+    background: entry.isCurrentUser ? C.yellow : hovered ? C.yellowLt : C.paper,
+    border: `${BW.base} solid ${C.ink}`,
+    borderRadius: R.sm,
+    boxShadow: entry.isCurrentUser ? mkShadow('lg') : mkShadow(hovered ? 'lg' : 'base'),
+    transform: hovered ? 'translate(-1px, -1px)' : 'none',
+    transition: 'all 0.1s ease',
+    cursor: 'pointer',
+  }
+
+  const podiumBg = isTop3 ? PODIUM_COLOR_LT[entry.rank - 1] : null
+
+  if (isMobile) return (
+    <div onClick={handleClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ ...sharedWrapStyle, display: 'flex', padding: 0, overflow: 'visible', position: 'relative', marginTop: S[2], background: entry.isCurrentUser ? C.yellow : podiumBg ?? (hovered ? C.yellowLt : C.paper) }}>
+      {/* Rank tag — overflows top-right */}
+      <div style={{
+        position: 'absolute',
+        top: '-10px',
+        right: '10px',
+        fontFamily: "'Archivo Black', sans-serif",
+        fontSize: FS.xs,
+        color: C.ink,
+        background: isTop3 ? PODIUM_COLOR[entry.rank - 1] : C.paper,
+        border: `2px solid ${C.ink}`,
+        padding: '0.15rem 0.5rem',
+        transform: 'rotate(2deg)',
+        zIndex: 1,
+      }}>
+        #{entry.rank}
+      </div>
+      {/* Left: vertical style label */}
+      <div style={{
+        writingMode: 'vertical-lr',
+        transform: 'rotate(180deg)',
+        fontFamily: "'Archivo Black', sans-serif",
+        fontSize: '0.5rem',
+        letterSpacing: '0.08em',
+        color: C.ink,
+        background: entry.styleColor,
+        padding: `${S[2]} ${S[1.5]}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        overflow: 'hidden',
+        borderRadius: `${R.sm} 0 0 ${R.sm}`,
+      }}>
+        {entry.style}
+      </div>
+      {/* Right: content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[1.5], padding: `${S[2.5]} ${S[3]}`, justifyContent: 'center' }}>
+        {/* Row 1: avatar + username + XP */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+            background: C.cream, border: `${BW.base} solid ${C.ink}`, boxShadow: mkShadow(),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs,
+          }}>
+            {entry.username[0].toUpperCase()}
+          </div>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {entry.username}{entry.isCurrentUser && ' (you)'}
+          </span>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>
+            {xp.toLocaleString()} <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>XP</span>
+          </span>
+        </div>
+        {/* Row 2: streak + badges tags */}
+        <div style={{ display: 'flex', gap: S[1] }}>
+          <Tag label={`${entry.streak}D STREAK`} bg={C.redLt} />
+          <Tag label={`${entry.badges} BADGES`} bg={C.purpleLt} />
+        </div>
+      </div>
+    </div>
+  )
+
   return (
-    <div
-      onClick={handleClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: S[3],
-        padding: `${S[2.5]} ${S[3]}`,
-        background: entry.isCurrentUser ? C.yellow : hovered ? C.yellowLt : C.paper,
-        border: `${BW.base} solid ${C.ink}`,
-        borderRadius: R.sm,
-        boxShadow: entry.isCurrentUser ? mkShadow('lg') : mkShadow(hovered ? 'lg' : 'base'),
-        transform: hovered ? 'translate(-1px, -1px)' : 'none',
-        transition: 'all 0.1s ease',
-        cursor: 'pointer',
-      }}
-    >
+    <div onClick={handleClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ ...sharedWrapStyle, display: 'flex', alignItems: 'center', gap: S[3] }}>
       {/* Rank */}
       <div style={{ width: 32, textAlign: 'center', flexShrink: 0 }}>
         <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: isTop3 ? C.ink : C.muted }}>#{entry.rank}</span>
@@ -90,12 +156,9 @@ function LeaderboardRow({ entry, filter }: { entry: LeaderboardEntry; filter: Fi
       {/* Avatar */}
       <div style={{
         width: 32, height: 32, borderRadius: '50%',
-        background: C.cream,
-        border: `${BW.base} solid ${C.ink}`,
-        boxShadow: mkShadow(),
+        background: C.cream, border: `${BW.base} solid ${C.ink}`, boxShadow: mkShadow(),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm,
-        flexShrink: 0,
+        fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, flexShrink: 0,
       }}>
         {entry.username[0].toUpperCase()}
       </div>
@@ -128,6 +191,7 @@ function LeaderboardRow({ entry, filter }: { entry: LeaderboardEntry; filter: Fi
 
 export function StudentLeaderboard() {
   const [filter, setFilter] = useState<Filter>('ALL TIME')
+  const isMobile = useBreakpoint() === 'mobile'
   const top3 = LEADERBOARD.slice(0, 3)
   const sorted = filter === 'THIS WEEK'
     ? [...LEADERBOARD].sort((a, b) => b.weeklyXp - a.weeklyXp).map((e, i) => ({ ...e, rank: i + 1 }))
@@ -144,7 +208,7 @@ export function StudentLeaderboard() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: S[3] }}>
+        <div className="quiz-stat-grid">
           <StatCard label="MY RANK"       value={`#${LEADERBOARD_STATS.myRank}`}             sub={LEADERBOARD_STATS.rankDelta}   bg={C.yellowLt} />
           <StatCard label="MY XP"         value={LEADERBOARD_STATS.myXp.toLocaleString()}    sub="total earned"                  bg={C.purpleLt} />
           <StatCard label="THIS WEEK"     value={`+${LEADERBOARD_STATS.myWeeklyXp}`}         sub="XP this week"                  bg={C.cyanLt}   />
@@ -165,33 +229,28 @@ export function StudentLeaderboard() {
           title="RANKINGS"
           accent={C.cyan}
           action={
-            <div style={{ display: 'flex', gap: S[1.5] }}>
-              {(['ALL TIME', 'THIS WEEK'] as Filter[]).map(f => (
-                <div
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  style={{
-                    padding: `${S[1]} ${S[2.5]}`,
-                    fontFamily: "'Archivo Black', sans-serif",
-                    fontSize: FS.xs, letterSpacing: 0.5,
-                    background: filter === f ? C.yellow : C.paper,
-                    color: C.ink,
-                    border: `${BW.base} solid ${C.ink}`,
-                    borderRadius: R.sm,
-                    boxShadow: mkShadow(),
-                    cursor: 'pointer',
-                    transition: 'all 0.1s ease',
-                  }}
-                >
-                  {f}
-                </div>
-              ))}
+            <div
+              onClick={() => setFilter(f => f === 'ALL TIME' ? 'THIS WEEK' : 'ALL TIME')}
+              style={{
+                padding: `${S[1]} ${S[2.5]}`,
+                fontFamily: "'Archivo Black', sans-serif",
+                fontSize: FS.xs, letterSpacing: 0.5,
+                background: C.paper,
+                color: C.ink,
+                border: `${BW.base} solid ${C.ink}`,
+                borderRadius: R.sm,
+                boxShadow: mkShadow(),
+                cursor: 'pointer',
+                transition: 'all 0.1s ease',
+              }}
+            >
+              {filter === 'ALL TIME' ? 'THIS WEEK' : 'ALL TIME'}
             </div>
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
             {sorted.map(entry => (
-              <LeaderboardRow key={entry.username} entry={entry} filter={filter} />
+              <LeaderboardRow key={entry.username} entry={entry} filter={filter} isMobile={isMobile} />
             ))}
           </div>
         </Panel>

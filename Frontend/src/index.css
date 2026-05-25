@@ -49,6 +49,7 @@ body {
   --ls-dot-bg:   radial-gradient(var(--ls-divider) 1px, transparent 1px);
   --ls-dot-size: 20px 20px;
   --ls-header-h: 5rem;
+  --ls-mobile-footer-h: 56px;
   --ls-radius-sm:   0.1875rem;
   --ls-radius-base: 0.375rem;
   --ls-radius-md:   0.5rem;

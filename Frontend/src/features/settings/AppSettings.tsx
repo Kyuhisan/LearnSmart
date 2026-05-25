@@ -17,7 +17,7 @@ interface ToggleRowProps {
 function ToggleRow({ label, sub, value, onChange }: ToggleRowProps) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: S[4],
       padding: `${S[2.5]} ${S[3]}`,
       border: `${BW.base} solid ${C.ink}`,
       borderRadius: R.sm,
@@ -213,7 +213,7 @@ export function AppSettings() {
                 ]}
               />
             </div>
-            <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
               <ComicBtn sm color={C.paper} hoverColor={C.yellowLt}>EXPORT MY DATA</ComicBtn>
               <ComicBtn sm color={C.redLt} hoverColor={C.red} dark={false}>DELETE ACCOUNT</ComicBtn>
             </div>
@@ -291,30 +291,30 @@ export function AppSettings() {
 
             {/* Volume slider */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: S[3],
+              display: 'flex', flexDirection: 'column', gap: S[2],
               padding: `${S[2.5]} ${S[3]}`,
               border: `${BW.base} solid ${C.ink}`,
               borderRadius: R.sm,
               boxShadow: mkShadow(),
               background: C.paper,
             }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: S[0.5], flexShrink: 0 }}>
-                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>MASTER VOLUME</span>
-                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>Controls all in-app audio levels</span>
-              </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[3] }}>
-                <input
-                  type="range"
-                  min={0} max={100} value={volume}
-                  onChange={e => setVolume(Number(e.target.value))}
-                  style={{
-                    flex: 1, height: 6, cursor: 'pointer',
-                    accentColor: C.orange, outline: 'none',
-                    border: 'none', background: 'transparent',
-                  }}
-                />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: S[0.5] }}>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>MASTER VOLUME</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>Controls all in-app audio levels</span>
+                </div>
                 <Tag label={`${volume}%`} bg={C.orangeLt} />
               </div>
+              <input
+                type="range"
+                min={0} max={100} value={volume}
+                onChange={e => setVolume(Number(e.target.value))}
+                style={{
+                  width: '100%', height: 6, cursor: 'pointer',
+                  accentColor: C.orange, outline: 'none',
+                  border: 'none', background: 'transparent',
+                }}
+              />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>

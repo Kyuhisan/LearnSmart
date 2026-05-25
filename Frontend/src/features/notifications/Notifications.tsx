@@ -21,7 +21,7 @@ function NotifRow({ n, onToggle }: { n: Notification & { isNew: boolean }; onTog
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: S[3], padding: S[3],
+        display: 'flex', flexDirection: 'column', gap: S[1], padding: S[3],
         background: hovered ? C.yellowLt : n.read ? C.paper : C.cream,
         border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm,
         boxShadow: mkShadow(hovered ? 'lg' : 'base'),
@@ -30,21 +30,17 @@ function NotifRow({ n, onToggle }: { n: Notification & { isNew: boolean }; onTog
         cursor: 'pointer',
       }}
     >
-      {/* Unread dot */}
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.read ? C.mutedLt : meta.color, border: `1.5px solid ${n.read ? C.muted : 'transparent'}`, marginTop: 6, flexShrink: 0 }} />
-
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{n.title}</span>
-          <Tag label={meta.label} bg={meta.bg} />
-          {n.isNew && !n.read && <Tag label="NEW" bg={meta.color} />}
-        </div>
-        <div style={{ fontSize: FS.sm, color: C.muted, marginTop: S[0.5], lineHeight: 1.5 }}>{n.body}</div>
+      {/* Row 1: dot + tags + time */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: n.read ? C.mutedLt : meta.color, border: `1.5px solid ${n.read ? C.muted : 'transparent'}`, flexShrink: 0 }} />
+        <Tag label={meta.label} bg={meta.bg} />
+        {n.isNew && !n.read && <Tag label="NEW" bg={meta.color} />}
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, whiteSpace: 'nowrap', marginLeft: 'auto' }}>{n.time}</span>
       </div>
-
-      {/* Time */}
-      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, whiteSpace: 'nowrap', flexShrink: 0 }}>{n.time}</span>
+      {/* Row 2: title */}
+      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{n.title}</span>
+      {/* Row 3: body */}
+      <div style={{ fontSize: FS.sm, color: C.muted, lineHeight: 1.5 }}>{n.body}</div>
     </div>
   )
 }

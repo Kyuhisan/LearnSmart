@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBtn } from '../../components/ui/ComicBtn'
-import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
@@ -31,21 +30,36 @@ function QuestionCard({
   const approved = q.approved === true
   const rejected = q.approved === false
   const bg = approved ? C.greenLt : rejected ? C.redLt : C.paper
+  const isMobile = useBreakpoint() === 'mobile'
 
   return (
     <div style={{ background: bg, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: approved ? C.green : rejected ? C.red : C.cream }}>
-        <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
-        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: approved || rejected ? C.paper : C.ink, lineHeight: 1.4, textDecoration: rejected ? 'line-through' : 'none', opacity: rejected ? 0.7 : 1, flex: 1 }}>
-          {q.text}
-        </span>
-        <ComicBtn sm color={approved ? C.paper : C.green} onClick={onApprove}>
-          {approved ? 'APPROVED' : 'APPROVE'}
-        </ComicBtn>
-        <ComicBtn sm color={rejected ? C.paper : C.red} onClick={onReject}>
-          {rejected ? 'REJECTED' : 'REJECT'}
-        </ComicBtn>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: approved ? C.green : rejected ? C.red : C.cream }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+          <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: approved || rejected ? C.paper : C.ink, lineHeight: 1.4, textDecoration: rejected ? 'line-through' : 'none', opacity: rejected ? 0.7 : 1, flex: 1 }}>
+            {q.text}
+          </span>
+          {!isMobile && <>
+            <ComicBtn sm color={approved ? C.paper : C.green} onClick={onApprove}>
+              {approved ? 'APPROVED' : 'APPROVE'}
+            </ComicBtn>
+            <ComicBtn sm color={rejected ? C.paper : C.red} onClick={onReject}>
+              {rejected ? 'REJECTED' : 'REJECT'}
+            </ComicBtn>
+          </>}
+        </div>
+        {isMobile && (
+          <div style={{ display: 'flex', gap: S[2] }}>
+            <ComicBtn sm color={approved ? C.paper : C.green} onClick={onApprove} style={{ flex: 1, justifyContent: 'center' }}>
+              {approved ? 'APPROVED' : 'APPROVE'}
+            </ComicBtn>
+            <ComicBtn sm color={rejected ? C.paper : C.red} onClick={onReject} style={{ flex: 1, justifyContent: 'center' }}>
+              {rejected ? 'REJECTED' : 'REJECT'}
+            </ComicBtn>
+          </div>
+        )}
       </div>
 
       {/* Options */}
@@ -140,7 +154,7 @@ function GeneratePanel({ module, setModule, difficulty, setDifficulty, count, se
           <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, letterSpacing: 1, marginBottom: S[2] }}>DIFFICULTY</div>
           <div style={{ display: 'flex', gap: S[2] }}>
             {AI_DIFFICULTY_OPTIONS.map(d => (
-              <ComicBtn key={d} color={difficulty === d ? difficultyColor[d] : C.paper} onClick={() => setDifficulty(d)} style={{ flex: 1, justifyContent: 'center' }}>
+              <ComicBtn key={d} sm color={difficulty === d ? difficultyColor[d] : C.paper} onClick={() => setDifficulty(d)} style={{ flex: 1, justifyContent: 'center', whiteSpace: 'nowrap' }}>
                 {d}
               </ComicBtn>
             ))}
@@ -148,10 +162,10 @@ function GeneratePanel({ module, setModule, difficulty, setDifficulty, count, se
         </div>
         <div>
           <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, letterSpacing: 1, marginBottom: S[2] }}>QUESTION COUNT</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
-            <ComicBtn color={C.paper} onClick={() => setCount(c => Math.max(1, c - 1))} disabled={count <= 1}>−</ComicBtn>
-            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['3xl'], color: C.ink, minWidth: 32, textAlign: 'center' }}>{count}</span>
-            <ComicBtn color={C.paper} onClick={() => setCount(c => Math.min(15, c + 1))} disabled={count >= 15}>+</ComicBtn>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <ComicBtn sm color={C.paper} onClick={() => setCount(c => Math.max(1, c - 1))} disabled={count <= 1}>−</ComicBtn>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['3xl'], color: C.ink, textAlign: 'center' }}>{count}</span>
+            <ComicBtn sm color={C.paper} onClick={() => setCount(c => Math.min(15, c + 1))} disabled={count >= 15}>+</ComicBtn>
           </div>
         </div>
         <ComicBtn color={C.yellow} onClick={generate} disabled={generating}>
@@ -162,13 +176,25 @@ function GeneratePanel({ module, setModule, difficulty, setDifficulty, count, se
   )
 }
 
-function ReviewStatusPanel({ pendingCount, approvedCount, rejectedCount }: { pendingCount: number; approvedCount: number; rejectedCount: number }) {
+function ReviewStatusPanel({ pendingCount, approvedCount, rejectedCount, hasQuestions, isMobile }: { pendingCount: number; approvedCount: number; rejectedCount: number; hasQuestions: boolean; isMobile: boolean }) {
   return (
     <Panel title="REVIEW STATUS" accent={C.cyan} p={S[4]} action={<Tag label="STEP 3" bg={C.cyanLt} />}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: S[2] }}>
-        <StatCard label="PENDING"  value={pendingCount}  sub="" bg={C.mutedLt} />
-        <StatCard label="APPROVED" value={approvedCount} sub="" bg={C.greenLt} />
-        <StatCard label="REJECTED" value={rejectedCount} sub="" bg={C.redLt}   />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+        {([
+          { label: 'PENDING',  value: pendingCount,  bg: C.mutedLt },
+          { label: 'APPROVED', value: approvedCount, bg: C.greenLt },
+          { label: 'REJECTED', value: rejectedCount, bg: C.redLt   },
+        ] as const).map(({ label, value, bg }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `${S[2]} ${S[3]}`, background: bg, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, letterSpacing: 0.5 }}>{label}</span>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{value}</span>
+          </div>
+        ))}
+        {isMobile && (
+          <ComicBtn color={C.green} disabled={!hasQuestions || approvedCount === 0} onClick={() => {}} style={{ width: '100%', justifyContent: 'center', marginTop: S[1] }}>
+            PUBLISH QUIZ ({approvedCount})
+          </ComicBtn>
+        )}
       </div>
     </Panel>
   )
@@ -230,7 +256,9 @@ export function ProfessorAIQuizBuilder() {
   const pendingCount = questions?.filter(q => q.approved === null).length ?? 0
 
   const [generatingMore, setGeneratingMore] = useState(false)
-  const isTablet = useBreakpoint() === 'tablet'
+  const bp = useBreakpoint()
+  const isTablet = bp === 'tablet'
+  const isMobile = bp === 'mobile'
 
   function generate() {
     setGenerating(true)
@@ -273,11 +301,11 @@ export function ProfessorAIQuizBuilder() {
         }
       />
 
-      {isTablet ? (
-        /* Tablet: generate → review status → review questions stacked full width */
+      {(isTablet || isMobile) ? (
+        /* Mobile + Tablet: all panels stacked full width */
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
           <GeneratePanel module={module} setModule={setModule} difficulty={difficulty} setDifficulty={setDifficulty} count={count} setCount={setCount} generating={generating} generate={generate} difficultyColor={difficultyColor} />
-          {questions && <ReviewStatusPanel pendingCount={pendingCount} approvedCount={approvedCount} rejectedCount={rejectedCount} />}
+          {questions && <ReviewStatusPanel pendingCount={pendingCount} approvedCount={approvedCount} rejectedCount={rejectedCount} hasQuestions={!!questions} isMobile={isMobile} />}
           <ReviewQuestionsPanel questions={questions} generating={generating} module={module} generatingMore={generatingMore} generateMore={generateMore} setApproval={setApproval} />
         </div>
       ) : (
@@ -285,7 +313,7 @@ export function ProfessorAIQuizBuilder() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
             <GeneratePanel module={module} setModule={setModule} difficulty={difficulty} setDifficulty={setDifficulty} count={count} setCount={setCount} generating={generating} generate={generate} difficultyColor={difficultyColor} />
-            {questions && <ReviewStatusPanel pendingCount={pendingCount} approvedCount={approvedCount} rejectedCount={rejectedCount} />}
+            {questions && <ReviewStatusPanel pendingCount={pendingCount} approvedCount={approvedCount} rejectedCount={rejectedCount} hasQuestions={!!questions} isMobile={false} />}
           </div>
           <ReviewQuestionsPanel questions={questions} generating={generating} module={module} generatingMore={generatingMore} generateMore={generateMore} setApproval={setApproval} />
         </div>
