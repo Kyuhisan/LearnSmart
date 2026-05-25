@@ -65,6 +65,7 @@ public class AudioTranscriptionService {
             return transcribeAudio(tmpFile);
         } finally {
             Files.deleteIfExists(tmpFile);
+            Files.deleteIfExists(tmpFile.getParent());
         }
     }
 }

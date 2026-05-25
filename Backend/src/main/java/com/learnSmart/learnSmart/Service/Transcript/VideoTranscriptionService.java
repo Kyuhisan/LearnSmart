@@ -30,7 +30,7 @@ public class VideoTranscriptionService {
 
     @SuppressWarnings("java:S5445")
     private Path extractAudioFromVideo(Path tmpVideo) throws IOException, InterruptedException {
-        Path tmpAudio = Files.createTempFile("audio-", ".mp3");
+        Path tmpAudio = Files.createTempFile("audio-", ".mp3"); //NOSONAR
 
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "ffmpeg",
@@ -109,6 +109,7 @@ public class VideoTranscriptionService {
 
             if (tmpAudio != null) {
                 Files.deleteIfExists(tmpAudio);
+                Files.deleteIfExists(tmpVideo.getParent());
             }
         }
     }

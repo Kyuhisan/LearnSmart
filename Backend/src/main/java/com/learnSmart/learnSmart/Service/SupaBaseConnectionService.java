@@ -37,8 +37,8 @@ public class SupaBaseConnectionService {
             extension = path.substring(dotIndex);
         }
 
-        @SuppressWarnings("java:S5445")
-        Path tmpFile = Files.createTempFile(prefix, extension);
+        Path safeTmpDirectory = Files.createTempDirectory("learnSmart-");
+        Path tmpFile = Files.createTempFile(safeTmpDirectory, prefix, extension);
 
         try {
             Files.copy(
