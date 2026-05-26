@@ -72,19 +72,19 @@ public class TranscriptService {
     }
 
 
-    private void generateAndSaveAudio(UUID predmetId, String narationScript) throws IOException {
+    private void generateAndSaveAudio(UUID predmetId, String narrationScript) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
 
-        if (narationScript.length() > 4500) {
-            narationScript = narationScript.substring(0, 4500);
+        if (narrationScript.length() > 4500) {
+            narrationScript = narrationScript.substring(0, 4500);
         }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = Map.of(
-                "input", Map.of("text", narationScript),
-                "voice", Map.of("languageCode", "sl-SI", "name", "sl-SI-Chirp3-HD-Algenib", "ssmlGender", "MALE"),
+                "input", Map.of("text", narrationScript),
+                "voice", Map.of("languageCode", "en-US", "name", "en-US-Chirp3-HD-Achernar", "ssmlGender", "MALE"),
                 "audioConfig", Map.of("audioEncoding", "MP3")
         );
 
@@ -110,7 +110,7 @@ public class TranscriptService {
        Predmet predmet = predmetRepository.findById(predmetId).orElseThrow(() -> new IllegalArgumentException("Predmet does not exist"));
        VsebinaPredmet vsebinaPredmet = new VsebinaPredmet();
         vsebinaPredmet.setPredmet(predmet);
-        vsebinaPredmet.setUcniTip("audio");
+        vsebinaPredmet.setUcniTip("auditory");
         vsebinaPredmet.setVsebina(Map.of("audio_url", audioUrl));
         vsebinaPredmet.setPosodobljenOb(OffsetDateTime.now());
         vsebinaPredmetRepository.save(vsebinaPredmet);
@@ -129,7 +129,7 @@ public class TranscriptService {
 
             Map<String, Object> contentPacks = mapper.readValue(jsonResponse, Map.class);
 
-            List<String> ucniTip = List.of("branje", "kinestetično", "audio");
+            List<String> ucniTip = List.of("reading", "kinesthetic", "auditory");
 
             vsebinaPredmetRepository.deleteByPredmetId(predmet.getId());
 
@@ -145,14 +145,14 @@ public class TranscriptService {
                 }
             }
 
-            Map<String, Object> audioPack = (Map<String, Object>) contentPacks.get("audio");
+            Map<String, Object> audioPack = (Map<String, Object>) contentPacks.get("auditory");
 
             if (audioPack != null) {
-                String narationScript = (String) audioPack.get("naracijski_skript");
+                String narrationScript = (String) audioPack.get("narration_script");
 
-                if (narationScript != null) {
+                if (narrationScript != null) {
                     try {
-                        generateAndSaveAudio(predmetId, narationScript);
+                        generateAndSaveAudio(predmetId, narrationScript);
                     } catch (Exception e) {
                         System.out.println("Audio generation failed: " + e.getMessage());
                         e.printStackTrace();
