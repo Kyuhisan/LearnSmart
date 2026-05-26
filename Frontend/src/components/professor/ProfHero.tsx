@@ -12,10 +12,11 @@ interface ProfHeroProps {
   readonly learningType?: string
   readonly streak?: number
   readonly onRetakeVark?: () => void
+  readonly moduleCount?: number | null
 }
 
 
-export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark }: ProfHeroProps) {
+export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark, moduleCount }: ProfHeroProps) {
   const mobile = useBreakpoint() === 'mobile'
 
   const avatar = (
@@ -43,7 +44,7 @@ export function ProfHero({ username, isTeacher, onSettings, level, learningType,
       {isTeacher ? (
         <>
           <Tag label="EDUCATOR" bg={C.purpleLt} />
-          <Tag label="4 MODULES" bg={C.cyanLt} />
+          <Tag label={moduleCount != null ? `${moduleCount} MODULES` : '… MODULES'} bg={C.cyanLt} />
         </>
       ) : (
         <>

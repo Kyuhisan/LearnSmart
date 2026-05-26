@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL
 interface Profil {
   username: string
   vloga: string
+  ucniTip: string
 }
 
 interface AuthContextType {
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
       const data = await response.json()
-      setProfil({ username: data.username, vloga: data.vloga })
+      setProfil({ username: data.username, vloga: data.vloga, ucniTip: data.ucniTip ?? '' })
     }
     fetchProfil()
   }, [session])
@@ -68,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Authorization': `Bearer ${current.access_token}` }
     })
     const data = await response.json()
-    setProfil({ username: data.username, vloga: data.vloga })
+    setProfil({ username: data.username, vloga: data.vloga, ucniTip: data.ucniTip ?? '' })
   }
 
   const signOut = async () => {

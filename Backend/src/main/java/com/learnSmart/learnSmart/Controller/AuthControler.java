@@ -54,7 +54,7 @@ public class AuthControler {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Object[]> response = restTemplate.exchange(
-                supabaseUrl + "/rest/v1/profili?id=eq." + userId + "&select=username,vloga",
+                supabaseUrl + "/rest/v1/profili?id=eq." + userId + "&select=username,vloga,ucni_tip",
                 HttpMethod.GET,
                 entity,
                 Object[].class
@@ -68,10 +68,35 @@ public class AuthControler {
             return ResponseEntity.ok(Map.of(
                     "isNewUser", isNewUser,
                     "vloga", profil.get("vloga") != null ? profil.get("vloga") : "ucenec",
-                    "username", profil.get("username") != null ? profil.get("username") : ""
+                    "username", profil.get("username") != null ? profil.get("username") : "",
+                    "ucniTip", profil.get("ucni_tip") != null ? profil.get("ucni_tip") : ""
             ));
         }
         return ResponseEntity.ok(Map.of("isNewUser", true, "vloga", "ucenec", "username", ""));
+    }
+
+    @DeleteMapping("/me")
+    @Operation(summary = "Delete current user", description = "Deletes the authenticated user from Supabase Auth and their profile data.")
+    @ApiResponse(responseCode = "204", description = "Account deleted")
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apikey", supabaseServiceKey);
+        headers.set("Authorization", "Bearer " + supabaseServiceKey);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        restTemplate.exchange(
+                supabaseUrl + "/auth/v1/admin/users/" + userId,
+                HttpMethod.DELETE,
+                entity,
+                Void.class
+        );
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/me/complete-registration")

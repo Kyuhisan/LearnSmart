@@ -7,6 +7,8 @@ import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useAuth } from '../../context/AuthContext'
+import { getModuliUcitelj } from '../modules/moduleApi'
 import {
   ANALYTICS_STATS,
   WEEKLY_ACTIVITY,
@@ -17,6 +19,8 @@ import {
   type ModuleStats,
   type ModuleDetail,
 } from './mockData'
+
+interface BackendModul { id: string; naziv: string }
 
 
 function ModuleOverviewRow({ m, onDetails }: { m: ModuleStats; onDetails: () => void }) {
@@ -91,7 +95,12 @@ function ModuleDetailView({ detail, module: m, isMobile }: { detail: ModuleDetai
   )
 }
 
-function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (id: string | null) => void }) {
+function ModuleDropdown({ value, options, loading, onChange }: {
+  value: string | null
+  options: BackendModul[]
+  loading: boolean
+  onChange: (id: string | null) => void
+}) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
@@ -104,23 +113,24 @@ function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const selected = value ? MODULE_STATS.find(m => m.id === value) : null
-  const label = selected ? selected.title : 'ALL MODULES'
+  const selected = value ? options.find(m => m.id === value) : null
+  const label = loading ? 'Loading modules…' : selected ? selected.naziv : 'ALL MODULES'
+  const canOpen = !loading
 
   return (
     <div ref={ref} style={{ position: 'relative', minWidth: 240 }}>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => { if (canOpen) setOpen(o => !o) }}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: `${S[2]} ${S[3]}`, background: C.paper, border: `${BW.base} solid ${C.ink}`,
-          borderRadius: R.sm, boxShadow: mkShadow(), cursor: 'pointer',
-          fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink,
-          textTransform: 'uppercase',
+          borderRadius: R.sm, boxShadow: mkShadow(), cursor: canOpen ? 'pointer' : 'not-allowed',
+          fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm,
+          color: loading ? C.muted : C.ink, textTransform: 'uppercase',
         }}
       >
-        <span>{label}</span>
-        <span style={{ fontSize: FS.xs, marginLeft: S[2] }}>{open ? '▲' : '▼'}</span>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        {canOpen && <span style={{ fontSize: FS.xs, marginLeft: S[2], flexShrink: 0 }}>{open ? '▲' : '▼'}</span>}
       </button>
       {open && (
         <div style={{
@@ -128,7 +138,7 @@ function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (
           background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm,
           boxShadow: mkShadow(), overflow: 'hidden',
         }}>
-          {[{ id: null, title: 'ALL MODULES' }, ...MODULE_STATS].map(m => (
+          {[{ id: null as string | null, naziv: 'ALL MODULES' }, ...options].map(m => (
             <div
               key={m.id ?? 'all'}
               onClick={() => { onChange(m.id); setOpen(false) }}
@@ -142,7 +152,7 @@ function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (
                 transition: 'background 0.1s',
               }}
             >
-              {m.title}
+              {m.naziv}
             </div>
           ))}
         </div>
@@ -152,18 +162,32 @@ function ModuleDropdown({ value, onChange }: { value: string | null; onChange: (
 }
 
 export function ProfessorAnalytics() {
+  const { session } = useAuth()
+  const [modules, setModules] = useState<BackendModul[]>([])
+  const [loadingModules, setLoadingModules] = useState(true)
   const [selectedModule, setSelectedModule] = useState<string | null>(null)
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
 
+  useEffect(() => {
+    if (!session?.access_token) return
+    getModuliUcitelj(session.access_token).then((data: BackendModul[]) => {
+      setModules(data)
+      setLoadingModules(false)
+    })
+  }, [session])
+
   const maxSessions = Math.max(...WEEKLY_ACTIVITY.map(d => d.sessions))
+  // Mock stats are keyed by their own ids — use them for the performance panel regardless of real module selection
   const filteredModules = selectedModule
     ? MODULE_STATS.filter(m => m.id === selectedModule)
     : MODULE_STATS
+  const mockFilteredModules = filteredModules.length > 0 ? filteredModules : MODULE_STATS
 
-  const activeModule = selectedModule ? MODULE_STATS.find(m => m.id === selectedModule) : null
-  const activeModuleDetail = selectedModule ? MODULE_DETAILS.find(d => d.moduleId === selectedModule) : null
+  const selectedModuleName = selectedModule ? modules.find(m => m.id === selectedModule)?.naziv ?? null : null
+  const activeModule = selectedModule ? { ...MODULE_STATS[0], title: selectedModuleName ?? MODULE_STATS[0].title } : null
+  const activeModuleDetail = selectedModule ? MODULE_DETAILS[0] : null
 
   return (
     <div className="dashboard-main">
@@ -173,9 +197,9 @@ export function ProfessorAnalytics() {
 
         {/* Module selector */}
         <Panel title="VIEW" accent={C.yellow} overflow="visible"
-          action={!isMobile ? (activeModule ? <Tag label={activeModule.title} bg={activeModule.colorLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
+          action={!isMobile ? (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
           <div style={{ padding: 0 }}>
-            <ModuleDropdown value={selectedModule} onChange={setSelectedModule} />
+            <ModuleDropdown value={selectedModule} options={modules} loading={loadingModules} onChange={setSelectedModule} />
           </div>
         </Panel>
 
@@ -212,7 +236,7 @@ export function ProfessorAnalytics() {
 
           {/* Weekly activity chart */}
           <Panel title="WEEKLY ACTIVITY" accent={C.yellow}
-            action={!isMobile ? (activeModule ? <Tag label={activeModule.title} bg={activeModule.colorLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
+            action={!isMobile ? (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
                 {WEEKLY_ACTIVITY.map(d => {
@@ -285,7 +309,7 @@ export function ProfessorAnalytics() {
           action={<Tag label={selectedModule ? '1 MODULE' : `${MODULE_STATS.length} MODULES`} bg={C.cyanLt} />}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3], padding: 0 }}>
 
-            {!activeModuleDetail && filteredModules.map(m => (
+            {!activeModuleDetail && mockFilteredModules.map(m => (
               <ModuleOverviewRow key={m.id} m={m} onDetails={() => setSelectedModule(m.id)} />
             ))}
 
