@@ -52,3 +52,39 @@ export async function umaknjiModul(token: string, id: string) {
   })
   return res.json()
 }
+
+// Vpis z kodo
+export async function vpisZKodo(token: string, kodaVpisa: string) {
+  const res = await fetch(`${API}/vpisi/vpis`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kodaVpisa })
+  })
+  return res.json()
+}
+
+// Moji vpisi
+export async function getMojiVpisi(token: string) {
+  const res = await fetch(`${API}/vpisi/moji`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+// Posodobi cas
+export async function posodobiCas(token: string, predmetId: string, cas: number) {
+  const res = await fetch(`${API}/vpisi/${predmetId}/cas`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cas })
+  })
+  return res.json()
+}
+
+// Odjava
+export async function odjavaIzModula(token: string, predmetId: string) {
+  await fetch(`${API}/vpisi/${predmetId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+}
