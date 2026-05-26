@@ -41,6 +41,7 @@ public class QuizGeminiService {
         this.restTemplate = new RestTemplate(factory);
     }
 
+    @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
     public record GeneratedQuestion(
             String besediloVprasanja,
             List<String> moznosti,
