@@ -24,12 +24,12 @@ public class GeminiService {
     private static final String GEMINI_CONTENT_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
     private final RestTemplate restTemplate = buildRestTemplate();
 
-    private ResponseEntity<Map> callGemini(String prompt, String baseUrl) {
+    public ResponseEntity<Map> callGeminiPublic(String prompt, String baseUrl) {
         Map<String, Object> body = Map.of(
-          "contents", List.of(
-                  Map.of("parts", List.of(
-                          Map.of("text", prompt)
-                  ))
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", prompt)
+                        ))
                 )
         );
 
@@ -43,7 +43,6 @@ public class GeminiService {
         );
     }
 
-
     public LearningStyleResponse classify(List<String> answers) {
         log.info("GeminiService classify answers: {}", answers.size());
 
@@ -53,10 +52,10 @@ public class GeminiService {
                     "Answers: " + answers;
 
             String url = GEMINI_CLASSIFY_URL + apiKey;
-            ResponseEntity<Map> response = callGemini(prompt, url);
-            
+            ResponseEntity<Map> response = callGeminiPublic(prompt, url);
+
             String result = extractText(response.getBody()).trim().toLowerCase();
-            return new LearningStyleResponse(result, 0.87); // <---- confidence hardcoded for now, change later
+            return new LearningStyleResponse(result, 0.87);
 
         } catch (Exception e) {
             log.warn("Gemini unavailable, using count-based fallback: {}", e.getMessage());
@@ -144,7 +143,7 @@ public class GeminiService {
                                 """.formatted(combinedTranscript);
 
             String url = GEMINI_CONTENT_URL + apiKey;
-            ResponseEntity<Map> response = callGemini(prompt, url);
+            ResponseEntity<Map> response = callGeminiPublic(prompt, url);
 
             return extractText(response.getBody());
 
