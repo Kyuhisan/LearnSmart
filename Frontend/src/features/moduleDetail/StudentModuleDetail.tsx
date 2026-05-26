@@ -80,7 +80,7 @@ function VisualContent() {
   )
 }
 
-function ReadingContent({ data }: { data?: ReadingData }) {
+function ReadingContent({ data }: Readonly<{ data?: ReadingData }>) {
 
   if (!data) return null
 
@@ -144,7 +144,7 @@ function ReadingContent({ data }: { data?: ReadingData }) {
 
 // const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
 
-function AuditoryContent({ data }: { data?: AuditoryData }) {
+function AuditoryContent({ data }: Readonly<{ data?: AuditoryData }>) {
 
   if (!data) return null
 
@@ -220,7 +220,7 @@ function AuditoryContent({ data }: { data?: AuditoryData }) {
   )
 }
 
-function KinestheticContent({ data }: { data?: KinestheticData }) {
+function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
 
   const [revealed, setRevealed] = useState<number[]>([])
 
