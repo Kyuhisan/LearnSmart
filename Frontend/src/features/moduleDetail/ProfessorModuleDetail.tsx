@@ -10,7 +10,7 @@ import { Tag } from '../../components/ui/Tag'
 import { Panel } from '../../components/ui/Panel'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
-import { PROF_MODULE, CHECKLIST_TASKS, PRACTICE_PROBLEMS, AUDIO_HIGHLIGHTS, GLOSSARY } from './mockData'
+import { PROF_MODULE} from './mockData'
 import { getModuleContent } from './moduleDetailApi'
 import '../../styles/moduleDetailPage.css'
 
@@ -23,7 +23,7 @@ const tabConfig = {
   kinesthetic: { label: 'KINESTHETIC', color: C.redLt,    bitMsg: '"Hands-on tasks live here. Add problems, adjust the checklist."' },
 }
 
-const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
+// const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
 
 function VisualContent() {
   return (

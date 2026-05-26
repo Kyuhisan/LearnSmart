@@ -8,7 +8,7 @@ import { Tag } from '../../components/ui/Tag'
 import { Panel } from '../../components/ui/Panel'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
-import { MODULE, CHECKLIST_TASKS, PRACTICE_PROBLEMS, AUDIO_HIGHLIGHTS, GLOSSARY } from './mockData'
+import { MODULE} from './mockData'
 import { posodobiCas } from '../modules/moduleApi'
 import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleDetailPage.css'
@@ -109,7 +109,7 @@ function ReadingContent({ data }: any) {
   )
 }
 
-const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
+// const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
 
 function AuditoryContent({ data }: any) {
 

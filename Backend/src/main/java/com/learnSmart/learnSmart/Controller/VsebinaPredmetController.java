@@ -17,7 +17,6 @@ import java.util.UUID;
 @RequestMapping("/moduli/{predmetId}/vsebina")
 @RequiredArgsConstructor
 public class VsebinaPredmetController {
-    private final VsebinaPredmetRepository vsebinaPredmetRepository;
     private final VsebinaPredmetService vsebinaPredmetService;
 
     @GetMapping
