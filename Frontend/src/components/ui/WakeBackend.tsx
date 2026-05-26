@@ -34,6 +34,11 @@ export function WakeBackend({ children }: { children: ReactNode }) {
     let alive = true
 
     const tryWake = async () => {
+      // no-cors bypasses the CORS preflight — the GET always reaches Render,
+      // which is what triggers it to wake from sleep
+      fetch(`${API}/health`, { mode: 'no-cors' }).catch(() => {})
+
+      // Separate CORS-enabled fetch to detect when Spring Boot is actually ready
       try {
         const res = await fetch(`${API}/health`)
         if (res.ok && alive) {
