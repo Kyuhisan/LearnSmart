@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Authorization': `Bearer ${current.access_token}` }
     })
     const data = await response.json()
-    setProfil({ username: data.username, vloga: data.vloga })
+    setProfil({ username: data.username, vloga: data.vloga, ucniTip: data.ucniTip ?? '' })
   }
 
   const signOut = async () => {
