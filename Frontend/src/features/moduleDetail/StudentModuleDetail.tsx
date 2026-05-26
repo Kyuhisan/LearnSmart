@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { ComicBtn } from '../../components/ui/ComicBtn'
@@ -9,6 +9,8 @@ import { Panel } from '../../components/ui/Panel'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 import { MODULE, CHECKLIST_TASKS, PRACTICE_PROBLEMS, AUDIO_HIGHLIGHTS, GLOSSARY } from './mockData'
+import { posodobiCas } from '../modules/moduleApi'
+import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleDetailPage.css'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
@@ -19,7 +21,6 @@ const tabConfig = {
   auditory:    { label: 'AUDITORY',    color: C.greenLt,  bitMsg: '"Audio mode online. Press play."' },
   kinesthetic: { label: 'KINESTHETIC', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go."' },
 }
-
 
 function VisualContent() {
   return (
@@ -162,8 +163,34 @@ function KinestheticContent() {
 
 export function StudentModuleDetail() {
   const navigate = useNavigate()
+  const { id: modulId } = useParams<{ id: string }>()
+  const { session } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('visual')
   const tab = tabConfig[activeTab]
+  const casRef = useRef(0)
+
+  useEffect(() => {
+    if (!session?.access_token || !modulId) return
+
+    const tick = setInterval(() => {
+      casRef.current += 1
+    }, 1000)
+
+    const sync = setInterval(async () => {
+      if (casRef.current > 0) {
+        await posodobiCas(session.access_token, modulId, casRef.current)
+        casRef.current = 0
+      }
+    }, 30000)
+
+    return () => {
+      clearInterval(tick)
+      clearInterval(sync)
+      if (casRef.current > 0 && session?.access_token && modulId) {
+        posodobiCas(session.access_token, modulId, casRef.current)
+      }
+    }
+  }, [session, modulId])
 
   const contentMap = {
     visual: <VisualContent />,
