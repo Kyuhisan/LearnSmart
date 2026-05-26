@@ -326,30 +326,28 @@ export function StudentModuleDetail() {
   const [activeTab, setActiveTab] = useState<Tab>('visual')
   const tab = tabConfig[activeTab]
   const casRef = useRef(0)
-  const [moduleContent, setModuleContent] = useState<{
-    ucniTip: string
-    vsebina: any
-  }[]>([])
+  const [moduleContent, setModuleContent] = useState<ModuleContentItem[]>([])
 
   // READING
   const readingContent = moduleContent.find(
     item => item.ucniTip === 'reading'
   )
+  const readingData = readingContent?.vsebina as ReadingData | undefined
 
   // AUDITORY
   const auditoryAudio = moduleContent.find(
     item =>
       item.ucniTip === 'auditory' &&
-      item.vsebina?.audio_url
+      (item.vsebina as AuditoryData).audio_url
   )
   const auditoryScript = moduleContent.find(
     item =>
       item.ucniTip === 'auditory' &&
-      item.vsebina?.narration_script
+      (item.vsebina as AuditoryData).narration_script
   )
   const auditoryData = {
-    audio_url: auditoryAudio?.vsebina?.audio_url,
-    narration_script: auditoryScript?.vsebina?.narration_script
+    audio_url:(auditoryAudio?.vsebina as AuditoryData | undefined)?.audio_url,
+    narration_script: (auditoryScript?.vsebina as AuditoryData | undefined)?.narration_script
   }
 
   // KINESTHETIC
@@ -357,6 +355,7 @@ export function StudentModuleDetail() {
     item =>
       item.ucniTip === 'kinesthetic'
   )
+  const kinestheticData = kinestheticContent?.vsebina as KinestheticData | undefined
 
   useEffect(() => {
     if (!session?.access_token || !modulId) return
@@ -399,9 +398,9 @@ export function StudentModuleDetail() {
 
   const contentMap = {
     visual: <VisualContent />,
-    reading: <ReadingContent data={readingContent?.vsebina} />,
+    reading: <ReadingContent data={readingData} />,
     auditory: <AuditoryContent data={auditoryData}/>,
-    kinesthetic: <KinestheticContent data={kinestheticContent?.vsebina}/>,
+    kinesthetic: <KinestheticContent data={kinestheticData}/>,
   }
 
   return (

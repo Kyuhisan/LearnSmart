@@ -313,7 +313,7 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
                 }}
               >
 
-                {q.options?.map((option: string, optionIndex: number) => (
+                {q.options?.map((option: string) => (
 
                   <div
                     key={`${q.question}-${option}`}
