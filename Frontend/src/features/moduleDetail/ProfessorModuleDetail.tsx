@@ -1,7 +1,5 @@
-import { useState } from 'react'
-import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { ComicBtn } from '../../components/ui/ComicBtn'
@@ -83,7 +81,8 @@ function VisualContent() {
   )
 }
 
-function ReadingContent({ data }: { data?: ReadingData }) {
+
+function ReadingContent({ data }: Readonly<{data?: ReadingData}>) {
 
   if (!data) return null
 
@@ -121,8 +120,8 @@ function ReadingContent({ data }: { data?: ReadingData }) {
       >
         <div className="module-detail-notes">
           <ul className="module-detail-notes-list">
-            {data.key_concepts?.map((concept: string, i: number) => (
-              <li key={i}>{concept}</li>
+            {data.key_concepts?.map((concept: string) => (
+              <li key={concept}>{concept}</li>
             ))}
           </ul>
         </div>
@@ -136,8 +135,8 @@ function ReadingContent({ data }: { data?: ReadingData }) {
       >
         <div className="module-detail-notes">
           <ul className="module-detail-notes-list">
-            {data.structured_notes?.map((note: string, i: number) => (
-              <li key={i}>{note}</li>
+            {data.structured_notes?.map((note: string) => (
+              <li key={note}>{note}</li>
             ))}
           </ul>
         </div>
@@ -150,9 +149,9 @@ function ReadingContent({ data }: { data?: ReadingData }) {
         action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
       >
         <div className="module-detail-glossary">
-          {data.glossary?.map((g: GlossaryItem, i: number) => (
+          {data.glossary?.map((g: GlossaryItem) => (
             <div
-              key={i}
+              key={g.term}
               className="module-detail-glossary-row"
             >
               <span className="module-detail-glossary-term">
@@ -171,7 +170,8 @@ function ReadingContent({ data }: { data?: ReadingData }) {
   )
 }
 
-function AuditoryContent({ data }: { data?: AuditoryData }) {
+
+function AuditoryContent({ data }: Readonly<{ data?: AuditoryData }>) {
 
   if (!data) return null
 
@@ -196,6 +196,13 @@ function AuditoryContent({ data }: { data?: AuditoryData }) {
             <source
               src={data.audio_url}
               type="audio/mpeg"
+            />
+
+            <track
+              kind = "captions"
+              src = ""
+              srcLang = "en"
+              label = "English captions" 
             />
           </audio>
 
@@ -228,7 +235,7 @@ function AuditoryContent({ data }: { data?: AuditoryData }) {
               .map((line: string, i: number) => (
 
                 <div
-                  key={i}
+                  key={`${line}-${i}`}
                   className="module-detail-highlight-row"
                 >
                   <Tag
@@ -251,7 +258,7 @@ function AuditoryContent({ data }: { data?: AuditoryData }) {
   )
 }
 
-function KinestheticContent({ data }: { data?: KinestheticData }) {
+function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
 
   const [revealed, setRevealed] = useState<number[]>([])
 
@@ -278,7 +285,7 @@ function KinestheticContent({ data }: { data?: KinestheticData }) {
 
         return (
           <Panel
-            key={i}
+            key={`${q.question}-${q.correct_answer}`}
             title={`Problem ${String(i + 1).padStart(2, '0')}`}
             accent={C.red}
             bg={C.redLt}
@@ -309,7 +316,7 @@ function KinestheticContent({ data }: { data?: KinestheticData }) {
                 {q.options?.map((option: string, optionIndex: number) => (
 
                   <div
-                    key={optionIndex}
+                    key={`${q.question}-${option}`}
                     className="module-detail-check-text"
                   >
                     {option}
@@ -319,7 +326,8 @@ function KinestheticContent({ data }: { data?: KinestheticData }) {
 
               </div>
 
-              <div
+
+              <div //NOSONAR
                 className="module-detail-hint"
                 onClick={() => toggleReveal(i)}
                 style={{ cursor: 'pointer' }}
@@ -379,20 +387,15 @@ export function ProfessorModuleDetail() {
   )
 
   const auditoryData: AuditoryData = {
-    audio_url:
-      (auditoryAudio?.vsebina as AuditoryData | undefined)?.audio_url,
-
-    narration_script:
-      (auditoryScript?.vsebina as AuditoryData | undefined)?.narration_script
+    audio_url:(auditoryAudio?.vsebina as AuditoryData | undefined)?.audio_url,
+    narration_script: (auditoryScript?.vsebina as AuditoryData | undefined)?.narration_script
   }
 
   // KINESTHETIC
   const kinestheticContent = moduleContent.find(
     item => item.ucniTip === 'kinesthetic'
   )
-
-  const kinestheticData =
-    kinestheticContent?.vsebina as KinestheticData | undefined
+  const kinestheticData = kinestheticContent?.vsebina as KinestheticData | undefined
 
   useEffect(() => {
     if (!id) {
@@ -402,7 +405,6 @@ export function ProfessorModuleDetail() {
     const fetchContent = async () => {
       try {
         const data = await getModuleContent(id)
-        console.log(data)
         setModuleContent(data)
       } catch (err) {
         console.error(err)

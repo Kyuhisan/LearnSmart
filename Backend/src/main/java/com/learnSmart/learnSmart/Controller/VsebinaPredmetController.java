@@ -1,7 +1,6 @@
 package com.learnSmart.learnSmart.Controller;
 
 import com.learnSmart.learnSmart.DTO.VsebinaPredmet.VsebinaPredmetResponseDTO;
-import com.learnSmart.learnSmart.Repository.VsebinaPredmetRepository;
 import com.learnSmart.learnSmart.Service.VsebinaPredmetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

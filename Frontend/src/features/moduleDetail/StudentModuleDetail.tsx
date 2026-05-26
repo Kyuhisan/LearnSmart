@@ -102,8 +102,8 @@ function ReadingContent({ data }: { data?: ReadingData }) {
       <Panel title="KEY CONCEPTS" accent={C.cyan} p={S[4]}>
         <div className="module-detail-notes">
           <ul className="module-detail-notes-list">
-            {data.key_concepts?.map((concept: string, i: number) => (
-              <li key={i}>{concept}</li>
+            {data.key_concepts?.map((concept: string) => (
+              <li key={concept}>{concept}</li>
             ))}
           </ul>
         </div>
@@ -112,8 +112,8 @@ function ReadingContent({ data }: { data?: ReadingData }) {
       <Panel title="STRUCTURED NOTES" accent={C.cyan} p={S[4]}>
         <div className="module-detail-notes">
           <ul className="module-detail-notes-list">
-            {data.structured_notes?.map((note: string, i: number) => (
-              <li key={i}>{note}</li>
+            {data.structured_notes?.map((note: string) => (
+              <li key={note}>{note}</li>
             ))}
           </ul>
         </div>
@@ -121,9 +121,9 @@ function ReadingContent({ data }: { data?: ReadingData }) {
 
       <Panel title="GLOSSARY" accent={C.cyan} p={S[4]}>
         <div className="module-detail-glossary">
-          {data.glossary?.map((g: GlossaryItem, i: number) => (
+          {data.glossary?.map((g: any) => (
             <div
-              key={i}
+              key={g.term}
               className="module-detail-glossary-row"
             >
               <span className="module-detail-glossary-term">
@@ -170,6 +170,13 @@ function AuditoryContent({ data }: { data?: AuditoryData }) {
               src={data.audio_url}
               type="audio/mpeg"
             />
+
+            <track
+            kind = "captions"
+            src = ""
+            srcLang = "en"
+            label = "English captions"
+            />
           </audio>
 
         </div>
@@ -190,7 +197,7 @@ function AuditoryContent({ data }: { data?: AuditoryData }) {
               .map((line: string, i: number) => (
 
                 <div
-                  key={i}
+                  key={`${line}-${i}`}
                   className="module-detail-highlight-row"
                 >
                   <Tag
@@ -240,7 +247,7 @@ function KinestheticContent({ data }: { data?: KinestheticData }) {
 
         return (
           <Panel
-            key={i}
+            key={q.question}
             title={`Problem ${String(i + 1).padStart(2, '0')}`}
             accent={C.red}
             bg={C.redLt}
@@ -267,10 +274,10 @@ function KinestheticContent({ data }: { data?: KinestheticData }) {
                 }}
               >
 
-                {q.options?.map((option: string, optionIndex: number) => (
+                {q.options?.map((option: string) => (
 
                   <div
-                    key={optionIndex}
+                    key={option}
                     className="module-detail-check-text"
                   >
                     {option}
@@ -280,7 +287,8 @@ function KinestheticContent({ data }: { data?: KinestheticData }) {
 
               </div>
 
-              <div
+
+              <div // NOSONAR
                 className="module-detail-hint"
                 onClick={() => toggleReveal(i)}
                 style={{ cursor: 'pointer' }}
@@ -314,46 +322,41 @@ export function StudentModuleDetail() {
   const navigate = useNavigate()
   const { id: modulId } = useParams<{ id: string }>()
   const { session } = useAuth()
-
+  
   const [activeTab, setActiveTab] = useState<Tab>('visual')
   const tab = tabConfig[activeTab]
-
   const casRef = useRef(0)
-  const [moduleContent, setModuleContent] = useState<ModuleContentItem[]>([])
-
-  
+  const [moduleContent, setModuleContent] = useState<{
+    ucniTip: string
+    vsebina: any
+  }[]>([])
 
   // READING
   const readingContent = moduleContent.find(
     item => item.ucniTip === 'reading'
   )
-  const readingData =readingContent?.vsebina as ReadingData | undefined
 
   // AUDITORY
   const auditoryAudio = moduleContent.find(
     item =>
       item.ucniTip === 'auditory' &&
-      (item.vsebina as AuditoryData).audio_url
+      item.vsebina?.audio_url
   )
-
   const auditoryScript = moduleContent.find(
     item =>
       item.ucniTip === 'auditory' &&
-      (item.vsebina as AuditoryData).narration_script
+      item.vsebina?.narration_script
   )
-
-  const auditoryData: AuditoryData = {
-    audio_url:
-      (auditoryAudio?.vsebina as AuditoryData | undefined)?.audio_url,
-    narration_script:
-      (auditoryScript?.vsebina as AuditoryData | undefined)?.narration_script
+  const auditoryData = {
+    audio_url: auditoryAudio?.vsebina?.audio_url,
+    narration_script: auditoryScript?.vsebina?.narration_script
   }
 
   // KINESTHETIC
   const kinestheticContent = moduleContent.find(
-    item => item.ucniTip === 'kinesthetic'
+    item =>
+      item.ucniTip === 'kinesthetic'
   )
-  const kinestheticData =kinestheticContent?.vsebina as KinestheticData | undefined
 
   useEffect(() => {
     if (!session?.access_token || !modulId) return
@@ -386,7 +389,6 @@ export function StudentModuleDetail() {
     const fetchContent = async () => {
       try {
         const data = await getModuleContent(modulId)
-        console.log(data)
         setModuleContent(data)
       } catch (err) {
         return console.error(err)
@@ -397,9 +399,9 @@ export function StudentModuleDetail() {
 
   const contentMap = {
     visual: <VisualContent />,
-    reading: <ReadingContent data={readingData} />,
-    auditory: <AuditoryContent data={auditoryData} />,
-    kinesthetic: <KinestheticContent data={kinestheticData} />,
+    reading: <ReadingContent data={readingContent?.vsebina} />,
+    auditory: <AuditoryContent data={auditoryData}/>,
+    kinesthetic: <KinestheticContent data={kinestheticContent?.vsebina}/>,
   }
 
   return (

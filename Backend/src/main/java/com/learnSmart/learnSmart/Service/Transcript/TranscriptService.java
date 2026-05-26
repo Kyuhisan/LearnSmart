@@ -44,6 +44,8 @@ public class TranscriptService {
     private final AudioTranscriptionService audioTranscriptionService;
     private final VideoTranscriptionService videoTranscriptionService;
 
+    private static final String AUDITORY = "auditory";
+
 
     public String extractTranscript(IzvornaDatoteka datoteka) throws IOException {
         return switch (datoteka.getTip()) {
@@ -110,7 +112,7 @@ public class TranscriptService {
        Predmet predmet = predmetRepository.findById(predmetId).orElseThrow(() -> new IllegalArgumentException("Predmet does not exist"));
        VsebinaPredmet vsebinaPredmet = new VsebinaPredmet();
         vsebinaPredmet.setPredmet(predmet);
-        vsebinaPredmet.setUcniTip("auditory");
+        vsebinaPredmet.setUcniTip(AUDITORY);
         vsebinaPredmet.setVsebina(Map.of("audio_url", audioUrl));
         vsebinaPredmet.setPosodobljenOb(OffsetDateTime.now());
         vsebinaPredmetRepository.save(vsebinaPredmet);
@@ -129,7 +131,7 @@ public class TranscriptService {
 
             Map<String, Object> contentPacks = mapper.readValue(jsonResponse, Map.class);
 
-            List<String> ucniTip = List.of("reading", "kinesthetic", "auditory");
+            List<String> ucniTip = List.of("reading", "kinesthetic", AUDITORY);
 
             vsebinaPredmetRepository.deleteByPredmetId(predmet.getId());
 
@@ -145,7 +147,7 @@ public class TranscriptService {
                 }
             }
 
-            Map<String, Object> audioPack = (Map<String, Object>) contentPacks.get("auditory");
+            Map<String, Object> audioPack = (Map<String, Object>) contentPacks.get(AUDITORY);
 
             if (audioPack != null) {
                 String narrationScript = (String) audioPack.get("narration_script");
