@@ -121,7 +121,7 @@ function ReadingContent({ data }: { data?: ReadingData }) {
 
       <Panel title="GLOSSARY" accent={C.cyan} p={S[4]}>
         <div className="module-detail-glossary">
-          {data.glossary?.map((g: any) => (
+          {data.glossary?.map((g: GlossaryItem) => (
             <div
               key={g.term}
               className="module-detail-glossary-row"
