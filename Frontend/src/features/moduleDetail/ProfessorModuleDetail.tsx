@@ -16,6 +16,34 @@ import '../../styles/moduleDetailPage.css'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
+type GlossaryItem = {
+  term: string
+  definition: string
+}
+
+type ReadingData = {
+  definition: string
+  summary: string
+  key_concepts: string[]
+  structured_notes: string[]
+  glossary: GlossaryItem[]
+}
+
+type AuditoryData = {
+  audio_url?: string
+  narration_script?: string
+}
+
+type Question = {
+  question: string
+  options: string[]
+  correct_answer: string
+}
+
+type KinestheticData = {
+  questions: Question[]
+}
+
 const tabConfig = {
   visual:      { label: 'VISUAL',      color: C.purpleLt, bitMsg: '"Students see this visual layout. Edit the video or concept map below."' },
   reading:     { label: 'READING',     color: C.cyanLt,   bitMsg: '"This is what reading-style students get. Edit notes, definitions, glossary."' },
@@ -50,7 +78,7 @@ function VisualContent() {
   )
 }
 
-function ReadingContent({ data }: any) {
+function ReadingContent({ data }: { data?: ReadingData }) {
 
   if (!data) return null
 
@@ -138,7 +166,7 @@ function ReadingContent({ data }: any) {
   )
 }
 
-function AuditoryContent({ data }: any) {
+function AuditoryContent({ data }: { data?: AuditoryData }) {
 
   if (!data) return null
 
@@ -218,7 +246,7 @@ function AuditoryContent({ data }: any) {
   )
 }
 
-function KinestheticContent({ data }: any) {
+function KinestheticContent({ data }: { data?: KinestheticData }) {
 
   const [revealed, setRevealed] = useState<number[]>([])
 
@@ -235,7 +263,7 @@ function KinestheticContent({ data }: any) {
   return (
     <div className="module-detail-content">
 
-      {data.questions?.map((q: any, i: number) => {
+      {data.questions?.map((q: Question, i: number) => {
 
         const correctOption = q.options?.find((option: string) =>
           option.startsWith(q.correct_answer)
@@ -322,7 +350,10 @@ export function ProfessorModuleDetail() {
   const tab = tabConfig[activeTab]
 
   const { id } = useParams()
-  const [moduleContent, setModuleContent] = useState<any[]>([])
+  const [moduleContent, setModuleContent] = useState<{
+    ucniTip: string 
+    vsebina: any
+  }[]>([])
   
   // READING
   const readingContent = moduleContent.find(

@@ -16,6 +16,34 @@ import { getModuleContent } from './moduleDetailApi'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
+type GlossaryItem = {
+  term: string
+  definition: string
+}
+
+type ReadingData = {
+  definition: string
+  summary: string
+  key_concepts: string[]
+  structured_notes: string[]
+  glossary: GlossaryItem[]
+}
+
+type AuditoryData = {
+  audio_url?: string
+  narration_script?: string
+}
+
+type Question = {
+  question: string
+  options: string[]
+  correct_answer: string
+}
+
+type KinestheticData = {
+  questions: Question[]
+}
+
 const tabConfig = {
   visual:      { label: 'VISUAL',      color: C.purpleLt, bitMsg: '"Visual mode engaged. Diagrams incoming."' },
   reading:     { label: 'READING',     color: C.cyanLt,   bitMsg: '"Reading mode active. Loading notes."' },
@@ -47,7 +75,7 @@ function VisualContent() {
   )
 }
 
-function ReadingContent({ data }: any) {
+function ReadingContent({ data }: { data?: ReadingData }) {
 
   if (!data) return null
 
@@ -111,7 +139,7 @@ function ReadingContent({ data }: any) {
 
 // const WAVEFORM_HEIGHTS = Array.from({ length: 60 }, () => Math.random() * 24 + 8)
 
-function AuditoryContent({ data }: any) {
+function AuditoryContent({ data }: { data?: AuditoryData }) {
 
   if (!data) return null
 
@@ -180,7 +208,7 @@ function AuditoryContent({ data }: any) {
   )
 }
 
-function KinestheticContent({ data }: any) {
+function KinestheticContent({ data }: { data?: KinestheticData }) {
 
   const [revealed, setRevealed] = useState<number[]>([])
 
@@ -197,7 +225,7 @@ function KinestheticContent({ data }: any) {
   return (
     <div className="module-detail-content">
 
-      {data.questions?.map((q: any, i: number) => {
+      {data.questions?.map((q: Question, i: number) => {
 
         const correctOption = q.options?.find((option: string) =>
           option.startsWith(q.correct_answer)
@@ -284,7 +312,10 @@ export function StudentModuleDetail() {
   const [activeTab, setActiveTab] = useState<Tab>('visual')
   const tab = tabConfig[activeTab]
   const casRef = useRef(0)
-  const [moduleContent, setModuleContent] = useState<any[]>([])
+  const [moduleContent, setModuleContent] = useState<{
+    ucniTip: string
+    vsebina: any
+  }[]>([])
 
   // READING
   const readingContent = moduleContent.find(

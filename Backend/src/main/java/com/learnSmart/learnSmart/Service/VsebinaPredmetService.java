@@ -3,6 +3,7 @@ package com.learnSmart.learnSmart.Service;
 import com.learnSmart.learnSmart.DTO.VsebinaPredmet.VsebinaPredmetResponseDTO;
 import com.learnSmart.learnSmart.Model.VsebinaPredmet;
 import com.learnSmart.learnSmart.Repository.VsebinaPredmetRepository;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring dependency injection")
 public class VsebinaPredmetService {
     private final VsebinaPredmetRepository vsebinaPredmetRepository;
 
