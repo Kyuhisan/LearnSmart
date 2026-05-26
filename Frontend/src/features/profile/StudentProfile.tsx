@@ -6,7 +6,8 @@ import { ActivityPanel, type ActivityItem } from '../../components/professor/Act
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
-import { C, STYLE_INFO } from '../../styles/tokens'
+import { C, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { VARK_PROFILES } from '../dashboard/mockData'
 import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
@@ -23,7 +24,13 @@ export function StudentProfile() {
 
   if (!profil) return null
 
-  const styleInfo = STYLE_INFO[STUDENT_PROFILE.learningStyle]
+  const KEY_MAP: Record<string, LearningStyle> = { V: 'visual', A: 'auditory', R: 'reading', K: 'kinesthetic' }
+  const styleKey = profil.ucniTip && STYLE_INFO[profil.ucniTip as LearningStyle] ? profil.ucniTip as LearningStyle : null
+  const styleInfo = styleKey ? STYLE_INFO[styleKey] : null
+  const varkProfile = styleKey ? VARK_PROFILES[styleKey] : null
+  const varkScores: Record<LearningStyle, number> | null = varkProfile
+    ? varkProfile.vark.reduce((acc, v) => { acc[KEY_MAP[v.key]] = v.score; return acc }, { visual: 0, auditory: 0, reading: 0, kinesthetic: 0 } as Record<LearningStyle, number>)
+    : null
 
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>
@@ -38,7 +45,7 @@ export function StudentProfile() {
           username={profil.username}
           isTeacher={false}
           level={STUDENT_PROFILE.level}
-          learningType={styleInfo.label.toUpperCase()}
+          learningType={styleInfo ? styleInfo.label.toUpperCase() : undefined}
           streak={STUDENT_PROFILE.streak}
           onRetakeVark={() => navigate('/questionnaire')}
           onSettings={() => navigate('/settings')}
@@ -72,8 +79,9 @@ export function StudentProfile() {
         </div>
 
         <LearningStylePanel
-          learningStyle={STUDENT_PROFILE.learningStyle}
-          varkScores={STUDENT_PROFILE.varkScores}
+          learningStyle={styleKey}
+          varkScores={varkScores}
+          onRetakeVark={() => navigate('/questionnaire')}
         />
 
         <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} />

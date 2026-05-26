@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
@@ -9,14 +9,21 @@ import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { useNavigate } from 'react-router-dom'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useAuth } from '../../context/AuthContext'
+import { getModuliUcitelj } from '../modules/moduleApi'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import {
   PROFESSOR_STATS,
-  PROFESSOR_MODULES,
   PROFESSOR_PENDING_QUIZZES,
   PROFESSOR_STYLE_MIX,
   PROFESSOR_TOP_PERFORMERS,
 } from './mockData'
+
+interface BackendModul {
+  id: string
+  naziv: string
+  jeObjavljen: boolean
+}
 
 function TopPerformerRow({ s, onClick }: { s: typeof PROFESSOR_TOP_PERFORMERS[number]; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
@@ -39,13 +46,25 @@ function TopPerformerRow({ s, onClick }: { s: typeof PROFESSOR_TOP_PERFORMERS[nu
 export function ProfessorDashboard() {
   const navigate = useNavigate()
   const isMobile = useBreakpoint() === 'mobile'
+  const { session } = useAuth()
+  const [moduli, setModuli] = useState<BackendModul[]>([])
+  const [loadingModuli, setLoadingModuli] = useState(true)
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    getModuliUcitelj(session.access_token).then((data: BackendModul[]) => {
+      setModuli(data)
+      setLoadingModuli(false)
+    })
+  }, [session])
+
   return (
     <div className="dashboard-main">
 
       <Topbar
         title="HOME BASE — PROF"
         subtitle="Friday · May 2 · 3 quizzes need approval"
-        actions={<><ComicBtn sm color={C.cyan}>3 NEW</ComicBtn><ComicBtn sm color={C.paper}>SEARCH</ComicBtn></>}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>3 NEW</ComicBtn>}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
@@ -65,7 +84,13 @@ export function ProfessorDashboard() {
         <div className="quiz-stat-grid">
           {PROFESSOR_STATS.map((s) => (
             <ComicBox key={s.label} bg={s.bg} p={S[4]}>
-              <div className="stat-card-value" style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], lineHeight: 1, color: s.dark ? C.paper : C.ink }}>{s.value}</div>
+              <div className="stat-card-value" style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], lineHeight: 1, color: s.dark ? C.paper : C.ink }}>
+                {s.label === 'MODULES'
+                  ? (loadingModuli ? '…' : String(moduli.length))
+                  : s.label === 'PENDING'
+                  ? (loadingModuli ? '…' : String(moduli.filter(m => !m.jeObjavljen).length))
+                  : s.value}
+              </div>
               <div className="stat-card-label" style={{ fontSize: FS.xs, fontWeight: 800, letterSpacing: 1, marginTop: S[1], fontFamily: "'Archivo Black', sans-serif", color: s.dark ? C.paper : C.ink }}>{s.label}</div>
             </ComicBox>
           ))}
@@ -73,18 +98,14 @@ export function ProfessorDashboard() {
 
         {/* AI Builder CTA */}
         <ComicBox bg={C.navy} p={S[5]} style={{ color: C.paper }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: S[3] }}>
-            <div>
-              <Tag label="GEMINI 2.5 FLASH" bg={C.yellow} />
-              <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], marginTop: S[2], lineHeight: 1 }}>AI QUIZ BUILDER!</div>
-              <div style={{ fontSize: FS.md, opacity: 0.8, marginTop: S[1], fontWeight: 600, maxWidth: 360 }}>
-                Upload a PDF → AI extracts quiz questions → You review &amp; approve.
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
-              <ComicBtn sm color={C.yellow} onClick={() => navigate('/upload')}>UPLOAD</ComicBtn>
-              <ComicBtn sm color={C.pink} dark style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/ai-quiz-builder')}>AI BUILDER</ComicBtn>
-            </div>
+          <Tag label="GEMINI 2.5 FLASH" bg={C.yellow} />
+          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], marginTop: S[2], lineHeight: 1 }}>AI QUIZ BUILDER!</div>
+          <div style={{ fontSize: FS.md, opacity: 0.8, marginTop: S[1], fontWeight: 600, maxWidth: 360 }}>
+            Upload a PDF → AI extracts quiz questions → You review &amp; approve.
+          </div>
+          <div style={{ display: 'flex', gap: S[2], marginTop: S[3] }}>
+            <ComicBtn color={C.yellow} onClick={() => navigate('/upload')}>UPLOAD</ComicBtn>
+            <ComicBtn color={C.pink} dark style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/ai-quiz-builder')}>AI BUILDER</ComicBtn>
           </div>
         </ComicBox>
 
@@ -92,38 +113,32 @@ export function ProfessorDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'stretch' }}>
 
           {/* Your modules */}
-          <Panel title="YOUR MODULES" accent={C.yellow} p={S[4]} action={<ComicBtn sm color={C.green}>+ NEW</ComicBtn>}>
+          <Panel title="YOUR MODULES" accent={C.yellow} p={S[4]} action={<ComicBtn sm color={C.green} onClick={() => navigate('/modules', { state: { openNew: true } })}>+ NEW</ComicBtn>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {PROFESSOR_MODULES.map((m) => (
-                <div key={m.title} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? S[1] : S[3], padding: S[2], background: m.draft ? C.cream : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  {isMobile ? (
-                    <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.title.toUpperCase()}</span>
-                        {m.draft && <Tag label="○ DRAFT" bg={C.orangeLt} />}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>{m.students} STUDENTS</span>
+              {loadingModuli
+                ? [C.yellow, C.cyan, C.green, C.purple].map((color, i) => (
+                    <div key={i} className="skeleton-pulse" style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: S[2], border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.paper }}>
+                      <div style={{ flex: 1, height: 14, background: color, opacity: 0.35, borderRadius: R.sm }} />
+                      <div style={{ width: 48, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+                      <div style={{ width: 42, height: 26, background: C.mutedLt, borderRadius: R.sm }} />
+                    </div>
+                  ))
+                : moduli.length === 0
+                ? <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO MODULES YET</div>
+                : moduli.map((m) => (
+                    <div key={m.id} onClick={() => navigate('/modules', { state: { editId: m.id } })} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: S[2], background: m.jeObjavljen ? C.paper : C.cream, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), cursor: 'pointer' }}>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {m.naziv.toUpperCase()}
+                      </span>
+                      <span style={{ flexShrink: 0 }}>
+                        <Tag label={m.jeObjavljen ? '● LIVE' : '○ DRAFT'} bg={m.jeObjavljen ? C.green : C.orangeLt} />
+                      </span>
+                      <div onClick={e => { e.stopPropagation(); navigate('/modules', { state: { editId: m.id } }) }}>
                         <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md }}>{m.title.toUpperCase()}</span>
-                          {m.draft && <span style={{ flexShrink: 0 }}><Tag label="○ DRAFT" bg={C.orangeLt} /></span>}
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'] }}>{m.students}</div>
-                        <div style={{ fontSize: FS['2xs'], fontWeight: 800, letterSpacing: 0.5 }}>STUDENTS</div>
-                      </div>
-                      <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
-                    </>
-                  )}
-                </div>
-              ))}
+                    </div>
+                  ))
+              }
             </div>
           </Panel>
 

@@ -34,7 +34,7 @@ export function AppHeader() {
         <BitMascot size={28} mood="happy" />
 
         {back && (
-          <ComicBtn sm color={C.paper} onClick={back}>←</ComicBtn>
+          <ComicBtn sm color={C.paper} onClick={back}>BACK</ComicBtn>
         )}
         <div style={{
           flex: 1,
@@ -136,7 +136,7 @@ export function AppHeader() {
         padding: `0 ${S[6]}`,
       }}>
         {back && (
-          <ComicBtn sm color={C.paper} onClick={back}>← BACK</ComicBtn>
+          <ComicBtn sm color={C.paper} onClick={back}>BACK</ComicBtn>
         )}
         <div style={{ flex: 1 }}>
           <div style={{

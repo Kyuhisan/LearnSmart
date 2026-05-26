@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { ComicBox } from '../../components/ui/ComicBox'
 import { Panel } from '../../components/ui/Panel'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
@@ -131,11 +132,15 @@ function SelectField({ label, value, onChange, options }: {
   )
 }
 
+const API = import.meta.env.VITE_API_URL
+
 export function AppSettings() {
-  const { profil } = useAuth()
+  const { profil, session, signOut } = useAuth()
   const navigate = useNavigate()
 
   const [displayName, setDisplayName] = useState(profil?.username ?? '')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [language, setLanguage] = useState('en')
   const [dateFormat, setDateFormat] = useState('dmy')
   const [saved, setSaved] = useState(false)
@@ -168,6 +173,17 @@ export function AppSettings() {
   const handleSave = () => {
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!session?.access_token) return
+    setDeleting(true)
+    await fetch(`${API}/api/me`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    await signOut()
+    navigate('/')
   }
 
   return (
@@ -215,7 +231,7 @@ export function AppSettings() {
             </div>
             <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
               <ComicBtn sm color={C.paper} hoverColor={C.yellowLt}>EXPORT MY DATA</ComicBtn>
-              <ComicBtn sm color={C.redLt} hoverColor={C.red} dark={false}>DELETE ACCOUNT</ComicBtn>
+              <ComicBtn sm color={C.redLt} hoverColor={C.red} dark={false} onClick={() => setConfirmDelete(true)}>DELETE ACCOUNT</ComicBtn>
             </div>
           </div>
         </Panel>
@@ -366,6 +382,23 @@ export function AppSettings() {
         </Panel>
 
       </div>
+
+      {confirmDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(45,42,38,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
+          <ComicBox bg={C.paper} p={S[5]} style={{ maxWidth: 360, width: '100%', margin: `0 ${S[4]}` }}>
+            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.lg, color: C.ink, marginBottom: S[2] }}>DELETE ACCOUNT?</div>
+            <div style={{ fontSize: FS.sm, color: C.muted, marginBottom: S[4], lineHeight: 1.5 }}>
+              This will permanently delete your account and all associated data. This cannot be undone.
+            </div>
+            <div style={{ display: 'flex', gap: S[2] }}>
+              <ComicBtn color={C.red} dark disabled={deleting} onClick={handleDeleteAccount}>
+                {deleting ? 'DELETING…' : 'DELETE'}
+              </ComicBtn>
+              <ComicBtn color={C.paper} onClick={() => setConfirmDelete(false)}>CANCEL</ComicBtn>
+            </div>
+          </ComicBox>
+        </div>
+      )}
     </div>
   )
 }

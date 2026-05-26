@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Tag } from "../../components/ui/Tag";
 import { Bar } from "../../components/ui/Bar";
 import { ComicBox } from "../../components/ui/ComicBox";
@@ -342,6 +342,7 @@ function PublicModuleListRow({ mod, color, isOwn }: { mod: BackendModul; color: 
 
 export function ProfessorModules() {
   const { session } = useAuth();
+  const location = useLocation();
   const isTablet = useBreakpoint() === 'tablet';
   const [moduli, setModuli] = useState<BackendModul[]>([]);
   const [loading, setLoading] = useState(true);
@@ -355,6 +356,8 @@ export function ProfessorModules() {
   const [publModuli, setPublModuli] = useState<BackendModul[]>([]);
   const [loadingPubl, setLoadingPubl] = useState(true);
 
+  const intentHandled = useRef(false);
+
   const nalozi = useCallback(async () => {
     if (!session?.access_token) return;
     const data = await getModuliUcitelj(session.access_token);
@@ -366,6 +369,30 @@ export function ProfessorModules() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     nalozi();
   }, [nalozi]);
+
+  // Handle navigate state intent from dashboard (openNew / editId)
+  useEffect(() => {
+    if (intentHandled.current) return;
+    const state = location.state as { openNew?: boolean; editId?: string } | null;
+    if (!state) return;
+
+    if (state.openNew) {
+      intentHandled.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNewModul(true);
+      window.history.replaceState({}, document.title);
+      return;
+    }
+
+    if (state.editId && moduli.length > 0) {
+      const mod = moduli.find(m => m.id === state.editId);
+      if (mod) {
+        intentHandled.current = true;
+        setEditMod(mod);
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [moduli, location.state]);
 
   const naloziPubl = useCallback(async () => {
     const data = await getModuliJavni();

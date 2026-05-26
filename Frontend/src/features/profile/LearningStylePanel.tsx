@@ -2,10 +2,13 @@ import { STYLE_INFO, type LearningStyle, C, S, FS, BW, R, mkShadow } from '../..
 import { Panel } from '../../components/ui/Panel'
 import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
+import { BitMascot } from '../../components/ui/BitMascot'
+import { ComicBtn } from '../../components/ui/ComicBtn'
 
 interface LearningStylePanelProps {
-  readonly learningStyle: LearningStyle
-  readonly varkScores: Record<LearningStyle, number>
+  readonly learningStyle: LearningStyle | null
+  readonly varkScores: Record<LearningStyle, number> | null
+  readonly onRetakeVark?: () => void
 }
 
 const STYLE_EMOJI: Record<LearningStyle, string> = {
@@ -22,9 +25,28 @@ const STYLE_EXPLANATION: Record<LearningStyle, string> = {
   kinesthetic: 'BIT keeps you moving — practice problems, lab exercises and hands-on challenges.',
 }
 
-export function LearningStylePanel({ learningStyle, varkScores }: LearningStylePanelProps) {
-  const info = STYLE_INFO[learningStyle]
-  const total = Object.values(varkScores).reduce((a, b) => a + b, 0) || 1
+export function LearningStylePanel({ learningStyle, varkScores, onRetakeVark }: LearningStylePanelProps) {
+  const info = learningStyle ? STYLE_INFO[learningStyle] : null
+  const total = varkScores ? Object.values(varkScores).reduce((a, b) => a + b, 0) || 1 : 1
+
+  if (!learningStyle || !info || !varkScores) {
+    return (
+      <Panel title="LEARNING STYLE" accent={C.mutedLt}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3], padding: `${S[6]} 0` }}>
+          <BitMascot size={64} mood="thinking" float />
+          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.muted, textAlign: 'center' }}>
+            YOUR VARK PROFILE IS NOT SET YET
+          </div>
+          <div style={{ fontSize: FS.sm, color: C.muted, textAlign: 'center', maxWidth: 320 }}>
+            Take the VARK questionnaire to discover how you learn best.
+          </div>
+          {onRetakeVark && (
+            <ComicBtn color={C.cyan} onClick={onRetakeVark}>TAKE THE QUIZ</ComicBtn>
+          )}
+        </div>
+      </Panel>
+    )
+  }
 
   return (
     <Panel title="LEARNING STYLE" accent={info.color}>
@@ -97,7 +119,7 @@ export function LearningStylePanel({ learningStyle, varkScores }: LearningStyleP
                   {meta.label.toUpperCase()}
                 </span>
                 <div style={{ flex: 1 }}>
-                  <Bar value={varkScores[key]} max={total} color={meta.color} height="0.75rem" />
+                  <Bar value={varkScores![key]} max={total} color={meta.color} height="0.75rem" />
                 </div>
                 <span style={{
                   fontFamily: "'Space Mono', monospace",
@@ -108,7 +130,7 @@ export function LearningStylePanel({ learningStyle, varkScores }: LearningStyleP
                   flexShrink: 0,
                   fontWeight: key === learningStyle ? 800 : 400,
                 }}>
-                  {varkScores[key]}
+                  {varkScores![key]}
                 </span>
               </div>
             )
