@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface QuestionRepository extends JpaRepository<Question, UUID> {
     List<Question> findByQuizId(UUID quizId);
+    void deleteById(UUID id);
 }

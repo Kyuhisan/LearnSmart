@@ -1,7 +1,10 @@
 package com.learnSmart.learnSmart.Service;
 
+import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class QuizService {
 
     private final QuizGeminiService quizGeminiService;
@@ -41,7 +45,7 @@ public class QuizService {
         );
     }
 
-    public Quiz shraniKviz(
+    public QuizResponseDTO shraniKviz(
             UUID predmetId,
             String naziv,
             Integer casIzvajanja,
@@ -50,14 +54,25 @@ public class QuizService {
         Predmet predmet = predmetRepository.findById(predmetId)
                 .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
 
-        Quiz quiz = new Quiz();
-        quiz.setPredmet(predmet);
-        quiz.setNaziv(naziv);
-        quiz.setGeneriranZAi(true);
-        quiz.setStatus("DRAFT");
-        quiz.setCasIzvajanja(casIzvajanja);
-        quiz.setUstvarjenOb(OffsetDateTime.now());
-        Quiz shranjeniKviz = quizRepository.save(quiz);
+        List<Quiz> obstojeciKvizi = quizRepository.findByPredmetId(predmetId);
+        Quiz quiz;
+
+        if (!obstojeciKvizi.isEmpty()) {
+
+            quiz = obstojeciKvizi.get(0);
+        } else {
+
+            quiz = new Quiz();
+            quiz.setPredmet(predmet);
+            quiz.setNaziv(naziv);
+            quiz.setGeneriranZAi(true);
+            quiz.setStatus("DRAFT");
+            quiz.setCasIzvajanja(casIzvajanja);
+            quiz.setUstvarjenOb(OffsetDateTime.now());
+            quiz = quizRepository.save(quiz);
+        }
+
+        final Quiz shranjeniKviz = quiz;
 
         for (QuizGeminiService.GeneratedQuestion q : odobrenVprasanja) {
             Question question = new Question();
@@ -69,18 +84,55 @@ public class QuizService {
             questionRepository.save(question);
         }
 
-        log.info("Saved quiz {} with {} questions", shranjeniKviz.getId(), odobrenVprasanja.size());
-        return shranjeniKviz;
+        log.info("Saved {} questions to quiz {}", odobrenVprasanja.size(), shranjeniKviz.getId());
+        return new QuizResponseDTO(
+                shranjeniKviz.getId(),
+                shranjeniKviz.getNaziv(),
+                shranjeniKviz.getStatus(),
+                shranjeniKviz.getCasIzvajanja(),
+                predmetId
+        );
     }
 
-    public Quiz objaviKviz(UUID kvizId) {
+    public QuizResponseDTO objaviKviz(UUID kvizId) {
         Quiz quiz = quizRepository.findById(kvizId)
                 .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
         quiz.setStatus("PUBLISHED");
-        return quizRepository.save(quiz);
+        Quiz saved = quizRepository.save(quiz);
+        return new QuizResponseDTO(
+                saved.getId(),
+                saved.getNaziv(),
+                saved.getStatus(),
+                saved.getCasIzvajanja(),
+                saved.getPredmet().getId()
+        );
     }
 
-    public List<Quiz> getKviziZaPredmet(UUID predmetId) {
-        return quizRepository.findByPredmetId(predmetId);
+    public List<QuizResponseDTO> getKviziZaPredmet(UUID predmetId) {
+        return quizRepository.findByPredmetId(predmetId).stream()
+                .map(q -> new QuizResponseDTO(
+                        q.getId(),
+                        q.getNaziv(),
+                        q.getStatus(),
+                        q.getCasIzvajanja(),
+                        predmetId
+                ))
+                .toList();
+    }
+
+    public void izbrisiVprasanje(UUID vprasanjeId) {
+        questionRepository.deleteById(vprasanjeId);
+    }
+
+    public List<QuestionResponseDTO> getVprasanjaZaKviz(UUID kvizId) {
+        return questionRepository.findByQuizId(kvizId).stream()
+                .map(q -> new QuestionResponseDTO(
+                        q.getId(),
+                        q.getBesediloVprasanja(),
+                        q.getMoznosti(),
+                        q.getIndeksPravilnegaOdgovora(),
+                        q.getRazlaga()
+                ))
+                .toList();
     }
 }

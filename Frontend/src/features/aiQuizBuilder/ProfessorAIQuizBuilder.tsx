@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Panel } from '../../components/ui/Panel'
@@ -8,7 +8,7 @@ import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
 import { getModuliUcitelj } from '../modules/moduleApi'
-import { generirajVprasanja, shraniKviz } from './quizApi'
+import { generirajVprasanja, shraniKviz, getKvizZaPredmet, getVprasanjaZaKviz, izbrisiVprasanje } from './quizApi'
 import { AI_DIFFICULTY_OPTIONS, type AIDifficulty } from './mockData'
 
 interface Modul { id: string; naziv: string }
@@ -18,6 +18,21 @@ interface BackendQuestion {
   moznosti: string[]
   indeksPravilnegaOdgovora: number
   razlaga: string
+}
+
+interface ExistingQuestion {
+  id: string
+  besediloVprasanja: string
+  moznosti: string[]
+  indeksPravilnegaOdgovora: number
+  razlaga: string
+}
+
+interface ExistingQuiz {
+  id: string
+  naziv: string
+  status: string
+  casIzvajanja: number
 }
 
 type QuestionState = BackendQuestion & {
@@ -70,6 +85,84 @@ function QuestionCard({ q, index, onApprove, onReject }: {
         )}
       </div>
     </div>
+  )
+}
+
+function ExistingQuestionCard({ q, index, onDelete, deleting }: {
+  q: ExistingQuestion; index: number; onDelete: () => void; deleting: boolean
+}) {
+  return (
+    <div style={{ background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: C.cream }}>
+        <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
+        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, lineHeight: 1.4, flex: 1 }}>
+          {q.besediloVprasanja}
+        </span>
+        <ComicBtn sm color={C.red} onClick={onDelete} disabled={deleting}>
+          {deleting ? '...' : '✕ DELETE'}
+        </ComicBtn>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: S[3] }}>
+        {q.moznosti.map((opt, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[1]} ${S[2]}`, background: i === q.indeksPravilnegaOdgovora ? C.greenLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: i === q.indeksPravilnegaOdgovora ? C.green : C.muted, width: 18, flexShrink: 0 }}>{String.fromCharCode(65 + i)}</span>
+            <span style={{ fontSize: FS.xs, color: i === q.indeksPravilnegaOdgovora ? C.ink : C.muted, fontWeight: i === q.indeksPravilnegaOdgovora ? 700 : 400 }}>{opt}</span>
+            {i === q.indeksPravilnegaOdgovora && <span style={{ marginLeft: 'auto', fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.green }}>CORRECT</span>}
+          </div>
+        ))}
+        {q.razlaga && (
+          <div style={{ marginTop: S[1], padding: `${S[1]} ${S[2]}`, background: C.cyanLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, fontSize: FS.xs, color: C.muted }}>
+            💡 {q.razlaga}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ExistingQuizPanel({ quiz, vprasanja, loadingVprasanja, onDelete, deletingId }: {
+  quiz: ExistingQuiz
+  vprasanja: ExistingQuestion[]
+  loadingVprasanja: boolean
+  onDelete: (id: string) => void
+  deletingId: string | null
+}) {
+  return (
+    <Panel
+      title="CURRENT QUIZ"
+      accent={C.orange}
+      p={S[4]}
+      action={<Tag label={`${vprasanja.length} QUESTIONS`} bg={C.yellowLt} />}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `${S[2]} ${S[3]}`, background: quiz.status === 'PUBLISHED' ? C.greenLt : C.yellowLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{quiz.naziv}</span>
+          <Tag label={quiz.status} bg={quiz.status === 'PUBLISHED' ? C.green : C.yellow} />
+        </div>
+
+        {loadingVprasanja ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: S[4], color: C.muted }}>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs }}>LOADING QUESTIONS...</span>
+          </div>
+        ) : vprasanja.length === 0 ? (
+          <div style={{ padding: S[3], textAlign: 'center', color: C.muted, fontSize: FS.xs }}>
+            No questions yet
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+            {vprasanja.map((q, i) => (
+              <ExistingQuestionCard
+                key={q.id}
+                q={q}
+                index={i}
+                onDelete={() => onDelete(q.id)}
+                deleting={deletingId === q.id}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </Panel>
   )
 }
 
@@ -189,7 +282,6 @@ function ReviewStatusPanel({ pendingCount, approvedCount, rejectedCount, quizCou
             <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{value}</span>
           </div>
         ))}
-
         {saved ? (
           <div style={{ padding: `${S[2]} ${S[3]}`, background: C.greenLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), textAlign: 'center' }}>
             <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>✓ QUIZ SAVED</span>
@@ -201,12 +293,7 @@ function ReviewStatusPanel({ pendingCount, approvedCount, rejectedCount, quizCou
                 {canPublish ? '✓ READY TO PUBLISH' : `APPROVE ${quizCount - approvedCount} MORE TO PUBLISH`}
               </span>
             </div>
-            <ComicBtn
-              color={canPublish ? C.green : C.muted}
-              disabled={!canPublish}
-              onClick={onPublish}
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
+            <ComicBtn color={canPublish ? C.green : C.muted} disabled={!canPublish} onClick={onPublish} style={{ width: '100%', justifyContent: 'center' }}>
               {saving ? 'SAVING...' : `PUBLISH QUIZ (${approvedCount}/${quizCount})`}
             </ComicBtn>
           </>
@@ -271,6 +358,12 @@ export function ProfessorAIQuizBuilder() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // Obstoječi kviz
+  const [existingQuiz, setExistingQuiz] = useState<ExistingQuiz | null>(null)
+  const [existingVprasanja, setExistingVprasanja] = useState<ExistingQuestion[]>([])
+  const [loadingVprasanja, setLoadingVprasanja] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
@@ -284,13 +377,38 @@ export function ProfessorAIQuizBuilder() {
     })
   }, [session])
 
+  const naloziObstojeciKviz = useCallback(async () => {
+    if (!module || !session?.access_token) return
+    try {
+      const kvizi = await getKvizZaPredmet(session.access_token, module.id)
+      if (kvizi && kvizi.length > 0) {
+        const kviz = kvizi[0]
+        setExistingQuiz(kviz)
+        setLoadingVprasanja(true)
+        const vprasanja = await getVprasanjaZaKviz(session.access_token, kviz.id)
+        setExistingVprasanja(vprasanja)
+        setLoadingVprasanja(false)
+      } else {
+        setExistingQuiz(null)
+        setExistingVprasanja([])
+      }
+    } catch (e) {
+      console.error('Failed to load existing quiz:', e)
+    }
+  }, [module, session])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    naloziObstojeciKviz()
+  }, [naloziObstojeciKviz])
+
   const approvedCount = questions?.filter(q => q.approved === true).length ?? 0
   const rejectedCount = questions?.filter(q => q.approved === false).length ?? 0
   const pendingCount = questions?.filter(q => q.approved === null).length ?? 0
 
   async function generate() {
     if (!module || !session?.access_token) return
-    setQuizCount(count) // ← shrani count ob generiranju
+    setQuizCount(count)
     setGenerating(true)
     setQuestions(null)
     setSaved(false)
@@ -323,28 +441,41 @@ export function ProfessorAIQuizBuilder() {
   }
 
   async function publishQuiz() {
-    if (!module || !session?.access_token || !questions) return
-    const odobrena = questions.filter(q => q.approved === true)
-    if (odobrena.length < quizCount) return
-    setSaving(true)
+  if (!module || !session?.access_token || !questions) return
+  const odobrena = questions.filter(q => q.approved === true)
+  if (odobrena.length < quizCount) return
+  setSaving(true)
+  try {
+    await shraniKviz(session.access_token, {
+      predmetId: module.id,
+      naziv: existingQuiz ? existingQuiz.naziv : `${module.naziv} — Quiz`,
+      casIzvajanja: timeLimit,
+      vprasanja: odobrena.map(q => ({
+        besediloVprasanja: q.besediloVprasanja,
+        moznosti: q.moznosti,
+        indeksPravilnegaOdgovora: q.indeksPravilnegaOdgovora,
+        razlaga: q.razlaga
+      }))
+    })
+    setSaved(true)
+    setQuestions(null)
+    await naloziObstojeciKviz()
+  } catch (e) {
+    console.error('Save failed:', e)
+  } finally {
+    setSaving(false)
+  }
+}
+  async function handleDeleteVprasanje(vprasanjeId: string) {
+    if (!session?.access_token) return
+    setDeletingId(vprasanjeId)
     try {
-      await shraniKviz(session.access_token, {
-        predmetId: module.id,
-        naziv: `${module.naziv} — Quiz`,
-        casIzvajanja: timeLimit,
-        vprasanja: odobrena.map(q => ({
-          besediloVprasanja: q.besediloVprasanja,
-          moznosti: q.moznosti,
-          indeksPravilnegaOdgovora: q.indeksPravilnegaOdgovora,
-          razlaga: q.razlaga
-        }))
-      })
-      setSaved(true)
-      setQuestions(null)
+      await izbrisiVprasanje(session.access_token, vprasanjeId)
+      setExistingVprasanja(prev => prev.filter(q => q.id !== vprasanjeId))
     } catch (e) {
-      console.error('Save failed:', e)
+      console.error('Delete failed:', e)
     } finally {
-      setSaving(false)
+      setDeletingId(null)
     }
   }
 
@@ -364,6 +495,7 @@ export function ProfessorAIQuizBuilder() {
       {(isTablet || isMobile) ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
           <GeneratePanel module={module} setModule={setModule} modules={modules} loadingModules={loadingModules} difficulty={difficulty} setDifficulty={setDifficulty} count={count} setCount={setCount} timeLimit={timeLimit} setTimeLimit={setTimeLimit} generating={generating} generate={generate} difficultyColor={difficultyColor} />
+          {existingQuiz && <ExistingQuizPanel quiz={existingQuiz} vprasanja={existingVprasanja} loadingVprasanja={loadingVprasanja} onDelete={handleDeleteVprasanje} deletingId={deletingId} />}
           {questions && <ReviewStatusPanel pendingCount={pendingCount} approvedCount={approvedCount} rejectedCount={rejectedCount} quizCount={quizCount} onPublish={publishQuiz} saving={saving} saved={saved} />}
           <ReviewQuestionsPanel questions={questions} generating={generating} module={module} generatingMore={generatingMore} generateMore={generateMore} setApproval={setApproval} />
         </div>
@@ -371,6 +503,7 @@ export function ProfessorAIQuizBuilder() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
             <GeneratePanel module={module} setModule={setModule} modules={modules} loadingModules={loadingModules} difficulty={difficulty} setDifficulty={setDifficulty} count={count} setCount={setCount} timeLimit={timeLimit} setTimeLimit={setTimeLimit} generating={generating} generate={generate} difficultyColor={difficultyColor} />
+            {existingQuiz && <ExistingQuizPanel quiz={existingQuiz} vprasanja={existingVprasanja} loadingVprasanja={loadingVprasanja} onDelete={handleDeleteVprasanje} deletingId={deletingId} />}
             {questions && <ReviewStatusPanel pendingCount={pendingCount} approvedCount={approvedCount} rejectedCount={rejectedCount} quizCount={quizCount} onPublish={publishQuiz} saving={saving} saved={saved} />}
           </div>
           <ReviewQuestionsPanel questions={questions} generating={generating} module={module} generatingMore={generatingMore} generateMore={generateMore} setApproval={setApproval} />
