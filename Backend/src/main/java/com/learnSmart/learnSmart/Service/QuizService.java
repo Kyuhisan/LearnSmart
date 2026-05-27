@@ -4,6 +4,7 @@ import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class QuizService {
 
     private final QuizGeminiService quizGeminiService;
@@ -59,7 +61,7 @@ public class QuizService {
 
             quiz = obstojeciKvizi.get(0);
         } else {
-           
+
             quiz = new Quiz();
             quiz.setPredmet(predmet);
             quiz.setNaziv(naziv);
