@@ -29,3 +29,24 @@ export async function getKviziZaPredmet(token: string, predmetId: string) {
   })
   return res.json()
 }
+
+export async function getKvizZaPredmet(token: string, predmetId: string) {
+  const res = await fetch(`${API}/kvizi/predmet/${predmetId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+export async function getVprasanjaZaKviz(token: string, kvizId: string) {
+  const res = await fetch(`${API}/kvizi/${kvizId}/vprasanja`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+export async function izbrisiVprasanje(token: string, vprasanjeId: string) {
+  await fetch(`${API}/kvizi/vprasanje/${vprasanjeId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+}

@@ -1,9 +1,10 @@
 package com.learnSmart.learnSmart.Controller;
 
+import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizGenerateRequestDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizSaveRequestDTO;
 import com.learnSmart.learnSmart.Model.Profil;
-import com.learnSmart.learnSmart.Model.Quiz;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import com.learnSmart.learnSmart.Service.QuizGeminiService;
 import com.learnSmart.learnSmart.Service.QuizService;
@@ -54,7 +55,7 @@ public class QuizController {
         if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
             return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
         }
-        Quiz kviz = quizService.shraniKviz(
+        QuizResponseDTO kviz = quizService.shraniKviz(
                 dto.getPredmetId(),
                 dto.getNaziv(),
                 dto.getCasIzvajanja(),
@@ -75,7 +76,24 @@ public class QuizController {
     }
 
     @GetMapping("/predmet/{predmetId}")
-    public ResponseEntity<List<Quiz>> getKvizi(@PathVariable UUID predmetId) {
+    public ResponseEntity<List<QuizResponseDTO>> getKvizi(@PathVariable UUID predmetId) {
         return ResponseEntity.ok(quizService.getKviziZaPredmet(predmetId));
+    }
+
+    @DeleteMapping("/vprasanje/{id}")
+    public ResponseEntity<?> izbrisiVprasanje(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        }
+        quizService.izbrisiVprasanje(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{kvizId}/vprasanja")
+    public ResponseEntity<List<QuestionResponseDTO>> getVprasanja(@PathVariable UUID kvizId) {
+        return ResponseEntity.ok(quizService.getVprasanjaZaKviz(kvizId));
     }
 }
