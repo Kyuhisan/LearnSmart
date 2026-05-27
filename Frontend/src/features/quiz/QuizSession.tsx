@@ -98,6 +98,7 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
 
   useEffect(() => {
     if (!session?.access_token) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStep('loading')
     getVprasanjaZaKviz(session.access_token, quiz.id).then(data => {
       setVprasanja(data)
