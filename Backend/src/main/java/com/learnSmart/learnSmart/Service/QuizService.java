@@ -2,6 +2,9 @@ package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResultResponseDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResultResponseDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResultRequestDTO;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -23,6 +26,8 @@ public class QuizService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final PredmetRepository predmetRepository;
+    private final VpisRepository vpisRepository;
+    private final  QuizResultRepository quizResultRepository;
 
     private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
 
@@ -90,7 +95,8 @@ public class QuizService {
                 shranjeniKviz.getNaziv(),
                 shranjeniKviz.getStatus(),
                 shranjeniKviz.getCasIzvajanja(),
-                predmetId
+                predmetId,
+                shranjeniKviz.getUstvarjenOb()
         );
     }
 
@@ -104,7 +110,8 @@ public class QuizService {
                 saved.getNaziv(),
                 saved.getStatus(),
                 saved.getCasIzvajanja(),
-                saved.getPredmet().getId()
+                saved.getPredmet().getId(),
+                saved.getUstvarjenOb()
         );
     }
 
@@ -115,7 +122,8 @@ public class QuizService {
                         q.getNaziv(),
                         q.getStatus(),
                         q.getCasIzvajanja(),
-                        predmetId
+                        predmetId,
+                        q.getUstvarjenOb()
                 ))
                 .toList();
     }
@@ -133,6 +141,78 @@ public class QuizService {
                         q.getIndeksPravilnegaOdgovora(),
                         q.getRazlaga()
                 ))
+                .toList();
+    }
+    //ZA ucenca dalje
+    public List<QuizResponseDTO> getKviziZaUcenca(UUID ucenecId) {
+        // Pridobi vpise ucenca
+        List<Vpis> vpisi = vpisRepository.findByUcenecId(ucenecId);
+        List<UUID> predmetIds = vpisi.stream()
+                .map(v -> v.getPredmet().getId())
+                .toList();
+
+        // Pridobi kvize za te predmete
+        return predmetIds.stream()
+                .flatMap(predmetId -> quizRepository.findByPredmetId(predmetId).stream()
+                        .map(q -> new QuizResponseDTO(
+                                q.getId(),
+                                q.getNaziv(),
+                                q.getStatus(),
+                                q.getCasIzvajanja(),
+                                predmetId,
+                                q.getUstvarjenOb()
+                        )))
+                .toList();
+    }
+
+    public QuizResultResponseDTO shraniRezultat(
+            UUID kvizId, UUID ucenecId, QuizResultRequestDTO dto) {
+
+        Quiz quiz = quizRepository.findById(kvizId)
+                .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
+
+        List<Question> vprasanja = questionRepository.findByQuizId(kvizId);
+
+        // Izracunaj tocke
+        int tocke = 0;
+        for (int i = 0; i < dto.getOdgovori().size() && i < vprasanja.size(); i++) {
+            if (dto.getOdgovori().get(i).equals(vprasanja.get(i).getIndeksPravilnegaOdgovora())) {
+                tocke++;
+            }
+        }
+
+        int skupaj = vprasanja.size();
+        int odstotek = skupaj > 0 ? Math.round((float) tocke / skupaj * 100) : 0;
+
+        QuizResult rezultat = new QuizResult();
+        rezultat.setQuiz(quiz);
+        rezultat.setUporabnikId(ucenecId);
+        rezultat.setTocke(tocke);
+        rezultat.setSkupajVprasanj(skupaj);
+        rezultat.setOddanoOb(OffsetDateTime.now());
+        rezultat.setOdgovori(dto.getOdgovori());
+        rezultat.setCasResevanjaS(dto.getCasResevanjaS());
+        QuizResult shranjen = quizResultRepository.save(rezultat);
+
+        return new QuizResultResponseDTO(
+                shranjen.getId(), kvizId, quiz.getNaziv(),
+                tocke, skupaj, odstotek,
+                dto.getCasResevanjaS(), shranjen.getOddanoOb(),
+                dto.getOdgovori()
+        );
+    }
+
+    public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
+        return quizResultRepository.findByUporabnikId(ucenecId).stream()
+                .map(r -> {
+                    int odstotek = r.getSkupajVprasanj() > 0
+                            ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100)
+                            : 0;
+                    return new QuizResultResponseDTO(
+                            r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
+                            r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(), r.getOddanoOb(), r.getOdgovori()
+                    );
+                })
                 .toList();
     }
 }

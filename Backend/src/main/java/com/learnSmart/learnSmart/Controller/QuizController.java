@@ -4,6 +4,7 @@ import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizGenerateRequestDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizSaveRequestDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResultRequestDTO;
 import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import com.learnSmart.learnSmart.Service.QuizGeminiService;
@@ -91,9 +92,33 @@ public class QuizController {
         quizService.izbrisiVprasanje(id);
         return ResponseEntity.noContent().build();
     }
-
+    // Kvizi za ucenca in prof
     @GetMapping("/{kvizId}/vprasanja")
     public ResponseEntity<List<QuestionResponseDTO>> getVprasanja(@PathVariable UUID kvizId) {
         return ResponseEntity.ok(quizService.getVprasanjaZaKviz(kvizId));
+    }
+
+    // Kvizi za ucenca
+    @GetMapping("/moji")
+    public ResponseEntity<List<QuizResponseDTO>> getMojiKvizi(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.getKviziZaUcenca(ucenecId));
+    }
+    @PostMapping("/{kvizId}/rezultat")
+    public ResponseEntity<?> shraniRezultat(
+            @PathVariable UUID kvizId,
+            @RequestBody QuizResultRequestDTO dto,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.shraniRezultat(kvizId, ucenecId, dto));
+    }
+
+    // Zgodovina rezultatov ucenca
+    @GetMapping("/rezultati/moji")
+    public ResponseEntity<?> getMojiRezultati(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.getMojiRezultati(ucenecId));
     }
 }
