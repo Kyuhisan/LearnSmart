@@ -14,11 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
@@ -137,5 +133,28 @@ public class IzvornaDatotekaController {
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UploadResponseDTO.error(e.getMessage()));
         }
+    }
+
+    @GetMapping("/predmet/{predmetId}/visual")
+    public ResponseEntity<List<IzvornaDatotekaResponseDTO>> getVisualContent(@PathVariable UUID predmetId) {
+        List<IzvornaDatotekaResponseDTO> result = izvornaDatotekaRepository
+                .findByPredmetId(predmetId)
+                .stream()
+                .filter(d ->
+                        "IMG".equals(d.getTip()) ||
+                        "VIDEO".equals(d.getTip())
+                )
+                .map(d -> new IzvornaDatotekaResponseDTO(
+                        d.getId(),
+                        d.getImeDatoteke(),
+                        d.getUrl(),
+                        d.getTip(),
+                        d.getVelikostBytes(),
+                        d.getProcessingStatus(),
+                        d.getUstvarjenOb(),
+                        d.getPredmet().getId(),
+                        d.getPredmet().getNaziv()
+                )).toList();
+        return ResponseEntity.ok(result);
     }
 }

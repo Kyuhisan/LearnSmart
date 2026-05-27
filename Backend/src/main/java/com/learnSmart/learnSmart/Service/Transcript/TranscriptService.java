@@ -10,6 +10,7 @@ import com.learnSmart.learnSmart.Repository.VsebinaPredmetRepository;
 import com.learnSmart.learnSmart.Service.GeminiService;
 import com.learnSmart.learnSmart.Service.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +29,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public class TranscriptService {
 
@@ -52,7 +54,11 @@ public class TranscriptService {
             case "PDF" -> pdfTranscriptService.extractFromPdf(datoteka.getUrl());
             case "AUDIO" -> audioTranscriptionService.extractFromAudio(datoteka.getUrl());
             case "VIDEO" -> videoTranscriptionService.extractFromMp4(datoteka);
-            default -> throw new IOException("Unsupported file type.");
+            case "IMG" -> null;
+            default -> {
+                log.warn("Unsupported file type: {}", datoteka.getTip());
+                yield null;
+            }
         };
     }
 
@@ -173,13 +179,18 @@ public class TranscriptService {
         try {
             IzvornaDatoteka datoteka = izvornaDatotekaRepository.findById(izvornaDatotekaId).orElseThrow(() -> new IllegalArgumentException("File does not exist"));
             String transcript = extractTranscript(datoteka);
+
+            if (transcript == null) {
+                datoteka.setProcessingStatus("done");
+                izvornaDatotekaRepository.save(datoteka);
+                return;
+            }
+
             datoteka.setManjsiTranscript(transcript);
             datoteka.setProcessingStatus("done");
-
             izvornaDatotekaRepository.save(datoteka);
 
             updateCombinedTranscript(datoteka.getPredmet().getId());
-
             long pendingCount = izvornaDatotekaRepository.countByPredmetIdAndProcessingStatusNot(datoteka.getPredmet().getId(), "done");
 
             if (pendingCount == 0) {

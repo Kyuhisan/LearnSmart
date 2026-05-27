@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/moduli", "/moduli/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/content/**").permitAll()
                 .requestMatchers("/moduli/**").authenticated()
                 .requestMatchers("/vpisi/**").authenticated()
                 .requestMatchers("/kvizi/**").authenticated()

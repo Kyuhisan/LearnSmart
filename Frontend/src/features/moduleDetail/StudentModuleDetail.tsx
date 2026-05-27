@@ -12,7 +12,7 @@ import { MODULE} from './mockData'
 import { posodobiCas } from '../modules/moduleApi'
 import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleDetailPage.css'
-import { getModuleContent } from './moduleDetailApi'
+import { getModuleContent, getVisualContent } from './moduleDetailApi'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
@@ -49,6 +49,13 @@ type ModuleContentItem = {
   vsebina: ReadingData | AuditoryData | KinestheticData
 }
 
+type VisualContentItem = {
+  id: string
+  imeDatoteke: string
+  url: string
+  tip: 'IMG' | 'VIDEO'
+}
+
 const tabConfig = {
   visual:      { label: 'VISUAL',      color: C.purpleLt, bitMsg: '"Visual mode engaged. Diagrams incoming."' },
   reading:     { label: 'READING',     color: C.cyanLt,   bitMsg: '"Reading mode active. Loading notes."' },
@@ -56,26 +63,56 @@ const tabConfig = {
   kinesthetic: { label: 'KINESTHETIC', color: C.redLt,    bitMsg: '"Practice mode initiated. Let\'s go."' },
 }
 
-function VisualContent() {
+function VisualContent({ data }: Readonly<{ data: VisualContentItem[] }>) {
+  const video = data.find(item => item.tip === 'VIDEO')
+  const images = data.filter(item => item.tip === 'IMG')
+
   return (
     <div className="module-detail-content">
-      <div className="module-detail-video">
-        <div className="module-detail-play">▶</div>
-        <div className="module-detail-video-label">BINARY-TREES.MP4 · 14:00</div>
-      </div>
-      <Panel title="CONCEPT MAP" accent={C.purpleLt} p={S[4]}>
-        <div className="module-detail-concept-placeholder">Concept map diagram here</div>
+
+      {video && (
+        <div className="module-detail-video">
+          <video
+            controls
+            className="module-detail-video-player"
+          >
+            <source src={video.url} />
+          </video>
+        </div>
+      )}
+
+      <Panel
+        title="VISUAL MATERIALS"
+        accent={C.purpleLt}
+        p={S[4]}
+        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+      >
+
+        <div className="module-detail-grid">
+
+          {images.map(image => (
+            <ComicBox
+              key={image.id}
+              bg={C.purpleLt}
+              p={S[3]}
+            >
+
+              <img
+                src={image.url}
+                alt={image.imeDatoteke}
+                style={{
+                  width: '100%',
+                  borderRadius: '8px'
+                }}
+              />
+
+              <div className="module-detail-card-title">
+                {image.imeDatoteke}
+              </div>
+            </ComicBox>
+          ))}
+        </div>
       </Panel>
-      <div className="module-detail-grid">
-        <ComicBox bg={C.purpleLt} p={S[4]}>
-          <div className="module-detail-card-title">ROOT NODE</div>
-          <div className="module-detail-card-text">Top of the tree, no parent</div>
-        </ComicBox>
-        <ComicBox bg={C.cyanLt} p={S[4]}>
-          <div className="module-detail-card-title">LEFT SUBTREE</div>
-          <div className="module-detail-card-text">All values &lt; parent</div>
-        </ComicBox>
-      </div>
     </div>
   )
 }
@@ -326,7 +363,9 @@ export function StudentModuleDetail() {
   const [activeTab, setActiveTab] = useState<Tab>('visual')
   const tab = tabConfig[activeTab]
   const casRef = useRef(0)
+  
   const [moduleContent, setModuleContent] = useState<ModuleContentItem[]>([])
+  const [visualContent, setVisualContent] = useState<VisualContentItem[]>([])
 
   // READING
   const readingContent = moduleContent.find(
@@ -396,8 +435,24 @@ export function StudentModuleDetail() {
     fetchContent()
   }, [modulId])
 
+  useEffect(() => {
+      if (!modulId) {
+        return 
+      }
+  
+      const fetchVisaulContent = async () => {
+        try {
+          const data = await getVisualContent(modulId)
+          setVisualContent(data)
+        } catch(err) {
+          console.error(err)
+        }
+      }
+      fetchVisaulContent()
+    }, [modulId])
+
   const contentMap = {
-    visual: <VisualContent />,
+    visual: <VisualContent data={visualContent} />,
     reading: <ReadingContent data={readingData} />,
     auditory: <AuditoryContent data={auditoryData}/>,
     kinesthetic: <KinestheticContent data={kinestheticData}/>,
