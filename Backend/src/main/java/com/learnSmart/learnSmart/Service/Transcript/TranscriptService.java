@@ -62,6 +62,17 @@ public class TranscriptService {
         };
     }
 
+    private String cleanMarkdown(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text.replaceAll("\\*\\*(.*?)\\*\\*", "$1")
+                .replaceAll("\\*(.*?)\\*", "$1")
+                .replace("## ", "")
+                .trim();
+    }
+
 
     private void updateCombinedTranscript(UUID predmetId){
         List<IzvornaDatoteka> doneDatoteka = izvornaDatotekaRepository.findByPredmetIdAndProcessingStatus(predmetId, "done");
@@ -83,6 +94,7 @@ public class TranscriptService {
     private void generateAndSaveAudio(UUID predmetId, String narrationScript) throws IOException {
         RestTemplate restTemplate = new RestTemplate();
 
+        narrationScript = cleanMarkdown(narrationScript);
         if (narrationScript.length() > 4500) {
             narrationScript = narrationScript.substring(0, 4500);
         }

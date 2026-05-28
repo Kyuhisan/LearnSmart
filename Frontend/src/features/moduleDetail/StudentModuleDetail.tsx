@@ -140,7 +140,9 @@ function ReadingContent({ data }: Readonly<{ data?: ReadingData }>) {
         <div className="module-detail-notes">
           <ul className="module-detail-notes-list">
             {data.key_concepts?.map((concept: string) => (
-              <li key={concept}>{concept}</li>
+              <li key={concept}>
+                {concept.replace(/^[-•]\s*/, '')}
+              </li>
             ))}
           </ul>
         </div>
@@ -150,7 +152,9 @@ function ReadingContent({ data }: Readonly<{ data?: ReadingData }>) {
         <div className="module-detail-notes">
           <ul className="module-detail-notes-list">
             {data.structured_notes?.map((note: string) => (
-              <li key={note}>{note}</li>
+              <li key={note}>
+                {note.replace(/^[-•]\s*/, '')}
+                </li>
             ))}
           </ul>
         </div>
