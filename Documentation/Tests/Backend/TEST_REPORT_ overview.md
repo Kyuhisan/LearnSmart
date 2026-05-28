@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | **Issue** | S5-01 |
-| **Datum** | 23. 5. 2026 |
+| **Datum** | 24. 5. 2026 |
 | **Framework** | JUnit 5 + Mockito |
 | **Ciljna pokritost** | ≥ 80% |
 | **Avtor** | Tilen Brunec |
