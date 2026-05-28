@@ -123,6 +123,17 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getMojiRezultati(ucenecId));
     }
 
+    // Vsi kvizi za ucitelja (across all modules)
+    @GetMapping("/ucitelj/vsi")
+    public ResponseEntity<List<QuizResponseDTO>> getKviziUcitelja(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(quizService.getKviziZaUcitelja(uciteljId));
+    }
+
     // Top performing students za ucitelja
     @GetMapping("/ucitelj/topStudents")
     public ResponseEntity<List<TopStudentDTO>> getTopStudents(

@@ -10,12 +10,9 @@ import { Topbar } from '../../components/ui/Topbar'
 import { useNavigate } from 'react-router-dom'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
-import { getModuliUcitelj, getStilMix, getTopStudents, type TopStudent } from '../modules/moduleApi'
+import { getModuliUcitelj, getStilMix, getTopStudents, getKviziUcitelja, type TopStudent, type QuizDTO } from '../modules/moduleApi'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
-import {
-  PROFESSOR_STATS,
-  PROFESSOR_PENDING_QUIZZES,
-} from './mockData'
+import { PROFESSOR_STATS } from './mockData'
 
 interface BackendModul {
   id: string
@@ -55,6 +52,8 @@ export function ProfessorDashboard() {
   const [loadingModuli, setLoadingModuli] = useState(true)
   const [stilMixData, setStilMixData] = useState<Record<string, number> | null>(null)
   const [topStudents, setTopStudents] = useState<TopStudent[] | null>(null)
+  const [kvizi, setKvizi] = useState<QuizDTO[] | null>(null)
+  const [selectedModulId, setSelectedModulId] = useState<string>('all')
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -64,6 +63,7 @@ export function ProfessorDashboard() {
     })
     getStilMix(session.access_token).then(setStilMixData).catch(() => {})
     getTopStudents(session.access_token).then(setTopStudents).catch(() => {})
+    getKviziUcitelja(session.access_token).then(setKvizi).catch(() => setKvizi([]))
   }, [session])
 
   return (
@@ -93,7 +93,9 @@ export function ProfessorDashboard() {
           {PROFESSOR_STATS.map((s) => (
             <ComicBox key={s.label} bg={s.bg} p={S[4]}>
               <div className="stat-card-value" style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], lineHeight: 1, color: s.dark ? C.paper : C.ink }}>
-                {s.label === 'MODULES'
+                {s.label === 'STUDENTS'
+                  ? (stilMixData === null ? '…' : String(stilMixData['_total'] ?? 0))
+                  : s.label === 'MODULES'
                   ? (loadingModuli ? '…' : String(moduli.length))
                   : s.label === 'PENDING'
                   ? (loadingModuli ? '…' : String(moduli.filter(m => !m.jeObjavljen).length))
@@ -150,21 +152,51 @@ export function ProfessorDashboard() {
             </div>
           </Panel>
 
-          {/* Pending quizzes */}
-          <Panel title="PENDING QUIZZES" accent={C.red} p={S[4]}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {PROFESSOR_PENDING_QUIZZES.map((q) => (
-                <div key={q.module} style={{ padding: S[2], background: C.redLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs }}>{q.module.toUpperCase()}</div>
-                  <div style={{ fontSize: FS.xs, fontWeight: 700, color: C.muted, marginTop: S[1] }}>{q.topic} · {q.questions} questions</div>
-                  <div style={{ display: 'flex', gap: S[1], marginTop: S[2] }}>
-                    <ComicBtn sm color={C.green}>APPROVE</ComicBtn>
-                    <ComicBtn sm color={C.yellow}>EDIT</ComicBtn>
-                  </div>
+          {/* Active quizzes */}
+          {(() => {
+            const filteredKvizi = kvizi === null ? null
+              : selectedModulId === 'all' ? kvizi
+              : kvizi.filter(q => q.predmetId === selectedModulId)
+            const modulMap = Object.fromEntries(moduli.map(m => [m.id, m.naziv]))
+            return (
+              <Panel title="ACTIVE QUIZZES" accent={C.red} p={S[4]}
+                action={
+                  <select
+                    value={selectedModulId}
+                    onChange={e => setSelectedModulId(e.target.value)}
+                    style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, padding: `${S[1]} ${S[2]}`, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, background: C.paper, cursor: 'pointer', boxShadow: mkShadow(), outline: 'none', maxWidth: 130 }}
+                  >
+                    <option value="all">ALL MODULES</option>
+                    {moduli.map(m => <option key={m.id} value={m.id}>{m.naziv.toUpperCase()}</option>)}
+                  </select>
+                }>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+                  {filteredKvizi === null
+                    ? [C.red, C.yellow, C.green].map((color, i) => (
+                        <div key={i} className="skeleton-pulse" style={{ padding: S[2], border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.paper }}>
+                          <div style={{ height: 12, background: color, opacity: 0.35, borderRadius: R.sm, marginBottom: S[1] }} />
+                          <div style={{ height: 10, width: '60%', background: C.mutedLt, borderRadius: R.sm }} />
+                        </div>
+                      ))
+                    : filteredKvizi.length === 0
+                    ? <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO QUIZZES YET</div>
+                    : filteredKvizi.map(q => (
+                        <div key={q.id} style={{ padding: S[2], background: C.redLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, flex: 1, minWidth: 0 }}>{q.naziv.toUpperCase()}</span>
+                            <Tag label={q.status === 'PUBLISHED' ? '● LIVE' : '○ DRAFT'} bg={q.status === 'PUBLISHED' ? C.green : C.mutedLt} />
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: S[2], marginTop: S[1] }}>
+                            <Tag label={modulMap[q.predmetId] ? modulMap[q.predmetId].toUpperCase() : '—'} bg={C.yellowLt} />
+                            {q.casIzvajanja && <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{q.casIzvajanja} MIN</span>}
+                          </div>
+                        </div>
+                      ))
+                  }
                 </div>
-              ))}
-            </div>
-          </Panel>
+              </Panel>
+            )
+          })()}
         </div>
 
         {/* Style mix + Top performers */}
@@ -173,7 +205,7 @@ export function ProfessorDashboard() {
           {/* Style mix */}
           {(() => {
             const styles = ['visual', 'reading', 'auditory', 'kinesthetic'] as const
-            const totalStudents = stilMixData ? Object.values(stilMixData).reduce((a, b) => a + b, 0) : 0
+            const totalStudents = (stilMixData?.['_total'] as number) ?? 0
             const rows = styles.map(key => ({
               key,
               label: STYLE_INFO[key].label,

@@ -99,6 +99,7 @@ public class VpisService {
                 .filter(t -> t != null && result.containsKey(t))
                 .forEach(t -> result.merge(t, 1L, Long::sum));
 
+        result.put("_total", (long) ucenecIds.size());
         return result;
     }
 

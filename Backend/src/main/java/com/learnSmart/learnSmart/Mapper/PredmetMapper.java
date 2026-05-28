@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class PredmetMapper {
 
-    public static PredmetResponseDTO toResponse(Predmet predmet, Profil profil) {
+    public static PredmetResponseDTO toResponse(Predmet predmet, Profil profil, long steviloVpisanih) {
         PredmetResponseDTO dto = new PredmetResponseDTO();
         dto.setId(predmet.getId());
         dto.setNaziv(predmet.getNaziv());
@@ -21,6 +21,7 @@ public class PredmetMapper {
         dto.setUciteljId(predmet.getUciteljId());
         dto.setUciteljImePriimek(profil != null ? profil.getImePriimek() : "Neznan");
         dto.setKategorije(predmet.getKategorije());
+        dto.setSteviloVpisanih(steviloVpisanih);
         return dto;
     }
 

@@ -220,6 +220,22 @@ public class QuizService {
                 .toList();
     }
 
+    public List<QuizResponseDTO> getKviziZaUcitelja(UUID uciteljId) {
+        List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                .stream().map(Predmet::getId).toList();
+        if (predmetIds.isEmpty()) return List.of();
+        return quizRepository.findByPredmetIdIn(predmetIds).stream()
+                .map(q -> new QuizResponseDTO(
+                        q.getId(),
+                        q.getNaziv(),
+                        q.getStatus(),
+                        q.getCasIzvajanja(),
+                        q.getPredmet().getId(),
+                        q.getUstvarjenOb()
+                ))
+                .toList();
+    }
+
     // Top performing students across all professor's modules
     // Score = accuracy% * (1 + speed_bonus), where speed_bonus ≤ 0.3
     // Averaged across all quiz attempts, then top 5 returned

@@ -141,6 +141,23 @@ export async function getTopStudents(token: string): Promise<TopStudent[]> {
   return res.json()
 }
 
+// Kvizi za ucitelja (vsi moduli)
+export interface QuizDTO {
+  id: string
+  naziv: string
+  status: string
+  casIzvajanja: number | null
+  predmetId: string
+  ustvarjenOb: string
+}
+
+export async function getKviziUcitelja(token: string): Promise<QuizDTO[]> {
+  const res = await fetch(`${API}/kvizi/ucitelj/vsi`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
 // Odjava
 export async function odjavaIzModula(token: string, predmetId: string) {
   await fetch(`${API}/vpisi/${predmetId}`, {
