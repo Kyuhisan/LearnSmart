@@ -6,6 +6,7 @@ import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.VpisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,9 @@ class PredmetServiceTest {
 
     @Mock
     private ProfilRepository profilRepository;
+
+    @Mock
+    private VpisRepository vpisRepository;
 
     @InjectMocks
     private PredmetService predmetService;
@@ -61,6 +65,7 @@ class PredmetServiceTest {
     void getPublished_returnsPublishedModules() {
         when(predmetRepository.findAll()).thenReturn(List.of(predmet));
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         List<PredmetResponseDTO> result = predmetService.getObjavljene();
 
@@ -82,6 +87,7 @@ class PredmetServiceTest {
     void getById_returnsModule() {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.getById(predmetId);
 
@@ -110,6 +116,7 @@ class PredmetServiceTest {
 
         when(predmetRepository.save(any())).thenReturn(saved);
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.ustvari(dto, uciteljId);
 
@@ -128,6 +135,7 @@ class PredmetServiceTest {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
         when(predmetRepository.save(any())).thenReturn(predmet);
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.uredi(predmetId, dto, uciteljId);
 
@@ -188,6 +196,7 @@ class PredmetServiceTest {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
         when(predmetRepository.save(any())).thenReturn(predmet);
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.objavi(predmetId, uciteljId);
 
@@ -214,6 +223,7 @@ class PredmetServiceTest {
     void getMyModules_returnsTeacherModules() {
         when(predmetRepository.findAll()).thenReturn(List.of(predmet));
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         List<PredmetResponseDTO> result = predmetService.getMoji(uciteljId);
 

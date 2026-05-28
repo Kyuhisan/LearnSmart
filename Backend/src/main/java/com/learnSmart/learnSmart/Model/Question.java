@@ -22,8 +22,11 @@ public class Question {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "kviz_id", nullable = false)
+    @JoinColumn(name = "kviz_id", nullable = true)
     private Quiz quiz;
+
+    @Column(name = "predmet_id", columnDefinition = "uuid")
+    private UUID predmetId;
 
     @Column(name = "besedilo_vprasanja", nullable = false, columnDefinition = "text")
     private String besediloVprasanja;
