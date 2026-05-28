@@ -1,11 +1,6 @@
 package com.learnSmart.learnSmart.Controller;
 
-import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizGenerateRequestDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResultRequestDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizSaveRequestDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.TopStudentDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.*;
 import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import com.learnSmart.learnSmart.Service.QuizGeminiService;
@@ -31,49 +26,81 @@ public class QuizController {
     private static final String DOSTOP_ZAVRNJEN = "Dostop zavrnjen";
 
     private String getVloga(UUID userId) {
-        return profilRepository.findById(userId)
-                .map(Profil::getVloga)
-                .orElse("");
+        return profilRepository.findById(userId).map(Profil::getVloga).orElse("");
     }
 
     @PostMapping("/generiraj")
-    public ResponseEntity<?> generiraj(
-            @RequestBody QuizGenerateRequestDTO dto,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> generiraj(@RequestBody QuizGenerateRequestDTO dto,
+                                       @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
-        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
-            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
-        }
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
         List<QuizGeminiService.GeneratedQuestion> vprasanja =
                 quizService.generirajVprasanja(dto.getPredmetId(), dto.getSteviloVprasanj(), dto.getTezavnost());
         return ResponseEntity.ok(vprasanja);
     }
 
+    // ── STARO: ohranjen za backward compatibility ──
     @PostMapping("/shrani")
-    public ResponseEntity<?> shrani(
-            @RequestBody QuizSaveRequestDTO dto,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> shrani(@RequestBody QuizSaveRequestDTO dto,
+                                    @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
-        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
-            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
-        }
-        QuizResponseDTO kviz = quizService.shraniKviz(
-                dto.getPredmetId(),
-                dto.getNaziv(),
-                dto.getCasIzvajanja(),
-                dto.getVprasanja()
-        );
-        return ResponseEntity.ok(kviz);
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        return ResponseEntity.ok(quizService.shraniKviz(
+                dto.getPredmetId(), dto.getNaziv(), dto.getCasIzvajanja(), dto.getVprasanja()));
+    }
+
+    // ── NOVO: Shrani odobrena vprašanja v banko ──
+    @PostMapping("/vprasanja/banka")
+    public ResponseEntity<?> shraniVBanko(@RequestBody QuestionSaveRequestDTO dto,
+                                          @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        return ResponseEntity.ok(quizService.shraniVprasanjaVBanko(dto.getPredmetId(), dto.getVprasanja()));
+    }
+
+    // ── NOVO: Pridobi vsa vprašanja v banki za predmet ──
+    @GetMapping("/vprasanja/banka/{predmetId}")
+    public ResponseEntity<List<QuestionResponseDTO>> getBanka(@PathVariable UUID predmetId,
+                                                              @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getVprasanjaBanka(predmetId));
+    }
+
+    // ── NOVO: Ustvari nov kviz iz izbranih vprašanj ──
+    @PostMapping("/ustvari")
+    public ResponseEntity<?> ustvari(@RequestBody QuizCreateRequestDTO dto,
+                                     @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        return ResponseEntity.ok(quizService.ustvariKviz(
+                dto.getPredmetId(), dto.getNaziv(), dto.getCasIzvajanja(), dto.getVprasanjaIds()));
+    }
+
+    // ── NOVO: Dodaj vprašanje iz banke na kviz ──
+    @PostMapping("/{kvizId}/dodaj/{vprasanjeId}")
+    public ResponseEntity<?> dodajVprasanje(@PathVariable UUID kvizId,
+                                            @PathVariable UUID vprasanjeId, @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        quizService.dodajVprasanjeNaKviz(kvizId, vprasanjeId);
+        return ResponseEntity.ok().build();
+    }
+
+    // ── NOVO: Odstrani vprašanje iz kviza (vrne v banko) ──
+    @PatchMapping("/vprasanje/{vprasanjeId}/odstrani")
+    public ResponseEntity<?> odstraniIzKviza(@PathVariable UUID vprasanjeId,
+                                             @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        quizService.odstraniVprasanjeIzKviza(vprasanjeId);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{id}/objavi")
-    public ResponseEntity<?> objavi(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> objavi(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
-        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
-            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
-        }
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
         return ResponseEntity.ok(quizService.objaviKviz(id));
     }
 
@@ -83,65 +110,49 @@ public class QuizController {
     }
 
     @DeleteMapping("/vprasanje/{id}")
-    public ResponseEntity<?> izbrisiVprasanje(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> izbrisiVprasanje(@PathVariable UUID id,
+                                              @AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
-        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
-            return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
-        }
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
         quizService.izbrisiVprasanje(id);
         return ResponseEntity.noContent().build();
     }
-    // Kvizi za ucenca in prof
+
     @GetMapping("/{kvizId}/vprasanja")
     public ResponseEntity<List<QuestionResponseDTO>> getVprasanja(@PathVariable UUID kvizId) {
         return ResponseEntity.ok(quizService.getVprasanjaZaKviz(kvizId));
     }
 
-    // Kvizi za ucenca
     @GetMapping("/moji")
-    public ResponseEntity<List<QuizResponseDTO>> getMojiKvizi(
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<QuizResponseDTO>> getMojiKvizi(@AuthenticationPrincipal Jwt jwt) {
         UUID ucenecId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(quizService.getKviziZaUcenca(ucenecId));
     }
+
     @PostMapping("/{kvizId}/rezultat")
-    public ResponseEntity<?> shraniRezultat(
-            @PathVariable UUID kvizId,
-            @RequestBody QuizResultRequestDTO dto,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> shraniRezultat(@PathVariable UUID kvizId,
+                                            @RequestBody QuizResultRequestDTO dto, @AuthenticationPrincipal Jwt jwt) {
         UUID ucenecId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(quizService.shraniRezultat(kvizId, ucenecId, dto));
     }
 
-    // Zgodovina rezultatov ucenca
     @GetMapping("/rezultati/moji")
-    public ResponseEntity<?> getMojiRezultati(
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> getMojiRezultati(@AuthenticationPrincipal Jwt jwt) {
         UUID ucenecId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(quizService.getMojiRezultati(ucenecId));
     }
 
-    // Vsi kvizi za ucitelja (across all modules)
     @GetMapping("/ucitelj/vsi")
-    public ResponseEntity<List<QuizResponseDTO>> getKviziUcitelja(
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<QuizResponseDTO>> getKviziUcitelja(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
-        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
-            return ResponseEntity.status(403).build();
-        }
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(quizService.getKviziZaUcitelja(uciteljId));
     }
 
-    // Top performing students za ucitelja
     @GetMapping("/ucitelj/topStudents")
-    public ResponseEntity<List<TopStudentDTO>> getTopStudents(
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<List<TopStudentDTO>> getTopStudents(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
-        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
-            return ResponseEntity.status(403).build();
-        }
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(quizService.getTopStudentsZaUcitelja(uciteljId));
     }
 }

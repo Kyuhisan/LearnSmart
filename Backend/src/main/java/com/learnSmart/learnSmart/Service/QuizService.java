@@ -1,10 +1,6 @@
 package com.learnSmart.learnSmart.Service;
 
-import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResultRequestDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResultResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.TopStudentDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.*;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -13,10 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,41 +29,25 @@ public class QuizService {
     private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
 
     public List<QuizGeminiService.GeneratedQuestion> generirajVprasanja(
-            UUID predmetId,
-            int steviloVprasanj,
-            String tezavnost) {
-
+            UUID predmetId, int steviloVprasanj, String tezavnost) {
         Predmet predmet = predmetRepository.findById(predmetId)
                 .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
-
         if (predmet.getZdruzenTranscript() == null || predmet.getZdruzenTranscript().isBlank()) {
             throw new RuntimeException("Module has no transcript yet");
         }
-
-        return quizGeminiService.generirajVprasanja(
-                predmet.getZdruzenTranscript(),
-                steviloVprasanj,
-                tezavnost
-        );
+        return quizGeminiService.generirajVprasanja(predmet.getZdruzenTranscript(), steviloVprasanj, tezavnost);
     }
 
-    public QuizResponseDTO shraniKviz(
-            UUID predmetId,
-            String naziv,
-            Integer casIzvajanja,
-            List<QuizGeminiService.GeneratedQuestion> odobrenVprasanja) {
-
+    // ── STARA metoda - ohranjena za backward compatibility ──
+    public QuizResponseDTO shraniKviz(UUID predmetId, String naziv, Integer casIzvajanja,
+                                      List<QuizGeminiService.GeneratedQuestion> odobrenVprasanja) {
         Predmet predmet = predmetRepository.findById(predmetId)
                 .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
-
         List<Quiz> obstojeciKvizi = quizRepository.findByPredmetId(predmetId);
         Quiz quiz;
-
         if (!obstojeciKvizi.isEmpty()) {
-
             quiz = obstojeciKvizi.get(0);
         } else {
-
             quiz = new Quiz();
             quiz.setPredmet(predmet);
             quiz.setNaziv(naziv);
@@ -80,28 +57,94 @@ public class QuizService {
             quiz.setUstvarjenOb(OffsetDateTime.now());
             quiz = quizRepository.save(quiz);
         }
-
         final Quiz shranjeniKviz = quiz;
-
         for (QuizGeminiService.GeneratedQuestion q : odobrenVprasanja) {
             Question question = new Question();
             question.setQuiz(shranjeniKviz);
+            question.setPredmetId(predmetId);
             question.setBesediloVprasanja(q.besediloVprasanja());
             question.setMoznosti(q.moznosti());
             question.setIndeksPravilnegaOdgovora(q.indeksPravilnegaOdgovora());
             question.setRazlaga(q.razlaga());
             questionRepository.save(question);
         }
-
         log.info("Saved {} questions to quiz {}", odobrenVprasanja.size(), shranjeniKviz.getId());
-        return new QuizResponseDTO(
-                shranjeniKviz.getId(),
-                shranjeniKviz.getNaziv(),
-                shranjeniKviz.getStatus(),
-                shranjeniKviz.getCasIzvajanja(),
-                predmetId,
-                shranjeniKviz.getUstvarjenOb()
-        );
+        return new QuizResponseDTO(shranjeniKviz.getId(), shranjeniKviz.getNaziv(),
+                shranjeniKviz.getStatus(), shranjeniKviz.getCasIzvajanja(),
+                predmetId, shranjeniKviz.getUstvarjenOb());
+    }
+
+    // ── NOVO: Shrani odobrena vprašanja v banko (brez kviza) ──
+    public List<QuestionResponseDTO> shraniVprasanjaVBanko(
+            UUID predmetId, List<QuestionSaveRequestDTO.QuestionItemDTO> vprasanja) {
+        predmetRepository.findById(predmetId)
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
+        List<QuestionResponseDTO> result = new ArrayList<>();
+        for (var q : vprasanja) {
+            Question question = new Question();
+            question.setPredmetId(predmetId);
+            question.setQuiz(null);
+            question.setBesediloVprasanja(q.getBesediloVprasanja());
+            question.setMoznosti(q.getMoznosti());
+            question.setIndeksPravilnegaOdgovora(q.getIndeksPravilnegaOdgovora());
+            question.setRazlaga(q.getRazlaga());
+            Question saved = questionRepository.save(question);
+            result.add(new QuestionResponseDTO(saved.getId(), saved.getBesediloVprasanja(),
+                    saved.getMoznosti(), saved.getIndeksPravilnegaOdgovora(), saved.getRazlaga()));
+        }
+        log.info("Saved {} questions to bank for predmet {}", result.size(), predmetId);
+        return result;
+    }
+
+    // ── NOVO: Pridobi vsa vprašanja v banki za predmet ──
+    public List<QuestionResponseDTO> getVprasanjaBanka(UUID predmetId) {
+        return questionRepository.findByPredmetId(predmetId).stream()
+                .map(q -> new QuestionResponseDTO(q.getId(), q.getBesediloVprasanja(),
+                        q.getMoznosti(), q.getIndeksPravilnegaOdgovora(), q.getRazlaga()))
+                .toList();
+    }
+
+    // ── NOVO: Ustvari nov kviz iz izbranih vprašanj ──
+    public QuizResponseDTO ustvariKviz(UUID predmetId, String naziv,
+                                       Integer casIzvajanja, List<UUID> vprasanjaIds) {
+        Predmet predmet = predmetRepository.findById(predmetId)
+                .orElseThrow(() -> new RuntimeException(PREDMET_NE_OBSTAJA));
+        Quiz quiz = new Quiz();
+        quiz.setPredmet(predmet);
+        quiz.setNaziv(naziv);
+        quiz.setGeneriranZAi(true);
+        quiz.setStatus("DRAFT");
+        quiz.setCasIzvajanja(casIzvajanja);
+        quiz.setUstvarjenOb(OffsetDateTime.now());
+        Quiz shranjeniKviz = quizRepository.save(quiz);
+        for (UUID vprasanjeId : vprasanjaIds) {
+            questionRepository.findById(vprasanjeId).ifPresent(q -> {
+                q.setQuiz(shranjeniKviz);
+                questionRepository.save(q);
+            });
+        }
+        log.info("Created quiz {} with {} questions", shranjeniKviz.getId(), vprasanjaIds.size());
+        return new QuizResponseDTO(shranjeniKviz.getId(), shranjeniKviz.getNaziv(),
+                shranjeniKviz.getStatus(), shranjeniKviz.getCasIzvajanja(),
+                predmetId, shranjeniKviz.getUstvarjenOb());
+    }
+
+    // ── NOVO: Dodaj vprašanje iz banke na kviz ──
+    public void dodajVprasanjeNaKviz(UUID kvizId, UUID vprasanjeId) {
+        Quiz quiz = quizRepository.findById(kvizId)
+                .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
+        questionRepository.findById(vprasanjeId).ifPresent(q -> {
+            q.setQuiz(quiz);
+            questionRepository.save(q);
+        });
+    }
+
+    // ── NOVO: Odstrani vprašanje iz kviza (vrne v banko) ──
+    public void odstraniVprasanjeIzKviza(UUID vprasanjeId) {
+        questionRepository.findById(vprasanjeId).ifPresent(q -> {
+            q.setQuiz(null);
+            questionRepository.save(q);
+        });
     }
 
     public QuizResponseDTO objaviKviz(UUID kvizId) {
@@ -109,26 +152,14 @@ public class QuizService {
                 .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
         quiz.setStatus("PUBLISHED");
         Quiz saved = quizRepository.save(quiz);
-        return new QuizResponseDTO(
-                saved.getId(),
-                saved.getNaziv(),
-                saved.getStatus(),
-                saved.getCasIzvajanja(),
-                saved.getPredmet().getId(),
-                saved.getUstvarjenOb()
-        );
+        return new QuizResponseDTO(saved.getId(), saved.getNaziv(), saved.getStatus(),
+                saved.getCasIzvajanja(), saved.getPredmet().getId(), saved.getUstvarjenOb());
     }
 
     public List<QuizResponseDTO> getKviziZaPredmet(UUID predmetId) {
         return quizRepository.findByPredmetId(predmetId).stream()
-                .map(q -> new QuizResponseDTO(
-                        q.getId(),
-                        q.getNaziv(),
-                        q.getStatus(),
-                        q.getCasIzvajanja(),
-                        predmetId,
-                        q.getUstvarjenOb()
-                ))
+                .map(q -> new QuizResponseDTO(q.getId(), q.getNaziv(), q.getStatus(),
+                        q.getCasIzvajanja(), predmetId, q.getUstvarjenOb()))
                 .toList();
     }
 
@@ -138,56 +169,31 @@ public class QuizService {
 
     public List<QuestionResponseDTO> getVprasanjaZaKviz(UUID kvizId) {
         return questionRepository.findByQuizId(kvizId).stream()
-                .map(q -> new QuestionResponseDTO(
-                        q.getId(),
-                        q.getBesediloVprasanja(),
-                        q.getMoznosti(),
-                        q.getIndeksPravilnegaOdgovora(),
-                        q.getRazlaga()
-                ))
+                .map(q -> new QuestionResponseDTO(q.getId(), q.getBesediloVprasanja(),
+                        q.getMoznosti(), q.getIndeksPravilnegaOdgovora(), q.getRazlaga()))
                 .toList();
     }
-    //ZA ucenca dalje
-    public List<QuizResponseDTO> getKviziZaUcenca(UUID ucenecId) {
-        // Pridobi vpise ucenca
-        List<Vpis> vpisi = vpisRepository.findByUcenecId(ucenecId);
-        List<UUID> predmetIds = vpisi.stream()
-                .map(v -> v.getPredmet().getId())
-                .toList();
 
-        // Pridobi kvize za te predmete
+    public List<QuizResponseDTO> getKviziZaUcenca(UUID ucenecId) {
+        List<Vpis> vpisi = vpisRepository.findByUcenecId(ucenecId);
+        List<UUID> predmetIds = vpisi.stream().map(v -> v.getPredmet().getId()).toList();
         return predmetIds.stream()
                 .flatMap(predmetId -> quizRepository.findByPredmetId(predmetId).stream()
-                        .map(q -> new QuizResponseDTO(
-                                q.getId(),
-                                q.getNaziv(),
-                                q.getStatus(),
-                                q.getCasIzvajanja(),
-                                predmetId,
-                                q.getUstvarjenOb()
-                        )))
+                        .map(q -> new QuizResponseDTO(q.getId(), q.getNaziv(), q.getStatus(),
+                                q.getCasIzvajanja(), predmetId, q.getUstvarjenOb())))
                 .toList();
     }
 
-    public QuizResultResponseDTO shraniRezultat(
-            UUID kvizId, UUID ucenecId, QuizResultRequestDTO dto) {
-
+    public QuizResultResponseDTO shraniRezultat(UUID kvizId, UUID ucenecId, QuizResultRequestDTO dto) {
         Quiz quiz = quizRepository.findById(kvizId)
                 .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
-
         List<Question> vprasanja = questionRepository.findByQuizId(kvizId);
-
-        // Izracunaj tocke
         int tocke = 0;
         for (int i = 0; i < dto.getOdgovori().size() && i < vprasanja.size(); i++) {
-            if (dto.getOdgovori().get(i).equals(vprasanja.get(i).getIndeksPravilnegaOdgovora())) {
-                tocke++;
-            }
+            if (dto.getOdgovori().get(i).equals(vprasanja.get(i).getIndeksPravilnegaOdgovora())) tocke++;
         }
-
         int skupaj = vprasanja.size();
         int odstotek = skupaj > 0 ? Math.round((float) tocke / skupaj * 100) : 0;
-
         QuizResult rezultat = new QuizResult();
         rezultat.setQuiz(quiz);
         rezultat.setUporabnikId(ucenecId);
@@ -197,25 +203,18 @@ public class QuizService {
         rezultat.setOdgovori(dto.getOdgovori());
         rezultat.setCasResevanjaS(dto.getCasResevanjaS());
         QuizResult shranjen = quizResultRepository.save(rezultat);
-
-        return new QuizResultResponseDTO(
-                shranjen.getId(), kvizId, quiz.getNaziv(),
-                tocke, skupaj, odstotek,
-                dto.getCasResevanjaS(), shranjen.getOddanoOb(),
-                dto.getOdgovori()
-        );
+        return new QuizResultResponseDTO(shranjen.getId(), kvizId, quiz.getNaziv(),
+                tocke, skupaj, odstotek, dto.getCasResevanjaS(), shranjen.getOddanoOb(), dto.getOdgovori());
     }
 
     public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         return quizResultRepository.findByUporabnikId(ucenecId).stream()
                 .map(r -> {
                     int odstotek = r.getSkupajVprasanj() > 0
-                            ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100)
-                            : 0;
-                    return new QuizResultResponseDTO(
-                            r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
-                            r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(), r.getOddanoOb(), r.getOdgovori()
-                    );
+                            ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
+                    return new QuizResultResponseDTO(r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
+                            r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(),
+                            r.getOddanoOb(), r.getOdgovori());
                 })
                 .toList();
     }
@@ -225,39 +224,24 @@ public class QuizService {
                 .stream().map(Predmet::getId).toList();
         if (predmetIds.isEmpty()) return List.of();
         return quizRepository.findByPredmetIdIn(predmetIds).stream()
-                .map(q -> new QuizResponseDTO(
-                        q.getId(),
-                        q.getNaziv(),
-                        q.getStatus(),
-                        q.getCasIzvajanja(),
-                        q.getPredmet().getId(),
-                        q.getUstvarjenOb()
-                ))
+                .map(q -> new QuizResponseDTO(q.getId(), q.getNaziv(), q.getStatus(),
+                        q.getCasIzvajanja(), q.getPredmet().getId(), q.getUstvarjenOb()))
                 .toList();
     }
 
-    // Top performing students across all professor's modules
-    // Score = accuracy% * (1 + speed_bonus), where speed_bonus ≤ 0.3
-    // Averaged across all quiz attempts, then top 5 returned
     public List<TopStudentDTO> getTopStudentsZaUcitelja(UUID uciteljId) {
         List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
                 .stream().map(Predmet::getId).toList();
         if (predmetIds.isEmpty()) return List.of();
-
-        // Build a map quizId → casIzvajanja for quick lookup
         List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds);
         if (kvizi.isEmpty()) return List.of();
         Map<UUID, Integer> casMap = kvizi.stream()
                 .collect(Collectors.toMap(Quiz::getId, q -> q.getCasIzvajanja() != null ? q.getCasIzvajanja() : 0));
-
         List<UUID> kvizIds = kvizi.stream().map(Quiz::getId).toList();
         List<QuizResult> rezultati = quizResultRepository.findByQuizIdIn(kvizIds);
         if (rezultati.isEmpty()) return List.of();
-
-        // Group results by student, compute composite score per student
         Map<UUID, Double> scoreByStudent = rezultati.stream()
-                .collect(Collectors.groupingBy(
-                        QuizResult::getUporabnikId,
+                .collect(Collectors.groupingBy(QuizResult::getUporabnikId,
                         Collectors.averagingDouble(r -> {
                             if (r.getSkupajVprasanj() == null || r.getSkupajVprasanj() == 0) return 0.0;
                             double accuracy = (double) r.getTocke() / r.getSkupajVprasanj();
@@ -269,13 +253,9 @@ public class QuizService {
                                 timeBonus = (1.0 - speedRatio) * 0.3;
                             }
                             return accuracy * (1.0 + timeBonus) * 100.0;
-                        })
-                ));
-
-        // Fetch profiles for all students at once
+                        })));
         Map<UUID, Profil> profilMap = profilRepository.findAllById(scoreByStudent.keySet())
                 .stream().collect(Collectors.toMap(Profil::getId, p -> p));
-
         return scoreByStudent.entrySet().stream()
                 .sorted(Map.Entry.<UUID, Double>comparingByValue(Comparator.reverseOrder()))
                 .limit(5)

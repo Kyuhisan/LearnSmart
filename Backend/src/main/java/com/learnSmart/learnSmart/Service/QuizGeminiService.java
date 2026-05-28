@@ -148,6 +148,7 @@ public class QuizGeminiService {
                 - Questions must be based strictly on the transcript content
                 - No duplicate questions
                 - razlaga should be 1 sentence
+                - besediloVprasanja, moznosti, and razlaga must all be in English
                 
                 Transcript:
                 %s
