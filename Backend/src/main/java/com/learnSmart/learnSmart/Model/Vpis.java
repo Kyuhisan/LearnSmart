@@ -35,4 +35,10 @@ public class Vpis {
     @Column(name = "cas_na_modulu")
     private Integer casNaModulu = 0; // sekunde
 
+    @Column(name = "je_aktiven", columnDefinition = "boolean default true")
+    private Boolean jeAktiven = true;
+
+    @Column(name = "odjavljen_ob")
+    private OffsetDateTime odjavljenOb;
+
 }

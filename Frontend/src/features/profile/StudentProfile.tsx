@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { getMojiRezultati } from '../quiz/quizStudentApi'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
@@ -19,8 +21,23 @@ const ACTIVITY: ActivityItem[] = [
 ]
 
 export function StudentProfile() {
-  const { profil } = useAuth()
+  const { profil, session } = useAuth()
   const navigate = useNavigate()
+  const [quizCount, setQuizCount] = useState<number | null>(null)
+  const [quizAvg, setQuizAvg] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    getMojiRezultati(session.access_token).then((data: { odstotek: number }[]) => {
+      if (!Array.isArray(data) || data.length === 0) {
+        setQuizCount(0)
+        setQuizAvg(null)
+      } else {
+        setQuizCount(data.length)
+        setQuizAvg(Math.round(data.reduce((sum, r) => sum + r.odstotek, 0) / data.length))
+      }
+    })
+  }, [session])
 
   if (!profil) return null
 
@@ -60,8 +77,8 @@ export function StudentProfile() {
           />
           <StatCard
             label="QUIZZES"
-            value={STUDENT_STATS.quizzes}
-            sub={`avg. ${STUDENT_STATS.avgScore}% score`}
+            value={quizCount === null ? '…' : String(quizCount)}
+            sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''}
             bg={C.cyanLt}
           />
           <StatCard

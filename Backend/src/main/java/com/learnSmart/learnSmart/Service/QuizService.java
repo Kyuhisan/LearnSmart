@@ -2,9 +2,9 @@ package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResultResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizResultResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResultRequestDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizResultResponseDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.TopStudentDTO;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -13,8 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,7 +30,8 @@ public class QuizService {
     private final QuestionRepository questionRepository;
     private final PredmetRepository predmetRepository;
     private final VpisRepository vpisRepository;
-    private final  QuizResultRepository quizResultRepository;
+    private final QuizResultRepository quizResultRepository;
+    private final ProfilRepository profilRepository;
 
     private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
 
@@ -212,6 +216,58 @@ public class QuizService {
                             r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
                             r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(), r.getOddanoOb(), r.getOdgovori()
                     );
+                })
+                .toList();
+    }
+
+    // Top performing students across all professor's modules
+    // Score = accuracy% * (1 + speed_bonus), where speed_bonus ≤ 0.3
+    // Averaged across all quiz attempts, then top 5 returned
+    public List<TopStudentDTO> getTopStudentsZaUcitelja(UUID uciteljId) {
+        List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                .stream().map(Predmet::getId).toList();
+        if (predmetIds.isEmpty()) return List.of();
+
+        // Build a map quizId → casIzvajanja for quick lookup
+        List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds);
+        if (kvizi.isEmpty()) return List.of();
+        Map<UUID, Integer> casMap = kvizi.stream()
+                .collect(Collectors.toMap(Quiz::getId, q -> q.getCasIzvajanja() != null ? q.getCasIzvajanja() : 0));
+
+        List<UUID> kvizIds = kvizi.stream().map(Quiz::getId).toList();
+        List<QuizResult> rezultati = quizResultRepository.findByQuizIdIn(kvizIds);
+        if (rezultati.isEmpty()) return List.of();
+
+        // Group results by student, compute composite score per student
+        Map<UUID, Double> scoreByStudent = rezultati.stream()
+                .collect(Collectors.groupingBy(
+                        QuizResult::getUporabnikId,
+                        Collectors.averagingDouble(r -> {
+                            if (r.getSkupajVprasanj() == null || r.getSkupajVprasanj() == 0) return 0.0;
+                            double accuracy = (double) r.getTocke() / r.getSkupajVprasanj();
+                            int allowedMin = casMap.getOrDefault(r.getQuiz().getId(), 0);
+                            double timeBonus = 0.0;
+                            if (allowedMin > 0 && r.getCasResevanjaS() != null && r.getCasResevanjaS() > 0) {
+                                double allowedSec = allowedMin * 60.0;
+                                double speedRatio = Math.min(1.0, r.getCasResevanjaS() / allowedSec);
+                                timeBonus = (1.0 - speedRatio) * 0.3;
+                            }
+                            return accuracy * (1.0 + timeBonus) * 100.0;
+                        })
+                ));
+
+        // Fetch profiles for all students at once
+        Map<UUID, Profil> profilMap = profilRepository.findAllById(scoreByStudent.keySet())
+                .stream().collect(Collectors.toMap(Profil::getId, p -> p));
+
+        return scoreByStudent.entrySet().stream()
+                .sorted(Map.Entry.<UUID, Double>comparingByValue(Comparator.reverseOrder()))
+                .limit(5)
+                .map(e -> {
+                    Profil p = profilMap.get(e.getKey());
+                    String ime = p != null ? p.getImePriimek() : e.getKey().toString();
+                    String ucniTip = p != null ? p.getUcniTip() : null;
+                    return new TopStudentDTO(e.getKey(), ime, ucniTip, (int) Math.round(e.getValue()));
                 })
                 .toList();
     }

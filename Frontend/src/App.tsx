@@ -19,7 +19,6 @@ import { ModuleLibrary } from "./pages/ModuleLibrary";
 import { ModuleDetailPage } from "./pages/ModuleDetailPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { QuizPage } from "./pages/QuizPage";
-import { QuizHistoryPage } from "./pages/QuizHistoryPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
 import { ProgressPage } from "./pages/ProgressPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
@@ -104,14 +103,6 @@ function App() {
             element={
               <ProtectedRoute role="ucenec">
                 <QuizPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quiz/history"
-            element={
-              <ProtectedRoute role="ucenec">
-                <QuizHistoryPage />
               </ProtectedRoute>
             }
           />
