@@ -422,7 +422,7 @@ export function ProfessorModuleDetail() {
     if (session?.access_token) {
       getSteviloVpisanih(session.access_token, id).then(setSteviloVpisanih)
     }
-  }, [id])
+  }, [id, session?.access_token])
 
   const contentMap = {
     visual: <VisualContent />,
