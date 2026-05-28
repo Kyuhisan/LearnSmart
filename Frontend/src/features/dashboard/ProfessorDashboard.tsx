@@ -10,13 +10,11 @@ import { Topbar } from '../../components/ui/Topbar'
 import { useNavigate } from 'react-router-dom'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
-import { getModuliUcitelj } from '../modules/moduleApi'
+import { getModuliUcitelj, getStilMix, getTopStudents, type TopStudent } from '../modules/moduleApi'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import {
   PROFESSOR_STATS,
   PROFESSOR_PENDING_QUIZZES,
-  PROFESSOR_STYLE_MIX,
-  PROFESSOR_TOP_PERFORMERS,
 } from './mockData'
 
 interface BackendModul {
@@ -25,20 +23,26 @@ interface BackendModul {
   jeObjavljen: boolean
 }
 
-function TopPerformerRow({ s, onClick }: { s: typeof PROFESSOR_TOP_PERFORMERS[number]; onClick: () => void }) {
+function TopPerformerRow({ s, onClick }: { s: TopStudent; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
+  const styleBg = s.ucniTip && s.ucniTip in STYLE_INFO
+    ? STYLE_INFO[s.ucniTip as keyof typeof STYLE_INFO].bg
+    : C.mutedLt
+  const styleLabel = s.ucniTip && s.ucniTip in STYLE_INFO
+    ? STYLE_INFO[s.ucniTip as keyof typeof STYLE_INFO].label
+    : '—'
   return (
     <div
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], background: hovered ? C.yellowLt : C.cream, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(hovered ? 'lg' : 'base'), cursor: 'pointer', transform: hovered ? 'translate(-1px, -1px)' : 'none', transition: 'background 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease' }}>
-      <div style={{ width: 28, height: 28, borderRadius: '50%', background: STYLE_INFO[s.style].bg, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, flexShrink: 0 }}>
-        {s.name.charAt(0)}
+      <div style={{ width: 28, height: 28, borderRadius: '50%', background: styleBg, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, flexShrink: 0 }}>
+        {s.imePriimek.charAt(0)}
       </div>
-      <span style={{ flex: 1, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm }}>{s.name}</span>
-      <Tag label={s.style} bg={STYLE_INFO[s.style].bg} />
-      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md }}>{s.score}</span>
+      <span style={{ flex: 1, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm }}>{s.imePriimek}</span>
+      <Tag label={styleLabel} bg={styleBg} />
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.md, fontWeight: 700 }}>{s.score}%</span>
     </div>
   )
 }
@@ -49,6 +53,8 @@ export function ProfessorDashboard() {
   const { session } = useAuth()
   const [moduli, setModuli] = useState<BackendModul[]>([])
   const [loadingModuli, setLoadingModuli] = useState(true)
+  const [stilMixData, setStilMixData] = useState<Record<string, number> | null>(null)
+  const [topStudents, setTopStudents] = useState<TopStudent[] | null>(null)
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -56,6 +62,8 @@ export function ProfessorDashboard() {
       setModuli(data)
       setLoadingModuli(false)
     })
+    getStilMix(session.access_token).then(setStilMixData).catch(() => {})
+    getTopStudents(session.access_token).then(setTopStudents).catch(() => {})
   }, [session])
 
   return (
@@ -163,28 +171,54 @@ export function ProfessorDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[3], alignItems: 'stretch' }}>
 
           {/* Style mix */}
-          <Panel title="STUDENT STYLE MIX" accent={C.purple} p={0}
-            action={<Tag label="134 STUDENTS" bg={C.purpleLt} />}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: S[4] }}>
-              {PROFESSOR_STYLE_MIX.map((t) => (
-                <div key={t.label} style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[1.5]} ${S[3]}`, background: t.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: S[3], justifyContent: 'space-between' }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{t.label.toUpperCase()}</span>
-                    {!isMobile && <div style={{ flex: 1 }}><Bar value={t.percent} color={t.color} height={12} shadow /></div>}
-                    <Tag label={`${t.percent}%`} bg={t.color} />
-                  </div>
-                  {isMobile && <Bar value={t.percent} color={t.color} height={12} shadow />}
+          {(() => {
+            const styles = ['visual', 'reading', 'auditory', 'kinesthetic'] as const
+            const totalStudents = stilMixData ? Object.values(stilMixData).reduce((a, b) => a + b, 0) : 0
+            const rows = styles.map(key => ({
+              key,
+              label: STYLE_INFO[key].label,
+              color: STYLE_INFO[key].color,
+              colorLt: STYLE_INFO[key].bg,
+              count: stilMixData?.[key] ?? 0,
+              percent: totalStudents > 0 ? Math.round(((stilMixData?.[key] ?? 0) / totalStudents) * 100) : 0,
+            })).sort((a, b) => b.count - a.count)
+            return (
+              <Panel title="STUDENT STYLE MIX" accent={C.purple} p={0}
+                action={<Tag label={stilMixData === null ? '…' : `${totalStudents} ${totalStudents === 1 ? 'STUDENT' : 'STUDENTS'}`} bg={C.purpleLt} />}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: S[4] }}>
+                  {rows.map((t) => (
+                    <div key={t.key} style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[1.5]} ${S[3]}`, background: t.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: S[3], justifyContent: 'space-between' }}>
+                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: 100, flexShrink: 0, letterSpacing: 0.5 }}>{t.label.toUpperCase()}</span>
+                        {!isMobile && <div style={{ flex: 1 }}><Bar value={t.percent} color={t.color} height={12} shadow /></div>}
+                        <Tag label={`${t.percent}%`} bg={t.color} />
+                      </div>
+                      {isMobile && <Bar value={t.percent} color={t.color} height={12} shadow />}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Panel>
+              </Panel>
+            )
+          })()}
 
           {/* Top performers */}
           <Panel title="TOP PERFORMING STUDENTS" accent={C.green} p={S[4]}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {PROFESSOR_TOP_PERFORMERS.map((s) => (
-                <TopPerformerRow key={s.id} s={s} onClick={() => navigate(`/students/${s.id}`)} />
-              ))}
+              {topStudents === null
+                ? [C.green, C.cyan, C.yellow, C.purple, C.red].map((color, i) => (
+                    <div key={i} className="skeleton-pulse" style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.paper }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: color, opacity: 0.35 }} />
+                      <div style={{ flex: 1, height: 14, background: C.mutedLt, borderRadius: R.sm }} />
+                      <div style={{ width: 52, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+                      <div style={{ width: 36, height: 20, background: C.mutedLt, borderRadius: R.sm }} />
+                    </div>
+                  ))
+                : topStudents.length === 0
+                ? <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO QUIZ RESULTS YET</div>
+                : topStudents.map((s) => (
+                    <TopPerformerRow key={s.ucenecId} s={s} onClick={() => navigate(`/students/${s.ucenecId}`)} />
+                  ))
+              }
             </div>
           </Panel>
         </div>

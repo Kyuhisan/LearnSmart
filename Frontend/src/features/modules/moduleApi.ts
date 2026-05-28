@@ -81,6 +81,66 @@ export async function posodobiCas(token: string, predmetId: string, cas: number)
   return res.json()
 }
 
+// Stevilo vpisanih ucencev za modul
+export async function getSteviloVpisanih(token: string, predmetId: string): Promise<number> {
+  const res = await fetch(`${API}/vpisi/predmet/${predmetId}/stevilo`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+// Stil mix studentov za ucitelja
+export async function getStilMix(token: string): Promise<Record<string, number>> {
+  const res = await fetch(`${API}/vpisi/ucitelj/stilMix`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+// Students for professor (flat list + by module)
+export interface StudentSummary {
+  ucenecId: string
+  imePriimek: string
+  ucniTip: string | null
+  avgScore: number
+  steviloModulov: number
+}
+
+export interface ModuleStudents {
+  predmetId: string
+  naziv: string
+  studenti: StudentSummary[]
+}
+
+export async function getStudentiZaUcitelja(token: string): Promise<StudentSummary[]> {
+  const res = await fetch(`${API}/vpisi/ucitelj/studenti`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+export async function getStudentiPoModulih(token: string): Promise<ModuleStudents[]> {
+  const res = await fetch(`${API}/vpisi/ucitelj/moduliStudenti`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+// Top performing students za ucitelja
+export interface TopStudent {
+  ucenecId: string
+  imePriimek: string
+  ucniTip: string | null
+  score: number
+}
+
+export async function getTopStudents(token: string): Promise<TopStudent[]> {
+  const res = await fetch(`${API}/kvizi/ucitelj/topStudents`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
 // Odjava
 export async function odjavaIzModula(token: string, predmetId: string) {
   await fetch(`${API}/vpisi/${predmetId}`, {

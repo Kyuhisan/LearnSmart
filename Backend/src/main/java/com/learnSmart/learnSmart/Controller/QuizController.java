@@ -3,8 +3,9 @@ package com.learnSmart.learnSmart.Controller;
 import com.learnSmart.learnSmart.DTO.Quiz.QuestionResponseDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizGenerateRequestDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResponseDTO;
-import com.learnSmart.learnSmart.DTO.Quiz.QuizSaveRequestDTO;
 import com.learnSmart.learnSmart.DTO.Quiz.QuizResultRequestDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.QuizSaveRequestDTO;
+import com.learnSmart.learnSmart.DTO.Quiz.TopStudentDTO;
 import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import com.learnSmart.learnSmart.Service.QuizGeminiService;
@@ -120,5 +121,16 @@ public class QuizController {
             @AuthenticationPrincipal Jwt jwt) {
         UUID ucenecId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(quizService.getMojiRezultati(ucenecId));
+    }
+
+    // Top performing students za ucitelja
+    @GetMapping("/ucitelj/topStudents")
+    public ResponseEntity<List<TopStudentDTO>> getTopStudents(
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(quizService.getTopStudentsZaUcitelja(uciteljId));
     }
 }

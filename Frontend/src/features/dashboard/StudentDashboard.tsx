@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
@@ -10,10 +10,11 @@ import { Panel } from '../../components/ui/Panel'
 import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
+import { getMojiRezultati } from '../quiz/quizStudentApi'
+import { getModuliJavni, getMojiVpisi } from '../modules/moduleApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
   STUDENT_STATS,
-  STUDENT_RECENT_MODULES,
   STUDENT_UPCOMING_QUIZZES,
   STUDENT_DAILY_QUESTS,
   STUDENT_BIT_PICKS,
@@ -22,14 +23,17 @@ import {
   VARK_PROFILES,
 } from './mockData'
 
-const STAT_COLS = [
-  { label: 'XP POINTS',  value: STUDENT_STATS.xp.toLocaleString(), accent: C.yellow },
-  { label: 'DAY STREAK', value: `${STUDENT_STATS.streak}`,          accent: C.orange },
-  { label: 'QUIZ AVG',   value: `${STUDENT_STATS.avgQuizScore}%`,   accent: C.cyan   },
-  { label: 'CLASS RANK', value: `#${STUDENT_STATS.rank}`,           accent: C.purple },
-]
+const MODULE_COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
 
-function ModuleRow({ mod, onClick }: { mod: typeof STUDENT_RECENT_MODULES[number]; onClick: () => void }) {
+interface DashboardModule {
+  id: string
+  naziv: string
+  uciteljImePriimek: string
+  color: string
+}
+
+
+function ModuleRow({ mod, onClick }: { mod: DashboardModule; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   const isMobile = useBreakpoint() === 'mobile'
   const baseStyle = { padding: S[2], background: hovered ? C.yellowLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(hovered ? 'lg' : 'base'), cursor: 'pointer', transform: hovered ? 'translate(-1px,-1px)' : 'none', transition: 'background 0.1s, transform 0.1s, box-shadow 0.1s' }
@@ -38,12 +42,9 @@ function ModuleRow({ mod, onClick }: { mod: typeof STUDENT_RECENT_MODULES[number
     return (
       <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
         style={{ ...baseStyle, display: 'flex', flexDirection: 'column', gap: S[1] }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: S[2] }}>
-          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, minWidth: 0 }}>{mod.title}</div>
-          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>{mod.progress}% DONE</div>
-        </div>
-        <div style={{ fontSize: FS.xs, color: C.muted }}>Next: {mod.nextUp}</div>
-        <Bar value={mod.progress} color={mod.color} shadow />
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.naziv}</div>
+        <div style={{ fontSize: FS.xs, color: C.muted }}>Prof. {mod.uciteljImePriimek}</div>
+        <Bar value={0} color={mod.color} shadow />
       </div>
     )
   }
@@ -55,13 +56,9 @@ function ModuleRow({ mod, onClick }: { mod: typeof STUDENT_RECENT_MODULES[number
         <IconBox size={16} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.title}</div>
-        <div style={{ fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>Next: {mod.nextUp}</div>
-        <div style={{ marginTop: S[1] }}><Bar value={mod.progress} color={mod.color} shadow /></div>
-      </div>
-      <div style={{ textAlign: 'right', flexShrink: 0 }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{mod.progress}%</div>
-        <div style={{ fontSize: FS['2xs'], color: C.muted, fontWeight: 700 }}>DONE</div>
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.naziv}</div>
+        <div style={{ fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>Prof. {mod.uciteljImePriimek}</div>
+        <div style={{ marginTop: S[1] }}><Bar value={0} color={mod.color} shadow /></div>
       </div>
     </div>
   )
@@ -137,13 +134,51 @@ function QuizItem({ q }: { q: typeof STUDENT_UPCOMING_QUIZZES[number] }) {
 
 export function StudentDashboard() {
   const navigate = useNavigate()
-  const { profil } = useAuth()
+  const { profil, session } = useAuth()
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
   const [quests, setQuests] = useState(() => STUDENT_DAILY_QUESTS.map(q => ({ ...q })))
   const doneCount = quests.filter(q => q.done).length
   const totalXpToday = quests.filter(q => q.done).reduce((a, q) => a + q.xp, 0)
+
+  const [quizAvg, setQuizAvg] = useState<number | null>(null)
+  const [quizCount, setQuizCount] = useState<number | null>(null)
+  const [recentModules, setRecentModules] = useState<DashboardModule[]>([])
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    getMojiRezultati(session.access_token).then((data: { odstotek: number }[]) => {
+      if (!Array.isArray(data) || data.length === 0) {
+        setQuizCount(0)
+        setQuizAvg(null)
+      } else {
+        setQuizCount(data.length)
+        setQuizAvg(Math.round(data.reduce((sum, r) => sum + r.odstotek, 0) / data.length))
+      }
+    })
+    Promise.all([getModuliJavni(), getMojiVpisi(session.access_token)]).then(
+      ([allMods, vpisi]: [{ id: string; naziv: string; uciteljImePriimek: string }[], { predmetId: string }[]]) => {
+        const enrolledIds = new Set(vpisi.map(v => v.predmetId))
+        const enrolled = allMods
+          .filter(m => enrolledIds.has(m.id))
+          .slice(0, 5)
+          .map((m, i) => ({ ...m, color: MODULE_COLORS[i % MODULE_COLORS.length] }))
+        setRecentModules(enrolled)
+      }
+    )
+  }, [session])
+
+  const quizAvgValue = quizCount === null ? '…'
+    : quizCount === 0 ? '—'
+    : `${quizAvg}%`
+
+  const STAT_COLS = [
+    { label: 'XP POINTS',  value: STUDENT_STATS.xp.toLocaleString(), accent: C.yellow },
+    { label: 'DAY STREAK', value: `${STUDENT_STATS.streak}`,          accent: C.orange },
+    { label: 'QUIZ AVG',   value: quizAvgValue, accent: quizCount === 0 ? C.mutedLt : C.cyan, noData: quizCount === 0 },
+    { label: 'CLASS RANK', value: `#${STUDENT_STATS.rank}`,           accent: C.purple },
+  ]
 
   const styleKey = profil?.ucniTip && VARK_PROFILES[profil.ucniTip] ? profil.ucniTip : null
   const styleProfile = styleKey ? VARK_PROFILES[styleKey] : null
@@ -178,9 +213,12 @@ export function StudentDashboard() {
         <Panel title="YOUR STATISTICS" accent={C.yellow} p={0}>
           <div className="stat-grid">
             {STAT_COLS.map((s, i) => (
-              <div key={s.label} className="stat-grid-cell" style={{ borderRight: i < STAT_COLS.length - 1 ? `${BW.base} solid ${C.divider}` : 'none', display: 'flex', flexDirection: 'column', gap: S[1] }}>
-                <div className="stat-grid-value">{s.value}</div>
-                <div className="stat-grid-label">{s.label}</div>
+              <div key={s.label} className="stat-grid-cell" style={{ borderRight: i < STAT_COLS.length - 1 ? `${BW.base} solid ${C.divider}` : 'none', display: 'flex', flexDirection: 'column', gap: S[1], background: s.noData ? C.cream : undefined }}>
+                <div className="stat-grid-value" style={{ color: s.noData ? C.muted : undefined }}>{s.value}</div>
+                <div className="stat-grid-label" style={{ color: s.noData ? C.muted : undefined }}>{s.label}</div>
+                {s.noData && (
+                  <div style={{ fontSize: FS['2xs'], color: C.muted, fontFamily: "'Space Mono', monospace" }}>NO QUIZZES COMPLETED YET</div>
+                )}
               </div>
             ))}
           </div>
@@ -241,9 +279,15 @@ export function StudentDashboard() {
           <Panel title="YOUR MODULES" accent={C.yellow} p={S[4]}
             action={<ComicBtn sm color={C.yellow} onClick={() => navigate('/modules')}>SEE ALL →</ComicBtn>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {STUDENT_RECENT_MODULES.map((mod) => (
-                <ModuleRow key={mod.id} mod={mod} onClick={() => navigate(`/modules/${mod.id}`)} />
-              ))}
+              {recentModules.length === 0 ? (
+                <div style={{ padding: `${S[4]} 0`, textAlign: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>
+                  NO ENROLLED MODULES YET
+                </div>
+              ) : (
+                recentModules.map((mod) => (
+                  <ModuleRow key={mod.id} mod={mod} onClick={() => navigate(`/modules/${mod.id}`)} />
+                ))
+              )}
             </div>
           </Panel>
 
