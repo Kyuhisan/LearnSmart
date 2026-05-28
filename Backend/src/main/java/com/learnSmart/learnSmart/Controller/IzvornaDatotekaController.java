@@ -27,7 +27,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/content")
-public class IzvornaDatotekaController {
+public class IzvornaDatotekaController   {
     private final StorageService storageService;
     private final PredmetRepository predmetRepository;
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;

@@ -4,6 +4,7 @@ import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.VpisRepository;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
 import com.learnSmart.learnSmart.Mapper.PredmetMapper;
@@ -23,10 +24,12 @@ public class PredmetService {
 
     private final PredmetRepository predmetRepository;
     private final ProfilRepository profilRepository;
+    private final VpisRepository vpisRepository;
 
     private PredmetResponseDTO toResponseWithProfil(Predmet predmet) {
         Profil profil = profilRepository.findById(predmet.getUciteljId()).orElse(null);
-        return PredmetMapper.toResponse(predmet, profil);
+        long count = vpisRepository.countByPredmetIdAndJeAktivenTrue(predmet.getId());
+        return PredmetMapper.toResponse(predmet, profil, count);
     }
 
     public List<PredmetResponseDTO> getObjavljene() {

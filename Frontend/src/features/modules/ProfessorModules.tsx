@@ -29,6 +29,7 @@ interface BackendModul {
   ustvarjenOb: string;
   uciteljImePriimek: string;
   kategorije: string[] | null;
+  steviloVpisanih: number;
 }
 
 function ConfirmDialog({
@@ -100,8 +101,11 @@ function ProfModuleCard({
         padding: S[3], paddingTop: S[5],
         display: 'flex', flexDirection: 'column', gap: S[2], flex: 1,
       }}>
-        {/* Difficulty */}
-        <div><Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} /></div>
+        {/* Difficulty + student count */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
+          <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+          <Tag label={`${mod.steviloVpisanih} ${mod.steviloVpisanih === 1 ? 'STUDENT' : 'STUDENTS'}`} bg={C.cyanLt} />
+        </div>
 
         {/* Title */}
         <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink, lineHeight: 1.25, wordBreak: 'break-word' }}>
@@ -178,6 +182,7 @@ function ProfModuleListRow({
         {/* Tags */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: S[1.5] }}>
           <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+          <Tag label={`${mod.steviloVpisanih} ${mod.steviloVpisanih === 1 ? 'STUDENT' : 'STUDENTS'}`} bg={C.cyanLt} />
           {tags.map(t => <Tag key={t} label={t} bg={TAG_COLORS[t] ?? C.mutedLt} />)}
           <Tag label={mod.jeObjavljen ? '● LIVE' : '○ DRAFT'} bg={mod.jeObjavljen ? C.green : C.mutedLt} />
         </div>
