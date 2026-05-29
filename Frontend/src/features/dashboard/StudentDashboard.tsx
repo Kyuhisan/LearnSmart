@@ -10,12 +10,11 @@ import { Panel } from '../../components/ui/Panel'
 import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
-import { getMojiRezultati } from '../quiz/quizStudentApi'
+import { getMojiRezultati, getMojiKvizi } from '../quiz/quizStudentApi'
 import { getModuliJavni, getMojiVpisi } from '../modules/moduleApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
   STUDENT_STATS,
-  STUDENT_UPCOMING_QUIZZES,
   STUDENT_DAILY_QUESTS,
   STUDENT_BIT_PICKS,
   STUDENT_LEADERBOARD,
@@ -25,7 +24,7 @@ import {
 
 const MODULE_COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
 
-function LearningTypeIcon({ type, size = 20 }: { type: string; size?: number }) {
+export function LearningTypeIcon({ type, size = 20 }: { type: string; size?: number }) {
   switch (type) {
     case 'visual':
       return (
@@ -59,37 +58,60 @@ function LearningTypeIcon({ type, size = 20 }: { type: string; size?: number }) 
 interface DashboardModule {
   id: string
   naziv: string
+  opis: string
+  tezavnost: number
   uciteljImePriimek: string
   color: string
+  casNaModulu: number // seconds
+}
+
+const STAR_LABELS: Record<number, string> = { 1: '★', 2: '★★', 3: '★★★', 4: '★★★★', 5: '★★★★★' }
+
+function formatCas(sekunde: number): string {
+  if (sekunde < 60) return `${sekunde}s`
+  const min = Math.floor(sekunde / 60)
+  if (min < 60) return `${min}m`
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
 
 function ModuleRow({ mod, onClick }: { mod: DashboardModule; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   const isMobile = useBreakpoint() === 'mobile'
-  const baseStyle = { padding: S[2], background: hovered ? C.yellowLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(hovered ? 'lg' : 'base'), cursor: 'pointer', transform: hovered ? 'translate(-1px,-1px)' : 'none', transition: 'background 0.1s, transform 0.1s, box-shadow 0.1s' }
+  const wrapStyle = { border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(hovered ? 'lg' : 'base'), cursor: 'pointer', transform: hovered ? 'translate(-1px,-1px)' : 'none', transition: 'transform 0.1s, box-shadow 0.1s', display: 'flex', alignItems: 'stretch', overflow: 'hidden' }
+  const contentStyle = { flex: 1, minWidth: 0, background: hovered ? C.yellowLt : C.paper, transition: 'background 0.1s' }
+
+  const tags = (
+    <div style={{ display: 'flex', gap: S[1], flexWrap: 'nowrap' }}>
+      <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+      {mod.casNaModulu > 0 && <Tag label={`⏱ ${formatCas(mod.casNaModulu)} SPENT`} bg={C.cyan} />}
+    </div>
+  )
 
   if (isMobile) {
     return (
-      <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-        style={{ ...baseStyle, display: 'flex', flexDirection: 'column', gap: S[1] }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.naziv}</div>
-        <div style={{ fontSize: FS.xs, color: C.muted }}>Prof. {mod.uciteljImePriimek}</div>
-        <Bar value={0} color={mod.color} shadow />
+      <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={wrapStyle}>
+        <div style={{ width: 6, background: mod.color, flexShrink: 0 }} />
+        <div style={{ ...contentStyle, display: 'flex', flexDirection: 'column', gap: S[1], padding: S[2] }}>
+          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.naziv}</div>
+          <div style={{ fontSize: FS.xs, color: C.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mod.opis}</div>
+          {tags}
+        </div>
       </div>
     )
   }
 
   return (
-    <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ ...baseStyle, display: 'flex', alignItems: 'center', gap: S[3] }}>
-      <div style={{ width: 36, height: 36, background: mod.color, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <IconBox size={16} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.naziv}</div>
-        <div style={{ fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>Prof. {mod.uciteljImePriimek}</div>
-        <div style={{ marginTop: S[1] }}><Bar value={0} color={mod.color} shadow /></div>
+    <div onClick={onClick} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={wrapStyle}>
+      <div style={{ width: 6, background: mod.color, flexShrink: 0 }} />
+      <div style={{ ...contentStyle, display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[2]} ${S[3]}` }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{mod.naziv}</div>
+          <div style={{ fontSize: FS.xs, color: C.muted, marginTop: S[0.5], overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mod.opis}</div>
+        </div>
+        {tags}
       </div>
     </div>
   )
@@ -113,55 +135,6 @@ function QuestRow({ q, onToggle }: { q: { id: string; label: string; xp: number;
   )
 }
 
-function QuizItem({ q }: { q: typeof STUDENT_UPCOMING_QUIZZES[number] }) {
-  const bp = useBreakpoint()
-  const isMobile = bp === 'mobile'
-  const isTablet = bp === 'tablet'
-
-  if (isMobile) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: S[2], background: q.urgent ? C.redLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: S[2] }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{q.title}</div>
-            <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{q.module}</div>
-          </div>
-          <Tag label={q.due} bg={q.urgent ? C.red : C.mutedLt} />
-        </div>
-        <ComicBtn sm color={q.urgent ? C.red : C.yellow}>GO →</ComicBtn>
-      </div>
-    )
-  }
-
-  if (isTablet) {
-    return (
-      <div style={{ padding: S[2], background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-          <div style={{ width: 32, height: 32, background: q.urgent ? C.redLt : C.mutedLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{q.title}</div>
-            <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{q.module}</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: S[2] }}>
-          <Tag label={q.due} bg={q.urgent ? C.red : C.mutedLt} />
-          <ComicBtn sm color={q.urgent ? C.red : C.yellow}>GO →</ComicBtn>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], background: q.urgent ? C.redLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{q.title}</div>
-        <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{q.module}</div>
-      </div>
-      <Tag label={q.due} bg={q.urgent ? C.red : C.mutedLt} />
-      <ComicBtn sm color={q.urgent ? C.red : C.yellow}>GO →</ComicBtn>
-    </div>
-  )
-}
 
 export function StudentDashboard() {
   const navigate = useNavigate()
@@ -176,25 +149,34 @@ export function StudentDashboard() {
   const [quizAvg, setQuizAvg] = useState<number | null>(null)
   const [quizCount, setQuizCount] = useState<number | null>(null)
   const [recentModules, setRecentModules] = useState<DashboardModule[]>([])
+  const [allQuizzes, setAllQuizzes] = useState<{ id: string; naziv: string; status: string; casIzvajanja: number | null; predmetId: string }[] | null>(null)
+  const [completedQuizIds, setCompletedQuizIds] = useState<Set<string>>(new Set())
+  const [completedScores, setCompletedScores] = useState<Record<string, number>>({})
+  const [moduleMap, setModuleMap] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!session?.access_token) return
-    getMojiRezultati(session.access_token).then((data: { odstotek: number }[]) => {
+    getMojiRezultati(session.access_token).then((data: { kvizId: string; odstotek: number }[]) => {
       if (!Array.isArray(data) || data.length === 0) {
         setQuizCount(0)
         setQuizAvg(null)
       } else {
         setQuizCount(data.length)
         setQuizAvg(Math.round(data.reduce((sum, r) => sum + r.odstotek, 0) / data.length))
+        setCompletedQuizIds(new Set(data.map(r => r.kvizId)))
+        setCompletedScores(Object.fromEntries(data.map(r => [r.kvizId, r.odstotek])))
       }
     })
+    getMojiKvizi(session.access_token).then(setAllQuizzes).catch(() => setAllQuizzes([]))
     Promise.all([getModuliJavni(), getMojiVpisi(session.access_token)]).then(
-      ([allMods, vpisi]: [{ id: string; naziv: string; uciteljImePriimek: string }[], { predmetId: string }[]]) => {
+      ([allMods, vpisi]: [{ id: string; naziv: string; opis: string; tezavnost: number; uciteljImePriimek: string }[], { predmetId: string; casNaModulu: number }[]]) => {
+        const casMap = Object.fromEntries(vpisi.map(v => [v.predmetId, v.casNaModulu ?? 0]))
         const enrolledIds = new Set(vpisi.map(v => v.predmetId))
+        setModuleMap(Object.fromEntries(allMods.map(m => [m.id, m.naziv])))
         const enrolled = allMods
           .filter(m => enrolledIds.has(m.id))
           .slice(0, 5)
-          .map((m, i) => ({ ...m, color: MODULE_COLORS[i % MODULE_COLORS.length] }))
+          .map((m, i) => ({ ...m, color: MODULE_COLORS[i % MODULE_COLORS.length], casNaModulu: casMap[m.id] ?? 0 }))
         setRecentModules(enrolled)
       }
     )
@@ -278,13 +260,21 @@ export function StudentDashboard() {
                   </div>
                   <div style={{ fontSize: FS.xs, color: C.ink, lineHeight: 1.6 }}>{styleProfile.description}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
-                    {styleProfile.vark.map((v) => (
-                      <div key={v.key} style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, width: 20, flexShrink: 0, color: C.ink }}>{v.key}</span>
-                        <div style={{ flex: 1 }}><Bar value={v.score} color={v.color} shadow /></div>
-                        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, width: 28, textAlign: 'right', color: C.muted }}>{v.score}</span>
-                      </div>
-                    ))}
+                    {([
+                      { key: 'V', field: 'visual'      , color: C.purple },
+                      { key: 'A', field: 'auditory'    , color: C.cyan   },
+                      { key: 'R', field: 'reading'     , color: C.green  },
+                      { key: 'K', field: 'kinesthetic' , color: C.orange },
+                    ] as { key: string; field: keyof NonNullable<typeof profil.varkScores>; color: string }[]).map(({ key, field, color }) => {
+                      const score = profil.varkScores?.[field] ?? 0
+                      return (
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, width: 20, flexShrink: 0, color: C.ink }}>{key}</span>
+                          <div style={{ flex: 1 }}><Bar value={score} max={16} color={color} shadow /></div>
+                          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, width: 28, textAlign: 'right', color: C.muted }}>{score}</span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </>
               )}
@@ -337,7 +327,7 @@ export function StudentDashboard() {
                       </div>
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>{pick.title}</div>
+                      <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{pick.title}</div>
                       <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{pick.reason}</div>
                     </div>
                   </div>
@@ -368,14 +358,71 @@ export function StudentDashboard() {
             </div>
           </Panel>
 
-          <Panel title="UPCOMING QUIZZES" accent={C.red} p={S[4]}
-            action={<Tag label={`${STUDENT_UPCOMING_QUIZZES.length} DUE`} bg={C.redLt} />}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {STUDENT_UPCOMING_QUIZZES.map((q) => (
-                <QuizItem key={q.id} q={q} />
-              ))}
-            </div>
-          </Panel>
+          {(() => {
+            const due = (allQuizzes ?? []).filter(q => !completedQuizIds.has(q.id))
+            const done = (allQuizzes ?? []).filter(q => completedQuizIds.has(q.id))
+            const loading = allQuizzes === null
+            return (
+              <Panel title="QUIZZES" accent={C.red} p={S[4]}
+                action={(() => {
+                  const passed = done.filter(q => (completedScores[q.id] ?? 0) >= 50).length
+                  const failed = done.length - passed
+                  return loading ? <Tag label="…" bg={C.redLt} /> : (
+                    <div style={{ display: 'flex', gap: S[1] }}>
+                      <Tag label={`${due.length} DUE`} bg={C.yellowLt} />
+                      <Tag label={`${passed} PASSED`} bg={C.greenLt} />
+                      <Tag label={`${failed} FAILED`} bg={C.redLt} />
+                    </div>
+                  )
+                })()}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+                  {loading ? (
+                    [C.red, C.yellow, C.green].map((color, i) => (
+                      <div key={i} className="skeleton-pulse" style={{ padding: S[2], border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.paper }}>
+                        <div style={{ height: 12, background: color, opacity: 0.35, borderRadius: R.sm, marginBottom: S[1] }} />
+                        <div style={{ height: 10, width: '60%', background: C.mutedLt, borderRadius: R.sm }} />
+                      </div>
+                    ))
+                  ) : allQuizzes!.length === 0 ? (
+                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO QUIZZES YET</div>
+                  ) : (
+                    [...due, ...done].map(q => {
+                      const isDone = completedQuizIds.has(q.id)
+                      const score = completedScores[q.id]
+                      const isPublished = q.status === 'PUBLISHED' || q.status === 'active'
+                      const stripeColor = isDone ? C.green : isPublished ? C.red : C.muted
+                      return (
+                        <div key={q.id} style={{ display: 'flex', alignItems: 'stretch', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
+                          <div style={{ width: 4, background: stripeColor, flexShrink: 0 }} />
+                          <div style={{ flex: 1, padding: `${S[1.5]} ${S[2]}`, background: C.paper, display: 'flex', flexDirection: 'column', gap: S[1] }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                              <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.naziv}</span>
+                              {q.casIzvajanja && <Tag label={`⏱ ${q.casIzvajanja} MIN`} bg={C.mutedLt} />}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: S[1] }}>
+                              <Tag label={moduleMap[q.predmetId] ?? '—'} bg={C.yellowLt} />
+                              <div style={{ marginLeft: 'auto' }}>
+                                {isDone
+                                  ? <Tag label={`LAST SCORE ${score}%`} bg={score >= 50 ? C.green : C.red} />
+                                  : isPublished
+                                  ? <Tag label="● LIVE" bg={C.green} />
+                                  : <Tag label="○ DRAFT" bg={C.mutedLt} />}
+                              </div>
+                              {!isDone && isPublished && (
+                                <div style={{ marginLeft: 'auto' }}>
+                                  <ComicBtn sm color={C.yellow} onClick={() => navigate('/quiz', { state: { quizId: q.id } })}>GO →</ComicBtn>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </Panel>
+            )
+          })()}
         </div>
 
         {/* Badges — full width */}

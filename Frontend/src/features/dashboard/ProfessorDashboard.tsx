@@ -12,7 +12,6 @@ import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
 import { getModuliUcitelj, getStilMix, getTopStudents, getKviziUcitelja, type TopStudent, type QuizDTO } from '../modules/moduleApi'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
-import { PROFESSOR_STATS } from './mockData'
 
 interface BackendModul {
   id: string
@@ -71,7 +70,12 @@ export function ProfessorDashboard() {
 
       <Topbar
         title="HOME BASE — PROF"
-        subtitle="Friday · May 2 · 3 quizzes need approval"
+        subtitle={(() => {
+          const now = new Date()
+          const day = now.toLocaleDateString('en-GB', { weekday: 'long' })
+          const date = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+          return `${day} · ${date}`
+        })()}
         actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>3 NEW</ComicBtn>}
       />
 
@@ -88,23 +92,27 @@ export function ProfessorDashboard() {
           </SpeechBubble>
         </div>
 
-        {/* Stat cards */}
-        <div className="quiz-stat-grid">
-          {PROFESSOR_STATS.map((s) => (
-            <ComicBox key={s.label} bg={s.bg} p={S[4]}>
-              <div className="stat-card-value" style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['5xl'], lineHeight: 1, color: s.dark ? C.paper : C.ink }}>
-                {s.label === 'STUDENTS'
-                  ? (stilMixData === null ? '…' : String(stilMixData['_total'] ?? 0))
-                  : s.label === 'MODULES'
-                  ? (loadingModuli ? '…' : String(moduli.length))
-                  : s.label === 'PENDING'
-                  ? (loadingModuli ? '…' : String(moduli.filter(m => !m.jeObjavljen).length))
-                  : s.value}
+        {/* Stat cells */}
+        {(() => {
+          const profStats = [
+            { label: 'STUDENTS',   value: stilMixData === null ? '…' : String(stilMixData['_total'] ?? 0) },
+            { label: 'MODULES',    value: loadingModuli ? '…' : String(moduli.length) },
+            { label: 'PENDING',    value: loadingModuli ? '…' : String(moduli.filter(m => !m.jeObjavljen).length) },
+            { label: 'PUBLISHED',  value: loadingModuli ? '…' : String(moduli.filter(m => m.jeObjavljen).length) },
+          ]
+          return (
+            <Panel title="YOUR STATISTICS" accent={C.yellow} p={0}>
+              <div className="stat-grid">
+                {profStats.map((s, i) => (
+                  <div key={s.label} className="stat-grid-cell" style={{ borderRight: i < profStats.length - 1 ? `${BW.base} solid ${C.divider}` : 'none', display: 'flex', flexDirection: 'column', gap: S[1] }}>
+                    <div className="stat-grid-value">{s.value}</div>
+                    <div className="stat-grid-label">{s.label}</div>
+                  </div>
+                ))}
               </div>
-              <div className="stat-card-label" style={{ fontSize: FS.xs, fontWeight: 800, letterSpacing: 1, marginTop: S[1], fontFamily: "'Archivo Black', sans-serif", color: s.dark ? C.paper : C.ink }}>{s.label}</div>
-            </ComicBox>
-          ))}
-        </div>
+            </Panel>
+          )
+        })()}
 
         {/* AI Builder CTA */}
         <ComicBox bg={C.navy} p={S[5]} style={{ color: C.paper }}>
@@ -137,7 +145,7 @@ export function ProfessorDashboard() {
                 ? <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO MODULES YET</div>
                 : moduli.map((m) => (
                     <div key={m.id} onClick={() => navigate('/modules', { state: { editId: m.id } })} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: S[2], background: m.jeObjavljen ? C.paper : C.cream, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), cursor: 'pointer' }}>
-                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {m.naziv.toUpperCase()}
                       </span>
                       <span style={{ flexShrink: 0 }}>
@@ -183,7 +191,7 @@ export function ProfessorDashboard() {
                     : filteredKvizi.map(q => (
                         <div key={q.id} style={{ padding: S[2], background: C.redLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexWrap: 'wrap' }}>
-                            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, flex: 1, minWidth: 0 }}>{q.naziv.toUpperCase()}</span>
+                            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, flex: 1, minWidth: 0 }}>{q.naziv.toUpperCase()}</span>
                             <Tag label={q.status === 'PUBLISHED' ? '● LIVE' : '○ DRAFT'} bg={q.status === 'PUBLISHED' ? C.green : C.mutedLt} />
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: S[2], marginTop: S[1] }}>

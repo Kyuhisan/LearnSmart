@@ -24,7 +24,7 @@ class UserServiceTest {
     @Test
     void updateLearningStyle_throwsWhenSupabaseUnavailable() {
         assertThrows(RuntimeException.class, () ->
-                userService.updateLearningStyle("user-123", "VISUAL")
+                userService.updateLearningStyle("user-123", "VISUAL", 8, 2, 4, 2)
         );
     }
 
@@ -33,7 +33,7 @@ class UserServiceTest {
         ReflectionTestUtils.setField(userService, "supabaseUrl", "invalid-url");
 
         assertThrows(RuntimeException.class, () ->
-                userService.updateLearningStyle("user-123", "KINESTHETIC")
+                userService.updateLearningStyle("user-123", "KINESTHETIC", 2, 3, 4, 7)
         );
     }
 }

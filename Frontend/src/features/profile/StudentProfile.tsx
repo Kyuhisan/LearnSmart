@@ -9,7 +9,6 @@ import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
 import { C, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
-import { VARK_PROFILES } from '../dashboard/mockData'
 import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
@@ -41,13 +40,9 @@ export function StudentProfile() {
 
   if (!profil) return null
 
-  const KEY_MAP: Record<string, LearningStyle> = { V: 'visual', A: 'auditory', R: 'reading', K: 'kinesthetic' }
   const styleKey = profil.ucniTip && STYLE_INFO[profil.ucniTip as LearningStyle] ? profil.ucniTip as LearningStyle : null
   const styleInfo = styleKey ? STYLE_INFO[styleKey] : null
-  const varkProfile = styleKey ? VARK_PROFILES[styleKey] : null
-  const varkScores: Record<LearningStyle, number> | null = varkProfile
-    ? varkProfile.vark.reduce((acc, v) => { acc[KEY_MAP[v.key]] = v.score; return acc }, { visual: 0, auditory: 0, reading: 0, kinesthetic: 0 } as Record<LearningStyle, number>)
-    : null
+  const varkScores = profil.varkScores ?? null
 
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>

@@ -57,7 +57,7 @@ class AiControllerTest {
         Map<String, List<String>> request = Map.of("answers", answers);
         aiController.classifyStyle(request, jwt);
 
-        verify(userService, times(1)).updateLearningStyle("user-123", "kinesthetic");
+        verify(userService, times(1)).updateLearningStyle("user-123", "kinesthetic", 0, 0, 0, 2);
     }
 
     @Test
@@ -70,7 +70,7 @@ class AiControllerTest {
         Map<String, List<String>> request = Map.of("answers", answers);
         aiController.classifyStyle(request, null);
 
-        verify(userService, never()).updateLearningStyle(any(), any());
+        verify(userService, never()).updateLearningStyle(any(), any(), anyInt(), anyInt(), anyInt(), anyInt());
     }
 
     @Test
@@ -81,7 +81,7 @@ class AiControllerTest {
         when(geminiService.classify(answers)).thenReturn(mockResponse);
         when(jwt.getSubject()).thenReturn("user-123");
         doThrow(new RuntimeException("Supabase error"))
-                .when(userService).updateLearningStyle(any(), any());
+                .when(userService).updateLearningStyle(any(), any(), anyInt(), anyInt(), anyInt(), anyInt());
 
         Map<String, List<String>> request = Map.of("answers", answers);
         ResponseEntity<LearningStyleResponse> response = aiController.classifyStyle(request, jwt);

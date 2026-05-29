@@ -158,6 +158,28 @@ export async function getKviziUcitelja(token: string): Promise<QuizDTO[]> {
   return res.json()
 }
 
+// Analytics stats za ucitelja
+export interface AnalyticsStats {
+  totalStudents: number
+  avgScore: number
+  avgCompletion: number
+  passRate: number
+}
+
+export async function getAnalyticsStats(token: string): Promise<AnalyticsStats> {
+  const res = await fetch(`${API}/kvizi/ucitelj/analyticsStats`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+export async function getAnalyticsStatsByModule(token: string, predmetId: string): Promise<AnalyticsStats> {
+  const res = await fetch(`${API}/kvizi/ucitelj/analyticsStats/${predmetId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
 // Odjava
 export async function odjavaIzModula(token: string, predmetId: string) {
   await fetch(`${API}/vpisi/${predmetId}`, {

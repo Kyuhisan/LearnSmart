@@ -4,18 +4,12 @@ import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
 import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBtn } from '../../components/ui/ComicBtn'
+import { LearningTypeIcon } from '../dashboard/StudentDashboard'
 
 interface LearningStylePanelProps {
   readonly learningStyle: LearningStyle | null
   readonly varkScores: Record<LearningStyle, number> | null
   readonly onRetakeVark?: () => void
-}
-
-const STYLE_EMOJI: Record<LearningStyle, string> = {
-  visual:      '👁',
-  reading:     '📖',
-  auditory:    '🎧',
-  kinesthetic: '🤸',
 }
 
 const STYLE_EXPLANATION: Record<LearningStyle, string> = {
@@ -56,18 +50,18 @@ export function LearningStylePanel({ learningStyle, varkScores, onRetakeVark }: 
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
             <div style={{
-              fontSize: '1.75rem',
               width: 52,
               height: 52,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: info.bg,
+              background: info.color,
               border: `${BW.base} solid ${C.ink}`,
               borderRadius: R.base,
               flexShrink: 0,
+              color: C.ink,
             }}>
-              {STYLE_EMOJI[learningStyle]}
+              <LearningTypeIcon type={learningStyle} size={28} />
             </div>
 
             <div style={{

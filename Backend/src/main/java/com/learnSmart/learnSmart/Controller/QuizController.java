@@ -149,6 +149,21 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getKviziZaUcitelja(uciteljId));
     }
 
+    @GetMapping("/ucitelj/analyticsStats")
+    public ResponseEntity<AnalyticsStatsDTO> getAnalyticsStats(@AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getAnalyticsStatsZaUcitelja(uciteljId));
+    }
+
+    @GetMapping("/ucitelj/analyticsStats/{predmetId}")
+    public ResponseEntity<AnalyticsStatsDTO> getAnalyticsStatsByModule(@PathVariable UUID predmetId,
+                                                                        @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getAnalyticsStatsZaPredmet(predmetId));
+    }
+
     @GetMapping("/ucitelj/topStudents")
     public ResponseEntity<List<TopStudentDTO>> getTopStudents(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());

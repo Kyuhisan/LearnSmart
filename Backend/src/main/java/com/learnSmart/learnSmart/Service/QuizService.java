@@ -229,6 +229,48 @@ public class QuizService {
                 .toList();
     }
 
+    private AnalyticsStatsDTO computeStats(List<UUID> predmetIds) {
+        List<Vpis> vpisi = vpisRepository.findByPredmetIdInAndJeAktivenTrue(predmetIds);
+        Set<UUID> enrolledStudents = vpisi.stream().map(Vpis::getUcenecId).collect(Collectors.toSet());
+        int totalStudents = enrolledStudents.size();
+
+        List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds);
+        if (kvizi.isEmpty()) return new AnalyticsStatsDTO(totalStudents, 0, 0, 0);
+
+        List<UUID> kvizIds = kvizi.stream().map(Quiz::getId).toList();
+        List<QuizResult> rezultati = quizResultRepository.findByQuizIdIn(kvizIds);
+        if (rezultati.isEmpty()) return new AnalyticsStatsDTO(totalStudents, 0, 0, 0);
+
+        int avgScore = (int) Math.round(rezultati.stream()
+                .mapToDouble(r -> r.getSkupajVprasanj() > 0 ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                .average().orElse(0));
+
+        long passed = rezultati.stream()
+                .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                .count();
+        int passRate = (int) Math.round((double) passed / rezultati.size() * 100);
+
+        Set<UUID> studentsWithPass = rezultati.stream()
+                .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                .map(QuizResult::getUporabnikId)
+                .collect(Collectors.toSet());
+        int avgCompletion = totalStudents == 0 ? 0
+                : (int) Math.round((double) studentsWithPass.size() / totalStudents * 100);
+
+        return new AnalyticsStatsDTO(totalStudents, avgScore, avgCompletion, passRate);
+    }
+
+    public AnalyticsStatsDTO getAnalyticsStatsZaUcitelja(UUID uciteljId) {
+        List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                .stream().map(Predmet::getId).toList();
+        if (predmetIds.isEmpty()) return new AnalyticsStatsDTO(0, 0, 0, 0);
+        return computeStats(predmetIds);
+    }
+
+    public AnalyticsStatsDTO getAnalyticsStatsZaPredmet(UUID predmetId) {
+        return computeStats(List.of(predmetId));
+    }
+
     public List<TopStudentDTO> getTopStudentsZaUcitelja(UUID uciteljId) {
         List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
                 .stream().map(Predmet::getId).toList();

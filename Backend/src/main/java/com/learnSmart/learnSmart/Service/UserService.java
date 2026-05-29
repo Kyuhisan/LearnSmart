@@ -26,12 +26,17 @@ public class UserService {
         return headers;
     }
 
-    public void updateLearningStyle(String userId, String style) {
+    public void updateLearningStyle(String userId, String style,
+            int visual, int auditory, int reading, int kinesthetic) {
         RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
 
         try {
-            Map<String, String> updateBody = Map.of(
-                    "ucni_tip", style
+            Map<String, Object> updateBody = Map.of(
+                    "ucni_tip", style,
+                    "vark_visual", visual,
+                    "vark_auditory", auditory,
+                    "vark_reading", reading,
+                    "vark_kinesthetic", kinesthetic
             );
             restTemplate.exchange(
                     supabaseUrl + "/rest/v1/profili?id=eq." + userId,

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
 import { ComicBtn } from '../../components/ui/ComicBtn'
@@ -49,6 +50,9 @@ function formatDatum(iso: string): string {
 
 export function StudentQuiz() {
   const { session } = useAuth()
+  const location = useLocation()
+  const autoStartId = (location.state as { quizId?: string } | null)?.quizId ?? null
+  const autoStarted = useRef(false)
   const [sessionQuiz, setSessionQuiz] = useState<BackendQuiz | null>(null)
   const [kvizi, setKvizi] = useState<BackendQuiz[]>([])
   const [rezultati, setRezultati] = useState<BackendRezultat[]>([])
@@ -64,12 +68,16 @@ export function StudentQuiz() {
       ])
       setKvizi(k)
       setRezultati(r)
+      if (autoStartId && !autoStarted.current) {
+        const target = k.find((q: BackendQuiz) => q.id === autoStartId && q.status === 'PUBLISHED')
+        if (target) { setSessionQuiz(target); autoStarted.current = true }
+      }
     } catch (e) {
       console.error('Failed to load quizzes:', e)
     } finally {
       setLoading(false)
     }
-  }, [session])
+  }, [session, autoStartId])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -104,6 +112,9 @@ export function StudentQuiz() {
   })
 
   const publishedCount = kvizi.filter(q => q.status === 'PUBLISHED').length
+  const draftCount = kvizi.filter(q => q.status !== 'PUBLISHED').length
+  const passedCount = rezultati.filter(r => r.odstotek >= 50).length
+  const failedCount = rezultati.length - passedCount
 
   return (
     <div className="dashboard-main">
@@ -122,7 +133,7 @@ export function StudentQuiz() {
         </div>
 
         <Panel title="AVAILABLE QUIZZES" accent={C.yellow}
-          action={<Tag label={`${publishedCount} AVAILABLE`} bg={C.yellowLt} />}>
+          action={<div style={{ display: 'flex', gap: S[1] }}><Tag label={`${publishedCount} AVAILABLE`} bg={C.yellowLt} /><Tag label={`${draftCount} COMING SOON`} bg={C.mutedLt} /></div>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
             {loading ? (
               <div style={{ padding: S[4], textAlign: 'center', color: C.muted, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm }}>
@@ -180,7 +191,7 @@ export function StudentQuiz() {
         </Panel>
 
         <Panel title="COMPLETED QUIZZES" accent={C.green}
-          action={<Tag label={`${rezultati.length} DONE`} bg={C.greenLt} />}>
+          action={<div style={{ display: 'flex', gap: S[1] }}><Tag label={`${passedCount} PASSED`} bg={C.greenLt} /><Tag label={`${failedCount} FAILED`} bg={C.redLt} /></div>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
             {rezultati.length === 0 ? (
               <div style={{ padding: S[4], textAlign: 'center', color: C.muted, fontSize: FS.sm }}>

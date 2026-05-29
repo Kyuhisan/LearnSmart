@@ -54,7 +54,7 @@ public class AuthControler {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Object[]> response = restTemplate.exchange(
-                supabaseUrl + "/rest/v1/profili?id=eq." + userId + "&select=username,vloga,ucni_tip",
+                supabaseUrl + "/rest/v1/profili?id=eq." + userId + "&select=username,vloga,ucni_tip,vark_visual,vark_auditory,vark_reading,vark_kinesthetic",
                 HttpMethod.GET,
                 entity,
                 Object[].class
@@ -69,7 +69,11 @@ public class AuthControler {
                     "isNewUser", isNewUser,
                     "vloga", profil.get("vloga") != null ? profil.get("vloga") : "ucenec",
                     "username", profil.get("username") != null ? profil.get("username") : "",
-                    "ucniTip", profil.get("ucni_tip") != null ? profil.get("ucni_tip") : ""
+                    "ucniTip", profil.get("ucni_tip") != null ? profil.get("ucni_tip") : "",
+                    "varkVisual",      profil.getOrDefault("vark_visual",      0),
+                    "varkAuditory",    profil.getOrDefault("vark_auditory",    0),
+                    "varkReading",     profil.getOrDefault("vark_reading",     0),
+                    "varkKinesthetic", profil.getOrDefault("vark_kinesthetic", 0)
             ));
         }
         return ResponseEntity.ok(Map.of("isNewUser", true, "vloga", "ucenec", "username", ""));
