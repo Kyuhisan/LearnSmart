@@ -265,8 +265,8 @@ export function StudentDashboard() {
                       { key: 'A', field: 'auditory'    , color: C.cyan   },
                       { key: 'R', field: 'reading'     , color: C.green  },
                       { key: 'K', field: 'kinesthetic' , color: C.orange },
-                    ] as { key: string; field: keyof NonNullable<typeof profil.varkScores>; color: string }[]).map(({ key, field, color }) => {
-                      const score = profil.varkScores?.[field] ?? 0
+                    ] as { key: string; field: keyof NonNullable<NonNullable<typeof profil>['varkScores']>; color: string }[]).map(({ key, field, color }) => {
+                      const score = profil?.varkScores?.[field] ?? 0
                       return (
                         <div key={key} style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
                           <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, width: 20, flexShrink: 0, color: C.ink }}>{key}</span>
