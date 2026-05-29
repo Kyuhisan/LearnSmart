@@ -184,6 +184,7 @@ export function ProfessorAnalytics() {
 
   useEffect(() => {
     if (!selectedModule || !session?.access_token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModuleStats(null)
       return
     }
