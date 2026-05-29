@@ -1,15 +1,61 @@
 import { useState, useEffect } from 'react'
-import { C, S, FS, R, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
-import { ComicBox } from '../../components/ui/ComicBox'
+import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Bar } from '../../components/ui/Bar'
+import { Panel } from '../../components/ui/Panel'
 import { QUESTIONS } from './questions'
 
 interface ResultCardProps {
   answers: LearningStyle[]
   dominantStyle: LearningStyle
   onContinue: () => void
+}
+
+const HAIR_OPTIONS = [C.yellow, C.red, C.purple, C.cyan, C.navy, C.green]
+
+function randomAvatar() {
+  return {
+    hair: HAIR_OPTIONS[Math.floor(Math.random() * HAIR_OPTIONS.length)],
+    glasses: Math.random() < 0.3,
+    bigSmile: Math.random() < 0.5,
+  }
+}
+
+function AvatarFace({ hair, glasses, bigSmile }: { hair: string; glasses: boolean; bigSmile: boolean }) {
+  return (
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"
+      style={{ display: 'block', animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275)' }}>
+      {/* Face bg */}
+      <rect x="1" y="1" width="78" height="78" rx="10" fill="#FDDBB4" stroke={C.ink} strokeWidth="2" />
+      {/* Hair */}
+      <path d="M1 32 Q1 1 40 1 Q79 1 79 32 L79 18 Q40 4 1 18 Z" fill={hair} />
+      {/* Ears */}
+      <rect x="-1" y="36" width="7" height="10" rx="3" fill="#FDDBB4" stroke={C.ink} strokeWidth="1.5" />
+      <rect x="74" y="36" width="7" height="10" rx="3" fill="#FDDBB4" stroke={C.ink} strokeWidth="1.5" />
+      {/* Eyes */}
+      <circle cx="28" cy="42" r="5" fill={C.ink} />
+      <circle cx="52" cy="42" r="5" fill={C.ink} />
+      {/* Eye shine */}
+      <circle cx="30" cy="40" r="1.8" fill="white" />
+      <circle cx="54" cy="40" r="1.8" fill="white" />
+      {/* Mouth */}
+      {bigSmile
+        ? <path d="M26 57 Q40 68 54 57" stroke={C.ink} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        : <path d="M29 56 Q40 63 51 56" stroke={C.ink} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      }
+      {/* Glasses */}
+      {glasses && (
+        <>
+          <rect x="18" y="36" width="20" height="13" rx="4" stroke={C.ink} strokeWidth="1.5" fill="white" fillOpacity="0.35" />
+          <rect x="42" y="36" width="20" height="13" rx="4" stroke={C.ink} strokeWidth="1.5" fill="white" fillOpacity="0.35" />
+          <line x1="38" y1="42.5" x2="42" y2="42.5" stroke={C.ink} strokeWidth="1.5" />
+          <line x1="18" y1="42.5" x2="14" y2="42.5" stroke={C.ink} strokeWidth="1.5" />
+          <line x1="62" y1="42.5" x2="66" y2="42.5" stroke={C.ink} strokeWidth="1.5" />
+        </>
+      )}
+    </svg>
+  )
 }
 
 export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardProps) {
@@ -19,6 +65,8 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
+
+  const [avatar] = useState(randomAvatar)
 
   const info = STYLE_INFO[dominantStyle]
   const totalQ = QUESTIONS.length
@@ -38,16 +86,19 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
       padding: isMobile ? `0 ${S[1]}` : 0,
     }}>
 
-      {/* Style icon placeholder */}
+      {/* Avatar */}
       <div style={{ position: 'relative' }}>
         <div style={{
           width: 80, height: 80,
-          border: '3px solid currentColor',
+          border: `${BW.base} solid ${C.ink}`,
           borderRadius: R.base,
-          animation: 'popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
-        }} />
+          boxShadow: mkShadow(),
+          overflow: 'hidden',
+        }}>
+          <AvatarFace hair={avatar.hair} glasses={avatar.glasses} bigSmile={avatar.bigSmile} />
+        </div>
         <div style={{ position: 'absolute', top: `-${S[2.5]}`, right: `-${S[6]}`, transform: 'rotate(20deg)' }}>
-          <Tag label="YOU!" bg={C.red} color="#fff" />
+          <Tag label="YOU!" bg={C.red} />
         </div>
       </div>
 
@@ -57,7 +108,7 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
         <h2 style={{
           fontFamily: "'Archivo Black', sans-serif",
           fontSize: 'clamp(1.75rem, 6vw, 2.5rem)',
-            marginBottom: S[2.5],
+          marginBottom: S[2.5],
           lineHeight: 1,
           letterSpacing: '-0.0625rem',
           color: C.ink,
@@ -70,13 +121,11 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
       </div>
 
       {/* Score breakdown */}
-      <ComicBox bg={C.paper} p={S[5]} style={{ width: '100%', textAlign: 'left' }}>
-        <Tag label="FULL BREAKDOWN" bg={C.cyan} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: S[2.5], marginTop: S[3.5] }}>
+      <Panel title="FULL BREAKDOWN" accent={C.cyan} bg={C.paper} p={S[5]} style={{ width: '100%', textAlign: 'left' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: S[2.5] }}>
           {(Object.entries(STYLE_INFO) as [LearningStyle, typeof STYLE_INFO[LearningStyle]][]).map(
             ([key, meta]) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: S[2.5] }}>
-                <span style={{ display: 'inline-block', width: 18, height: 18, border: '2px solid currentColor', borderRadius: R.sm, flexShrink: 0 }} />
                 <span style={{
                   width: S[24],
                   fontSize: FS.sm,
@@ -102,23 +151,14 @@ export function ResultCard({ answers, dominantStyle, onContinue }: ResultCardPro
             )
           )}
         </div>
-      </ComicBox>
+      </Panel>
 
       {/* What this means */}
-      <ComicBox bg={info.bg} p={S[4]} style={{ width: '100%' }}>
-        <div style={{
-          fontFamily: "'Archivo Black', sans-serif",
-          fontSize: FS.sm,
-          letterSpacing: '0.0625rem',
-          color: C.ink,
-          marginBottom: S[2],
-        }}>
-          WHAT THIS MEANS FOR YOU:
-        </div>
+      <Panel title="WHAT THIS MEANS FOR YOU" accent={info.color} bg={info.bg} p={S[4]} style={{ width: '100%' }}>
         <p style={{ fontSize: FS.md, fontWeight: 600, color: C.navy, lineHeight: 1.6 }}>
           {getStyleExplanation(dominantStyle)}
         </p>
-      </ComicBox>
+      </Panel>
 
       <ComicBtn onClick={onContinue} color={C.green}>
         ENTER DASHBOARD
