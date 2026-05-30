@@ -4,6 +4,7 @@ import { Tag } from '../../components/ui/Tag'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import type { QuestionState, BankaQuestion, KvizQuestion } from './quizBuilderTypes'
+import { DIFFICULTY_COLOR } from './mockData'
 
 export function QuestionOptions({ moznosti, correct }: { moznosti: string[]; correct: number }) {
   return (
@@ -64,6 +65,7 @@ export function BankaQuestionCard({ q, index, selected, onToggle, onDelete, dele
     <div style={{ background: selected ? C.greenLt : C.paper, border: `${BW.base} solid ${selected ? C.green : C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: selected ? C.green : C.cream }}>
         <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
+        {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
         <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: selected ? C.paper : C.ink, lineHeight: 1.4, flex: 1 }}>
           {q.besediloVprasanja}
         </span>
@@ -90,6 +92,7 @@ export function KvizQuestionCard({ q, index, onRemove, removing }: {
     <div style={{ background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: C.cream }}>
         <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
+        {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
         <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, lineHeight: 1.4, flex: 1 }}>
           {q.besediloVprasanja}
         </span>

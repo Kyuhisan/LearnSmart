@@ -118,6 +118,15 @@ public class QuizController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> izbrisiKviz(@PathVariable UUID id,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        quizService.izbrisiKviz(id, uciteljId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{kvizId}/vprasanja")
     public ResponseEntity<List<QuestionResponseDTO>> getVprasanja(@PathVariable UUID kvizId) {
         return ResponseEntity.ok(quizService.getVprasanjaZaKviz(kvizId));

@@ -50,4 +50,10 @@ public class Profil {
 
     @Column(name = "vark_kinesthetic")
     private Integer varkKinesthetic;
+
+    @Column(name = "xp", nullable = false, columnDefinition = "integer default 0")
+    private Integer xp = 0;
+
+    @Column(name = "nivo", nullable = false, columnDefinition = "integer default 1")
+    private Integer nivo = 1;
 }

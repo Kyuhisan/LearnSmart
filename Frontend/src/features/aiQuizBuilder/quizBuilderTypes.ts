@@ -5,6 +5,7 @@ export interface BackendQuestion {
   moznosti: string[]
   indeksPravilnegaOdgovora: number
   razlaga: string
+  tezavnost: string
 }
 
 export interface BankaQuestion {
@@ -13,6 +14,7 @@ export interface BankaQuestion {
   moznosti: string[]
   indeksPravilnegaOdgovora: number
   razlaga: string
+  tezavnost: string | null
 }
 
 export interface KvizQuestion {
@@ -21,6 +23,7 @@ export interface KvizQuestion {
   moznosti: string[]
   indeksPravilnegaOdgovora: number
   razlaga: string
+  tezavnost: string | null
 }
 
 export interface Kviz {

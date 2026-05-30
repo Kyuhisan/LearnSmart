@@ -87,6 +87,13 @@ export async function odstraniIzKviza(token: string, vprasanjeId: string) {
   })
 }
 
+export async function izbrisiKviz(token: string, kvizId: string) {
+  await fetch(`${API}/kvizi/${kvizId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+}
+
 export async function objaviKviz(token: string, kvizId: string) {
   const res = await fetch(`${API}/kvizi/${kvizId}/objavi`, {
     method: 'PATCH',

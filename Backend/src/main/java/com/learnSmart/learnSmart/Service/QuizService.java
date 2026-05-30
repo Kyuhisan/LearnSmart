@@ -7,6 +7,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -88,9 +89,10 @@ public class QuizService {
             question.setMoznosti(q.getMoznosti());
             question.setIndeksPravilnegaOdgovora(q.getIndeksPravilnegaOdgovora());
             question.setRazlaga(q.getRazlaga());
+            question.setTezavnost(q.getTezavnost());
             Question saved = questionRepository.save(question);
             result.add(new QuestionResponseDTO(saved.getId(), saved.getBesediloVprasanja(),
-                    saved.getMoznosti(), saved.getIndeksPravilnegaOdgovora(), saved.getRazlaga()));
+                    saved.getMoznosti(), saved.getIndeksPravilnegaOdgovora(), saved.getRazlaga(), saved.getTezavnost()));
         }
         log.info("Saved {} questions to bank for predmet {}", result.size(), predmetId);
         return result;
@@ -100,7 +102,7 @@ public class QuizService {
     public List<QuestionResponseDTO> getVprasanjaBanka(UUID predmetId) {
         return questionRepository.findByPredmetId(predmetId).stream()
                 .map(q -> new QuestionResponseDTO(q.getId(), q.getBesediloVprasanja(),
-                        q.getMoznosti(), q.getIndeksPravilnegaOdgovora(), q.getRazlaga()))
+                        q.getMoznosti(), q.getIndeksPravilnegaOdgovora(), q.getRazlaga(), q.getTezavnost()))
                 .toList();
     }
 
@@ -167,10 +169,19 @@ public class QuizService {
         questionRepository.deleteById(vprasanjeId);
     }
 
+    public void izbrisiKviz(UUID kvizId, UUID uciteljId) {
+        Quiz quiz = quizRepository.findById(kvizId)
+                .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
+        if (!quiz.getPredmet().getUciteljId().equals(uciteljId)) {
+            throw new RuntimeException("Dostop zavrnjen");
+        }
+        quizRepository.delete(quiz);
+    }
+
     public List<QuestionResponseDTO> getVprasanjaZaKviz(UUID kvizId) {
         return questionRepository.findByQuizId(kvizId).stream()
                 .map(q -> new QuestionResponseDTO(q.getId(), q.getBesediloVprasanja(),
-                        q.getMoznosti(), q.getIndeksPravilnegaOdgovora(), q.getRazlaga()))
+                        q.getMoznosti(), q.getIndeksPravilnegaOdgovora(), q.getRazlaga(), q.getTezavnost()))
                 .toList();
     }
 
@@ -184,16 +195,37 @@ public class QuizService {
                 .toList();
     }
 
+    @Transactional
     public QuizResultResponseDTO shraniRezultat(UUID kvizId, UUID ucenecId, QuizResultRequestDTO dto) {
         Quiz quiz = quizRepository.findById(kvizId)
                 .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
         List<Question> vprasanja = questionRepository.findByQuizId(kvizId);
+
+        // Count prior attempts BEFORE saving this result
+        long priorAttempts = quizResultRepository.countByQuiz_IdAndUporabnikId(kvizId, ucenecId);
+
+        // Weighted accuracy
+        int weightedCorrect = 0, weightedTotal = 0;
         int tocke = 0;
         for (int i = 0; i < dto.getOdgovori().size() && i < vprasanja.size(); i++) {
-            if (dto.getOdgovori().get(i).equals(vprasanja.get(i).getIndeksPravilnegaOdgovora())) tocke++;
+            Question q = vprasanja.get(i);
+            int w = difficultyWeight(q.getTezavnost());
+            weightedTotal += w;
+            if (dto.getOdgovori().get(i).equals(q.getIndeksPravilnegaOdgovora())) {
+                tocke++;
+                weightedCorrect += w;
+            }
         }
         int skupaj = vprasanja.size();
         int odstotek = skupaj > 0 ? Math.round((float) tocke / skupaj * 100) : 0;
+        int baseXp = weightedTotal > 0 ? Math.round(weightedCorrect * 100f / weightedTotal) : 0;
+
+        double moduleMult = moduleMultiplier(quiz.getPredmet() != null ? quiz.getPredmet().getTezavnost() : null);
+        double timeBonus = speedBonus(quiz.getCasIzvajanja(), dto.getCasResevanjaS());
+        double retakeMult = retakeMultiplier(priorAttempts);
+        int xpZasluzen = (int) Math.round(baseXp * moduleMult * (1 + timeBonus) * retakeMult);
+
+        // Save result
         QuizResult rezultat = new QuizResult();
         rezultat.setQuiz(quiz);
         rezultat.setUporabnikId(ucenecId);
@@ -203,8 +235,51 @@ public class QuizService {
         rezultat.setOdgovori(dto.getOdgovori());
         rezultat.setCasResevanjaS(dto.getCasResevanjaS());
         QuizResult shranjen = quizResultRepository.save(rezultat);
+
+        // Update profil XP and nivo
+        Profil profil = profilRepository.findById(ucenecId)
+                .orElseThrow(() -> new RuntimeException("Profil ne obstaja"));
+        int newXp = profil.getXp() + xpZasluzen;
+        int newNivo = newXp / 500 + 1;
+        profil.setXp(newXp);
+        profil.setNivo(newNivo);
+        profilRepository.save(profil);
+
         return new QuizResultResponseDTO(shranjen.getId(), kvizId, quiz.getNaziv(),
-                tocke, skupaj, odstotek, dto.getCasResevanjaS(), shranjen.getOddanoOb(), dto.getOdgovori());
+                tocke, skupaj, odstotek, dto.getCasResevanjaS(), shranjen.getOddanoOb(),
+                dto.getOdgovori(), xpZasluzen, newXp, newNivo);
+    }
+
+    private static int difficultyWeight(String tezavnost) {
+        if ("HARD".equals(tezavnost)) return 3;
+        if ("MEDIUM".equals(tezavnost)) return 2;
+        return 1; // EASY or null
+    }
+
+    private static double moduleMultiplier(Integer tezavnost) {
+        if (tezavnost == null) return 1.0;
+        return switch (tezavnost) {
+            case 1 -> 0.8;
+            case 2 -> 0.9;
+            case 4 -> 1.2;
+            case 5 -> 1.5;
+            default -> 1.0;
+        };
+    }
+
+    private static double speedBonus(Integer casIzvajanjaMin, Integer casResevanjaS) {
+        if (casIzvajanjaMin == null || casResevanjaS == null) return 0.0;
+        double speedRatio = casResevanjaS / (casIzvajanjaMin * 60.0);
+        if (speedRatio < 0.50) return 0.20;
+        if (speedRatio < 0.70) return 0.10;
+        return 0.0;
+    }
+
+    private static double retakeMultiplier(long priorAttempts) {
+        if (priorAttempts == 0) return 1.0;
+        if (priorAttempts == 1) return 0.5;
+        if (priorAttempts == 2) return 0.25;
+        return 0.0;
     }
 
     public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
@@ -214,7 +289,7 @@ public class QuizService {
                             ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
                     return new QuizResultResponseDTO(r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
                             r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(),
-                            r.getOddanoOb(), r.getOdgovori());
+                            r.getOddanoOb(), r.getOdgovori(), null, null, null);
                 })
                 .toList();
     }

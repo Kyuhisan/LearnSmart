@@ -7,7 +7,7 @@ import { getModuliUcitelj } from '../modules/moduleApi'
 import {
   generirajVprasanja, shraniVBanko, getVprasanjaBanka,
   ustvariKviz, getKviziZaPredmet, getVprasanjaZaKviz,
-  dodajVprasanjeNaKviz, odstraniIzKviza, izbrisiVprasanje, objaviKviz
+  dodajVprasanjeNaKviz, odstraniIzKviza, izbrisiVprasanje, objaviKviz, izbrisiKviz
 } from './quizApi'
 import type { AIDifficulty } from './mockData'
 import type { Modul, BackendQuestion, BankaQuestion, KvizQuestion, Kviz, QuestionState, View } from './quizBuilderTypes'
@@ -43,6 +43,7 @@ export function ProfessorAIQuizBuilder() {
   const [loadingKvizVprasanja, setLoadingKvizVprasanja] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
+  const [deletingKviz, setDeletingKviz] = useState(false)
   const [addingToKvizId, setAddingToKvizId] = useState<string | null>(null)
 
   const [newKvizNaziv, setNewKvizNaziv] = useState('')
@@ -143,7 +144,8 @@ export function ProfessorAIQuizBuilder() {
     try {
       await shraniVBanko(session.access_token, module.id, odobrena.map(q => ({
         besediloVprasanja: q.besediloVprasanja, moznosti: q.moznosti,
-        indeksPravilnegaOdgovora: q.indeksPravilnegaOdgovora, razlaga: q.razlaga
+        indeksPravilnegaOdgovora: q.indeksPravilnegaOdgovora, razlaga: q.razlaga,
+        tezavnost: difficulty
       })))
       setSavedToBank(true)
       setQuestions(null)
@@ -217,6 +219,18 @@ export function ProfessorAIQuizBuilder() {
     finally { setPublishing(false) }
   }
 
+  async function handleDeleteKviz() {
+    if (!selectedKviz || !session?.access_token) return
+    setDeletingKviz(true)
+    try {
+      await izbrisiKviz(session.access_token, selectedKviz.id)
+      const remaining = kvizi.filter(k => k.id !== selectedKviz.id)
+      setKvizi(remaining)
+      setSelectedKviz(remaining.length > 0 ? remaining[0] : null)
+    } catch (e) { console.error('Delete quiz failed:', e) }
+    finally { setDeletingKviz(false) }
+  }
+
   const tabs: { key: View; label: string }[] = [
     { key: 'generate', label: ' GENERATE QUESTIONS' },
     { key: 'banka',    label: ` AVAILABLE QUESTIONS (${banka.length})` },
@@ -253,7 +267,7 @@ export function ProfessorAIQuizBuilder() {
         <NewQuizView isMobile={isMobile} banka={banka} newKvizNaziv={newKvizNaziv} setNewKvizNaziv={setNewKvizNaziv} newKvizCas={newKvizCas} setNewKvizCas={setNewKvizCas} selectedBankaIds={selectedBankaIds} setSelectedBankaIds={setSelectedBankaIds} creatingKviz={creatingKviz} onCreate={handleCreateKviz} onGoGenerate={() => setView('generate')} />
       )}
       {view === 'kviz' && (
-        <KvizView isMobile={isMobile} kvizi={kvizi} loadingKvizi={loadingKvizi} selectedKviz={selectedKviz} setSelectedKviz={setSelectedKviz} kvizVprasanja={kvizVprasanja} loadingKvizVprasanja={loadingKvizVprasanja} banka={banka} loadingBanka={loadingBanka} removingId={removingId} addingToKvizId={addingToKvizId} publishing={publishing} onRemove={handleRemoveFromKviz} onAdd={handleAddToKviz} onPublish={handlePublish} onNewQuiz={() => setView('newquiz')} />
+        <KvizView isMobile={isMobile} kvizi={kvizi} loadingKvizi={loadingKvizi} selectedKviz={selectedKviz} setSelectedKviz={setSelectedKviz} kvizVprasanja={kvizVprasanja} loadingKvizVprasanja={loadingKvizVprasanja} banka={banka} loadingBanka={loadingBanka} removingId={removingId} addingToKvizId={addingToKvizId} publishing={publishing} deletingKviz={deletingKviz} onRemove={handleRemoveFromKviz} onAdd={handleAddToKviz} onPublish={handlePublish} onDelete={handleDeleteKviz} onNewQuiz={() => setView('newquiz')} />
       )}
     </div>
   )
