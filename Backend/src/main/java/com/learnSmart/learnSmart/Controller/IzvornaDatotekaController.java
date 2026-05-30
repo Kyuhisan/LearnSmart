@@ -7,8 +7,10 @@ import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
+import com.learnSmart.learnSmart.Service.IzvornaDatotekaService;
 import com.learnSmart.learnSmart.Service.StorageService;
 import com.learnSmart.learnSmart.Service.Transcript.TranscriptService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +25,14 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/content")
+@RequiredArgsConstructor
 public class IzvornaDatotekaController {
     private final StorageService storageService;
     private final PredmetRepository predmetRepository;
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
     private final TranscriptService transcriptService;
+    private final IzvornaDatotekaService izvornaDatotekaService;
 
-    public IzvornaDatotekaController(StorageService storageService, PredmetRepository predmetRepository, IzvornaDatotekaRepository izvornaDatotekaRepository, TranscriptService transcriptService) {
-        this.storageService = storageService;
-        this.predmetRepository = predmetRepository;
-        this.izvornaDatotekaRepository = izvornaDatotekaRepository;
-        this.transcriptService = transcriptService;
-    }
 
     private String determineType(MultipartFile file) {
         String mimeType = file.getContentType();
@@ -156,5 +154,18 @@ public class IzvornaDatotekaController {
                         d.getPredmet().getNaziv()
                 )).toList();
         return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID fileId, @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+
+        try {
+            izvornaDatotekaService.deleteFile(fileId, uciteljId);
+
+            return ResponseEntity.noContent().build();
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

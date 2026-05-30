@@ -121,4 +121,37 @@ public class StorageService {
         return buildPublicURL(bucket, path);
     }
 
+    public void deleteFile(String fileUrl) throws IOException {
+        String prefix = supabaseUrl + "/storage/v1/object/";
+
+        if (!fileUrl.startsWith(prefix)) {
+            throw new IllegalArgumentException("Invalid Supabase file url.");
+        }
+
+        String bucketAndPath = fileUrl.substring(prefix.length());
+        int slashIndex = bucketAndPath.indexOf("/");
+
+        if (slashIndex == -1) {
+            throw new IllegalArgumentException("Invalid Supabase file url.");
+        }
+
+        String bucket = bucketAndPath.substring(0, slashIndex);
+        String path = bucketAndPath.substring(slashIndex + 1);
+
+        String deleteUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apikey", supabaseServiceKey);
+        headers.set("Authorization", "Bearer " + supabaseServiceKey);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        restTemplate.exchange(
+                deleteUrl,
+                HttpMethod.DELETE,
+                request,
+                Void.class
+        );
+    }
+
 }
