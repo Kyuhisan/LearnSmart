@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Issue** | S5-01 |
-| **Datum** | 29. 5. 2026 |
+| **Datum** | 31. 5. 2026 |
 | **Framework** | JUnit 5 + Mockito |
 | **Ciljna pokritost** | ≥ 80% |
 | **Avtor** | Tilen Brunec |
@@ -25,27 +25,29 @@ Vsi testi so implementirani kot **unit testi** z uporabo **Mockito** ogrodja. To
 
 | Razred | Skupaj | ✅ Pravilen | ⚠️ Robni | ❌ Napačen | Poročilo |
 |---|:---:|:---:|:---:|:---:|---|
-| `PredmetServiceTest` | 16 | 6 | 2 | 8 | [TEST_REPORT_predmeti.md](TEST_REPORT_predmeti.md) |
+| `PredmetServiceTest` | 17 | 7 | 2 | 8 | [TEST_REPORT_predmeti.md](TEST_REPORT_predmeti.md) |
 | `PredmetMapperTest` | 3 | 2 | 1 | 0 | [TEST_REPORT_predmeti.md](TEST_REPORT_predmeti.md) |
 | `PredmetControllerTest` | 11 | 6 | 0 | 5 | [TEST_REPORT_predmeti.md](TEST_REPORT_predmeti.md) |
 | `AuthControlerTest` | 5 | 1 | 2 | 2 | [TEST_REPORT_auth.md](TEST_REPORT_auth.md) |
 | `UserServiceTest` | 2 | 0 | 0 | 2 | [TEST_REPORT_auth.md](TEST_REPORT_auth.md) |
 | `GeminiServiceTest` | 6 | 3 | 2 | 1 | [TEST_REPORT_ai.md](TEST_REPORT_ai.md) |
 | `AiControllerTest` | 4 | 2 | 2 | 0 | [TEST_REPORT_ai.md](TEST_REPORT_ai.md) |
-| `QuizServiceTest` | 32 | 16 | 4 | 12 | [TEST_REPORT_quiz.md](TEST_REPORT_quiz.md) |
+| `QuizServiceTest` | 33 | 17 | 4 | 12 | [TEST_REPORT_quiz.md](TEST_REPORT_quiz.md) |
 | `QuizControllerTest` | 24 | 12 | 0 | 12 | [TEST_REPORT_quiz.md](TEST_REPORT_quiz.md) |
+| `ObvestiloServiceTest` | 10 | 6 | 4 | 0 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
+| `ObvestiloControllerTest` | 6 | 4 | 2 | 0 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
+| `VpisServiceTest` | 12 | 6 | 2 | 4 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
 | `LearnSmartApplicationTests` | 1 | 1 | 0 | 0 | — |
-| **Skupaj** | **104** | **49** | **13** | **42** | |
+| **Skupaj** | **134** | **67** | **21** | **46** | |
 
 ---
 
 ## Statistika po vrsti testov
-
 ```
-Skupaj testov:    104
-✅ Pravilen:      49  (47%)
-⚠️ Robni:         13  (13%)
-❌ Napačen:       42  (40%)
+Skupaj testov:    134
+✅ Pravilen:      67  (50%)
+⚠️ Robni:         21  (16%)
+❌ Napačen:       46  (34%)
 ```
 
 ---
@@ -54,10 +56,11 @@ Skupaj testov:    104
 
 | Področje | Testov | Delež |
 |---|:---:|:---:|
-| Upravljanje modulov | 30 | 29% |
-| Avtentikacija in registracija | 7 | 7% |
-| AI klasifikacija | 10 | 10% |
-| Upravljanje kvizov | 56 | 54% |
+| Upravljanje modulov | 31 | 23% |
+| Avtentikacija in registracija | 7 | 5% |
+| AI klasifikacija | 10 | 7% |
+| Upravljanje kvizov | 57 | 43% |
+| Obvestila in vpisi | 28 | 21% |
 | Aplikacijski test | 1 | 1% |
 
 ---
@@ -88,6 +91,12 @@ Skupaj testov:    104
 | Napačni odgovori v kvizu | ✅ | `shraniRezultat_calculatesZeroWhenAllWrong` |
 | Kviz brez vprašanj | ✅ | `shraniRezultat_handlesEmptyQuiz` |
 | Prekoračitev lestvice | ✅ | `getTopStudents_limitsToFive` |
+| Dvojni vpis učenca | ✅ | `vpisZKodo_throwsWhenAlreadyEnrolled` |
+| Napačna koda vpisa | ✅ | `vpisZKodo_throwsWhenInvalidCode` |
+| Manjkajoče obvestilo | ✅ | `oznaciPrebrano_doesNothingWhenNotFound` |
+| Obvestilo ob vpisu | ✅ | `vpisZKodo_sendsNotificationToProfessor` |
+| Obvestilo ob objavi kviza | ✅ | `objavi_sendsNotificationsToStudents` |
+| Obvestilo ob objavi modula | ✅ | `publish_sendsNotificationsToStudents` |
 
 ---
 
@@ -97,3 +106,4 @@ Skupaj testov:    104
 - 📄 [TEST_REPORT_auth.md](TEST_REPORT_auth.md) — Avtentikacija, registracija, učni stil
 - 📄 [TEST_REPORT_ai.md](TEST_REPORT_ai.md) — Gemini AI klasifikacija
 - 📄 [TEST_REPORT_quiz.md](TEST_REPORT_quiz.md) — Kvizi, vprašanja, rezultati
+- 📄 [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) — Obvestila, vpisi
