@@ -5,8 +5,10 @@ import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.UUID;
 
 @Service
@@ -25,5 +27,22 @@ public class IzvornaDatotekaService {
 
         storageService.deleteFile(file.getUrl());
         izvornaDatotekaRepository.deleteById(fileId);
+    }
+
+    public String calculateHash(MultipartFile file) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(file.getBytes());
+            StringBuilder sb = new StringBuilder();
+
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Falied to calculate hash.", e);
+        }
     }
 }

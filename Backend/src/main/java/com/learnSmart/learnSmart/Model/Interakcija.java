@@ -22,10 +22,6 @@ public class Interakcija {
     @Column(name = "uporabik_id", nullable = false, columnDefinition = "uuid")
     private UUID uporabikId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "izvorna_datoteka_id", nullable = false)
-    private IzvornaDatoteka izvornaDatoteka;
-
     @Column(name = "ogledano_ob")
     private OffsetDateTime ogledanoOb;
 

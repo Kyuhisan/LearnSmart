@@ -60,6 +60,7 @@ public class IzvornaDatotekaController {
         izvornaDatoteka.setProcessingStatus(req.getProcessingStatus());
         izvornaDatoteka.setUstvarjenOb(req.getUstvarjenOb());
         izvornaDatoteka.setManjsiTranscript(req.getManjsiTranscript());
+        izvornaDatoteka.setHash(req.getHash());
 
         return izvornaDatotekaRepository.save(izvornaDatoteka);
     }
@@ -101,6 +102,12 @@ public class IzvornaDatotekaController {
             List<Map<String, Object>> uploadedFiles = new ArrayList<>();
 
             for (MultipartFile file : files) {
+                String hash = izvornaDatotekaService.calculateHash(file);
+
+                if (izvornaDatotekaRepository.findByPredmetIdAndHash(predmetId, hash).isPresent()) {
+                    throw new IllegalArgumentException("File already exists.");
+                }
+
                 String imeDatoteke = file.getOriginalFilename();
                 String url = storageService.upload(file, predmetId);
                 String tip = determineType(file);
@@ -115,6 +122,7 @@ public class IzvornaDatotekaController {
                 req.setProcessingStatus("pending");
                 req.setUstvarjenOb(OffsetDateTime.now());
                 req.setManjsiTranscript(null);
+                req.setHash(hash);
                 IzvornaDatoteka izvornaDatoteka = buildVsebina(req);
 
                 transcriptService.processTranscript(izvornaDatoteka.getId(), url, tip);
