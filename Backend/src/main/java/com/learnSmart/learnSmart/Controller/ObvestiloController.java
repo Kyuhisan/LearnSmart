@@ -31,7 +31,7 @@ public class ObvestiloController {
     }
 
     @PatchMapping("/{id}/prebrano")
-    public ResponseEntity<?> oznациPrebrano(
+    public ResponseEntity<?> oznaciPrebrano(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
         obvestiloService.oznaciPrebrano(id);
@@ -39,7 +39,7 @@ public class ObvestiloController {
     }
 
     @PatchMapping("/vse-prebrano")
-    public ResponseEntity<?> oznациVsePrebrano(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<?> oznaciVsePrebrano(@AuthenticationPrincipal Jwt jwt) {
         UUID userId = UUID.fromString(jwt.getSubject());
         obvestiloService.oznaciVsePrebrano(userId);
         return ResponseEntity.ok().build();
