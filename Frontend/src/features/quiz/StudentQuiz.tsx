@@ -205,7 +205,7 @@ export function StudentQuiz() {
           <Panel title="UPCOMING QUIZZES" accent={C.muted}
             action={<Tag label={`${drafts.length} COMING SOON`} bg={C.mutedLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
-              {drafts.map((q, idx) => {
+              {drafts.map((q) => {
                 const casMin = q.casIzvajanja ? `${q.casIzvajanja} min` : 'no limit'
                 return isMobile ? (
                   <div key={q.id} style={{ display: 'flex', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.mutedLt, overflow: 'hidden', opacity: 0.7 }}>
