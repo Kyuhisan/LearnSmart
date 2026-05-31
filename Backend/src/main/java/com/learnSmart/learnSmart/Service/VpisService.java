@@ -50,11 +50,19 @@ public class VpisService {
             throw new RuntimeException(ZE_VPISAN);
         }
 
-        Vpis vpis = new Vpis();
-        vpis.setUcenecId(ucenecId);
-        vpis.setPredmet(predmet);
+        // Reactivate an existing inactive enrollment instead of creating a duplicate row
+        Vpis vpis = vpisRepository.findByUcenecIdAndPredmetId(ucenecId, predmet.getId())
+                .orElseGet(() -> {
+                    Vpis nov = new Vpis();
+                    nov.setUcenecId(ucenecId);
+                    nov.setPredmet(predmet);
+                    nov.setCasNaModulu(0);
+                    return nov;
+                });
+
+        vpis.setJeAktiven(true);
         vpis.setVpisanOb(OffsetDateTime.now());
-        vpis.setCasNaModulu(0);
+        vpis.setOdjavljenOb(null);
 
         VpisResponseDTO result = toResponse(vpisRepository.save(vpis));
 

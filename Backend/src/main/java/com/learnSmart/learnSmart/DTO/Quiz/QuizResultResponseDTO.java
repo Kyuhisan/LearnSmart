@@ -18,5 +18,7 @@ public class QuizResultResponseDTO {
     private Integer casResevanjaS;
     private OffsetDateTime oddanoOb;
     private List<Integer> odgovori;
-
+    private Integer xpZasluzen;
+    private Integer skupajXp;
+    private Integer nivo;
 }

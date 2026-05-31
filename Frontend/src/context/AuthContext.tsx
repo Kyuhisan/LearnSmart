@@ -16,6 +16,8 @@ interface Profil {
   vloga: string
   ucniTip: string
   varkScores: VarkScores | null
+  xp: number
+  nivo: number
 }
 
 interface AuthContextType {
@@ -66,6 +68,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           reading: data.varkReading ?? 0,
           kinesthetic: data.varkKinesthetic ?? 0,
         } : null,
+        xp: data.xp ?? 0,
+        nivo: data.nivo ?? 1,
       })
     }
     fetchProfil()
@@ -99,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         reading: data.varkReading ?? 0,
         kinesthetic: data.varkKinesthetic ?? 0,
       } : null,
+      xp: data.xp ?? 0,
+      nivo: data.nivo ?? 1,
     })
   }
 

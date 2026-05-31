@@ -367,7 +367,7 @@ class QuizServiceTest {
     void getKviziZaUcenca_returnsQuizzes() {
         Vpis vpis = new Vpis();
         vpis.setPredmet(predmet);
-        when(vpisRepository.findByUcenecId(ucenecId)).thenReturn(List.of(vpis));
+        when(vpisRepository.findByUcenecIdAndJeAktivenTrue(ucenecId)).thenReturn(List.of(vpis));
         when(quizRepository.findByPredmetId(predmetId)).thenReturn(List.of(quiz));
 
         List<QuizResponseDTO> result = quizService.getKviziZaUcenca(ucenecId);
@@ -377,7 +377,7 @@ class QuizServiceTest {
 
     @Test
     void getKviziZaUcenca_returnsEmptyWhenNoEnrollments() {
-        when(vpisRepository.findByUcenecId(ucenecId)).thenReturn(List.of());
+        when(vpisRepository.findByUcenecIdAndJeAktivenTrue(ucenecId)).thenReturn(List.of());
 
         assertTrue(quizService.getKviziZaUcenca(ucenecId).isEmpty());
     }

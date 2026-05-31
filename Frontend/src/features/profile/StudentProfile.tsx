@@ -8,7 +8,9 @@ import { ActivityPanel, type ActivityItem } from '../../components/professor/Act
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
-import { C, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { Bar } from '../../components/ui/Bar'
+import { Tag } from '../../components/ui/Tag'
 import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
@@ -56,7 +58,7 @@ export function StudentProfile() {
         <ProfHero
           username={profil.username}
           isTeacher={false}
-          level={STUDENT_PROFILE.level}
+          level={profil.nivo}
           learningType={styleInfo ? styleInfo.label.toUpperCase() : undefined}
           streak={STUDENT_PROFILE.streak}
           onRetakeVark={() => navigate('/questionnaire')}
@@ -66,8 +68,8 @@ export function StudentProfile() {
         <div className="quiz-stat-grid">
           <StatCard
             label="XP TOTAL"
-            value={STUDENT_STATS.xp.toLocaleString()}
-            sub={`↑ ${STUDENT_STATS.xpRankDelta} positions this week`}
+            value={(profil.xp).toLocaleString()}
+            sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`}
             bg={C.yellowLt}
           />
           <StatCard
@@ -77,17 +79,26 @@ export function StudentProfile() {
             bg={C.cyanLt}
           />
           <StatCard
-            label="STREAK"
+            label="STREAK · WIP"
             value={`${STUDENT_STATS.streak}d`}
             sub={`best: ${STUDENT_STATS.bestStreak} days`}
             bg={C.redLt}
           />
           <StatCard
-            label="ACHIEVEMENTS"
+            label="ACHIEVEMENTS · WIP"
             value={STUDENT_STATS.badges}
             sub={`${STUDENT_STATS.badgesInProgress} in progress`}
             bg={C.purpleLt}
           />
+        </div>
+
+        <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow(), background: C.paper, padding: `${S[3]} ${S[4]}`, display: 'flex', flexDirection: 'column', gap: S[2] }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>LEVEL {profil.nivo}</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{profil.xp % 200} / 200 XP</span>
+          </div>
+          <Bar value={profil.xp % 200} max={200} color={C.yellow} shadow />
+          <span style={{ fontSize: FS.xs, color: C.muted, fontFamily: "'Space Mono', monospace" }}>{200 - (profil.xp % 200)} XP TO LEVEL {profil.nivo + 1}</span>
         </div>
 
         <LearningStylePanel
@@ -96,7 +107,7 @@ export function StudentProfile() {
           onRetakeVark={() => navigate('/questionnaire')}
         />
 
-        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} />
+        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} action={<Tag label="WIP" bg={C.mutedLt} />} />
       </div>
     </div>
   )

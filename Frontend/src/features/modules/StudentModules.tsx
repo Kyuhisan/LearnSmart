@@ -7,6 +7,7 @@ import { ComicBox } from "../../components/ui/ComicBox";
 import { ComicBtn } from "../../components/ui/ComicBtn";
 import { C, S, FS, BW, R, mkShadow } from "../../styles/tokens";
 import { getModuliJavni, getMojiVpisi, vpisZKodo, odjavaIzModula } from "./moduleApi";
+import { getModuleCompletion, type ModuleCompletion } from "../quiz/quizStudentApi";
 import { ALL_TAGS, TAG_COLORS } from "./moduleTags";
 import { Panel } from "../../components/ui/Panel";
 import { JoinModuleModal } from "./JoinModuleModal";
@@ -61,6 +62,8 @@ function ModuleCard({
   color,
   isVpisan,
   casNaModulu,
+  completedQuizzes,
+  totalQuizzes,
   onJoin,
   onLeave,
 }: {
@@ -68,6 +71,8 @@ function ModuleCard({
   color: string;
   isVpisan: boolean;
   casNaModulu?: number;
+  completedQuizzes?: number;
+  totalQuizzes?: number;
   onJoin?: () => Promise<void>;
   onLeave?: () => Promise<void>;
 }) {
@@ -168,33 +173,24 @@ function ModuleCard({
           flexShrink: 0,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'Archivo Black', sans-serif",
-              fontSize: FS.xs,
-              color: C.muted,
-            }}
-          >
-            {isVpisan ? "ENROLLED" : "NOT STARTED"}
-          </span>
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: FS.xs,
-              color: C.ink,
-            }}
-          >
-            0%
-          </span>
-        </div>
-        <Bar value={0} color={isVpisan ? C.green : C.mutedLt} />
+        {(() => {
+          const total = totalQuizzes ?? 0
+          const done = completedQuizzes ?? 0
+          const pct = total > 0 ? Math.round(done / total * 100) : 0
+          return (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted }}>
+                  {isVpisan ? (total > 0 ? `${done}/${total} QUIZZES` : "ENROLLED") : "NOT STARTED"}
+                </span>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.ink }}>
+                  {isVpisan && total > 0 ? `${pct}%` : isVpisan ? "" : "0%"}
+                </span>
+              </div>
+              <Bar value={isVpisan ? pct : 0} color={isVpisan ? C.green : C.mutedLt} />
+            </>
+          )
+        })()}
         {(isVpisan || onJoin || onLeave) && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }} onClick={e => e.stopPropagation()}>
             {isVpisan && casNaModulu !== undefined
@@ -225,6 +221,8 @@ function ModuleListRow({
   color,
   isVpisan,
   casNaModulu,
+  completedQuizzes,
+  totalQuizzes,
   onJoin,
   onLeave,
 }: {
@@ -232,6 +230,8 @@ function ModuleListRow({
   color: string;
   isVpisan: boolean;
   casNaModulu?: number;
+  completedQuizzes?: number;
+  totalQuizzes?: number;
   onJoin?: () => Promise<void>;
   onLeave?: () => Promise<void>;
 }) {
@@ -322,27 +322,22 @@ function ModuleListRow({
             }}
           />
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: S[2],
-              minWidth: 140,
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <Bar value={0} color={isVpisan ? C.green : C.mutedLt} />
-            </div>
-            <span
-              style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: FS.xs,
-                color: C.ink,
-                flexShrink: 0,
-              }}
-            >
-              0%
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: S[2], minWidth: 140 }}>
+            {(() => {
+              const total = totalQuizzes ?? 0
+              const done = completedQuizzes ?? 0
+              const pct = total > 0 ? Math.round(done / total * 100) : 0
+              return (
+                <>
+                  <div style={{ flex: 1 }}>
+                    <Bar value={isVpisan ? pct : 0} color={isVpisan ? C.green : C.mutedLt} />
+                  </div>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.ink, flexShrink: 0 }}>
+                    {isVpisan && total > 0 ? `${done}/${total}` : isVpisan ? "—" : "0%"}
+                  </span>
+                </>
+              )
+            })()}
           </div>
 
           {(onJoin || onLeave) && (
@@ -574,6 +569,7 @@ export function StudentModules() {
   const { session } = useAuth();
   const [moduli, setModuli] = useState<BackendModul[]>([]);
   const [mojiVpisi, setMojiVpisi] = useState<VpisInfo[]>([]);
+  const [completion, setCompletion] = useState<Record<string, ModuleCompletion>>({});
   const [search, setSearch] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -584,8 +580,12 @@ export function StudentModules() {
     const data = await getModuliJavni();
     setModuli(data);
     if (session?.access_token) {
-      const vpisi = await getMojiVpisi(session.access_token);
+      const [vpisi, comp] = await Promise.all([
+        getMojiVpisi(session.access_token),
+        getModuleCompletion(session.access_token),
+      ]);
       setMojiVpisi(vpisi);
+      setCompletion(comp);
     }
     setInitialized(true);
   }, [session]);
@@ -600,6 +600,8 @@ export function StudentModules() {
 
   const getCas = (modulId: string): number =>
     mojiVpisi.find((v) => v.predmetId === modulId)?.casNaModulu ?? 0;
+
+  const getComp = (modulId: string) => completion[modulId] ?? { total: 0, completed: 0 };
 
   const handleJoin = async (mod: BackendModul) => {
     if (!session?.access_token || !mod.kodaVpisa) return
@@ -714,6 +716,8 @@ export function StudentModules() {
                       color={COLORS[i % COLORS.length]}
                       isVpisan
                       casNaModulu={getCas(mod.id)}
+                      completedQuizzes={getComp(mod.id).completed}
+                      totalQuizzes={getComp(mod.id).total}
                       onLeave={() => handleLeave(mod)}
                     />
                   ))}
@@ -749,6 +753,8 @@ export function StudentModules() {
                       color={COLORS[i % COLORS.length]}
                       isVpisan={false}
                       casNaModulu={undefined}
+                      completedQuizzes={0}
+                      totalQuizzes={0}
                       onJoin={() => handleJoin(mod)}
                     />
                   ))}
@@ -784,6 +790,8 @@ export function StudentModules() {
                       color={COLORS[i % COLORS.length]}
                       isVpisan
                       casNaModulu={getCas(mod.id)}
+                      completedQuizzes={getComp(mod.id).completed}
+                      totalQuizzes={getComp(mod.id).total}
                       onLeave={() => handleLeave(mod)}
                     />
                   ))}
@@ -817,6 +825,8 @@ export function StudentModules() {
                       color={COLORS[i % COLORS.length]}
                       isVpisan={false}
                       casNaModulu={undefined}
+                      completedQuizzes={0}
+                      totalQuizzes={0}
                       onJoin={() => handleJoin(mod)}
                     />
                   ))}

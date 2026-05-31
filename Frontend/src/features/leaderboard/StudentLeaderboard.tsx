@@ -1,12 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
-import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
-import { LEADERBOARD, LEADERBOARD_STATS, type LeaderboardEntry } from './mockData'
+import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { LEADERBOARD_STATS } from './mockData'
+import { useAuth } from '../../context/AuthContext'
+import { getLeaderboard, type LeaderboardEntry } from './leaderboardApi'
+import { getMojiRezultati } from '../quiz/quizStudentApi'
 
 const MEDAL = ['#1', '#2', '#3']
 const PODIUM_COLOR = [C.yellow, C.mutedLt, C.orange]
@@ -15,8 +18,40 @@ const PODIUM_HEIGHT = ['7rem', '5.5rem', '4.5rem']
 
 type Filter = 'ALL TIME' | 'THIS WEEK'
 
-function PodiumCard({ entry, position }: { entry: LeaderboardEntry; position: 0 | 1 | 2 }) {
-  const xp = entry.xp
+interface UIEntry {
+  id: string
+  rank: number
+  username: string
+  xp: number
+  weeklyXp: number
+  style: string
+  styleColor: string
+  isCurrentUser: boolean
+}
+
+function styleFromUcniTip(ucniTip: string | null): { style: string; styleColor: string } {
+  if (ucniTip && STYLE_INFO[ucniTip as LearningStyle]) {
+    const info = STYLE_INFO[ucniTip as LearningStyle]
+    return { style: info.label.toUpperCase(), styleColor: info.bg }
+  }
+  return { style: 'LEARNER', styleColor: C.mutedLt }
+}
+
+function toUIEntry(e: LeaderboardEntry): UIEntry {
+  const { style, styleColor } = styleFromUcniTip(e.ucniTip)
+  return {
+    id: e.id,
+    rank: e.rank,
+    username: e.username,
+    xp: e.xp,
+    weeklyXp: e.weeklyXp,
+    style,
+    styleColor,
+    isCurrentUser: e.isMe,
+  }
+}
+
+function PodiumCard({ entry, position }: { entry: UIEntry | null; position: 0 | 1 | 2 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[2], flex: 1 }}>
       {/* Avatar */}
@@ -24,19 +59,24 @@ function PodiumCard({ entry, position }: { entry: LeaderboardEntry; position: 0 
         width: position === 0 ? '4.5rem' : '3.5rem',
         height: position === 0 ? '4.5rem' : '3.5rem',
         borderRadius: '50%',
-        background: PODIUM_COLOR[position],
+        background: entry ? PODIUM_COLOR[position] : C.mutedLt,
         border: `${BW.base} solid ${C.ink}`,
         boxShadow: mkShadow('lg'),
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: "'Archivo Black', sans-serif",
         fontSize: position === 0 ? FS['4xl'] : FS['3xl'],
+        color: entry ? C.ink : C.muted,
         flexShrink: 0,
       }}>
-        {entry.username[0].toUpperCase()}
+        {entry ? entry.username[0].toUpperCase() : '?'}
       </div>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{entry.username}</div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>{xp.toLocaleString()} XP</div>
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: entry ? C.ink : C.muted }}>
+          {entry ? entry.username : '—'}
+        </div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, marginTop: S[0.5] }}>
+          {entry ? `${entry.xp.toLocaleString()} XP` : 'no one yet'}
+        </div>
       </div>
       {/* Podium block */}
       <div style={{
@@ -55,7 +95,7 @@ function PodiumCard({ entry, position }: { entry: LeaderboardEntry; position: 0 
   )
 }
 
-function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; filter: Filter; isMobile: boolean }) {
+function LeaderboardRow({ entry, filter, isMobile }: { entry: UIEntry; filter: Filter; isMobile: boolean }) {
   const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
   const isTop3 = entry.rank <= 3
@@ -136,10 +176,9 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; 
             {xp.toLocaleString()} <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>XP</span>
           </span>
         </div>
-        {/* Row 2: streak + badges tags */}
+        {/* Row 2: style tag */}
         <div style={{ display: 'flex', gap: S[1] }}>
-          <Tag label={`${entry.streak}D STREAK`} bg={C.redLt} />
-          <Tag label={`${entry.badges} BADGES`} bg={C.purpleLt} />
+          <Tag label={entry.style} bg={entry.styleColor} />
         </div>
       </div>
     </div>
@@ -163,7 +202,7 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; 
         {entry.username[0].toUpperCase()}
       </div>
 
-      {/* Username */}
+      {/* Username + style */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[0.5] }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
           <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>
@@ -176,14 +215,10 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; 
         </span>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[3], flexShrink: 0 }}>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{xp.toLocaleString()}</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>XP</div>
-        </div>
-        <Tag label={`${entry.streak}D STREAK`} bg={C.redLt} />
-        <Tag label={`${entry.badges} BADGES`} bg={C.purpleLt} />
+      {/* XP */}
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{xp.toLocaleString()}</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>XP</div>
       </div>
     </div>
   )
@@ -191,36 +226,62 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; 
 
 export function StudentLeaderboard() {
   const [filter, setFilter] = useState<Filter>('ALL TIME')
+  const [entries, setEntries] = useState<UIEntry[]>([])
+  const [weeklyXp, setWeeklyXp] = useState<number | null>(null)
   const isMobile = useBreakpoint() === 'mobile'
-  const top3 = LEADERBOARD.slice(0, 3)
+  const { session, profil } = useAuth()
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    const token = session.access_token
+
+    getLeaderboard(token).then(data => {
+      if (!Array.isArray(data)) return
+      setEntries(data.map(toUIEntry))
+    }).catch(() => {})
+
+    getMojiRezultati(token).then((rezultati: { oddanoOb: string; xpZasluzen: number }[]) => {
+      if (!Array.isArray(rezultati)) { setWeeklyXp(0); return }
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      setWeeklyXp(rezultati
+        .filter(r => r.oddanoOb && new Date(r.oddanoOb).getTime() >= weekAgo)
+        .reduce((sum, r) => sum + (r.xpZasluzen ?? 0), 0))
+    }).catch(() => setWeeklyXp(0))
+  }, [session])
+
+  const studentCount = entries.length > 0 ? entries.length : null
+  const myRank = entries.find(e => e.isCurrentUser)?.rank ?? null
+  const top3 = entries.slice(0, 3)
+
   const sorted = filter === 'THIS WEEK'
-    ? [...LEADERBOARD].sort((a, b) => b.weeklyXp - a.weeklyXp).map((e, i) => ({ ...e, rank: i + 1 }))
-    : LEADERBOARD
+    ? [...entries].sort((a, b) => b.weeklyXp - a.weeklyXp).map((e, i) => ({ ...e, rank: i + 1 }))
+    : entries
 
   return (
     <div className="dashboard-main">
       <Topbar
         title="LEADERBOARD"
-        subtitle="XP rankings · streaks · badges"
-        actions={<Tag label={`${LEADERBOARD_STATS.totalStudents} STUDENTS`} bg={C.yellowLt} />}
+        subtitle="XP rankings · learning styles"
+        actionsKey={studentCount ?? -1}
+        actions={studentCount !== null ? <Tag label={`${studentCount} STUDENTS`} bg={C.yellowLt} /> : undefined}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
         {/* Stat cards */}
         <div className="quiz-stat-grid">
-          <StatCard label="MY RANK"       value={`#${LEADERBOARD_STATS.myRank}`}             sub={LEADERBOARD_STATS.rankDelta}   bg={C.yellowLt} />
-          <StatCard label="MY XP"         value={LEADERBOARD_STATS.myXp.toLocaleString()}    sub="total earned"                  bg={C.purpleLt} />
-          <StatCard label="THIS WEEK"     value={`+${LEADERBOARD_STATS.myWeeklyXp}`}         sub="XP this week"                  bg={C.cyanLt}   />
-          <StatCard label="MY STREAK"     value={`${LEADERBOARD_STATS.myStreak}d`}           sub="keep it going!"                bg={C.redLt}    />
+          <StatCard label="MY RANK"        value={myRank === null ? '…' : `#${myRank}`}                     sub="by total XP"    bg={C.yellowLt} />
+          <StatCard label="MY XP"          value={(profil?.xp ?? 0).toLocaleString()}                        sub="total earned"   bg={C.purpleLt} />
+          <StatCard label="THIS WEEK"      value={weeklyXp === null ? '…' : `+${weeklyXp}`}                 sub="XP this week"   bg={C.cyanLt}   />
+          <StatCard label="MY STREAK · WIP" value={`${LEADERBOARD_STATS.myStreak}d`}                        sub="keep it going!" bg={C.redLt}    />
         </div>
 
         {/* Podium */}
         <Panel title="TOP 3" accent={C.yellow} action={<Tag label="HALL OF FAME" bg={C.yellowLt} />}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[3], padding: 0 }}>
-            <PodiumCard entry={top3[1]} position={1} />
-            <PodiumCard entry={top3[0]} position={0} />
-            <PodiumCard entry={top3[2]} position={2} />
+            <PodiumCard entry={top3[1] ?? null} position={1} />
+            <PodiumCard entry={top3[0] ?? null} position={0} />
+            <PodiumCard entry={top3[2] ?? null} position={2} />
           </div>
         </Panel>
 
@@ -250,7 +311,7 @@ export function StudentLeaderboard() {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
             {sorted.map(entry => (
-              <LeaderboardRow key={entry.username} entry={entry} filter={filter} isMobile={isMobile} />
+              <LeaderboardRow key={entry.id} entry={entry} filter={filter} isMobile={isMobile} />
             ))}
           </div>
         </Panel>

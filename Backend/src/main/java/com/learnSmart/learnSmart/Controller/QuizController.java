@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -118,6 +119,15 @@ public class QuizController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> izbrisiKviz(@PathVariable UUID id,
+                                         @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        quizService.izbrisiKviz(id, uciteljId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{kvizId}/vprasanja")
     public ResponseEntity<List<QuestionResponseDTO>> getVprasanja(@PathVariable UUID kvizId) {
         return ResponseEntity.ok(quizService.getVprasanjaZaKviz(kvizId));
@@ -142,6 +152,12 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getMojiRezultati(ucenecId));
     }
 
+    @GetMapping("/completion")
+    public ResponseEntity<Map<UUID, Map<String, Integer>>> getCompletion(@AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.getCompletionZaUcenca(ucenecId));
+    }
+
     @GetMapping("/ucitelj/vsi")
     public ResponseEntity<List<QuizResponseDTO>> getKviziUcitelja(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
@@ -164,7 +180,7 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getAnalyticsStatsZaPredmet(predmetId));
     }
 
-    @GetMapping("/ucitelj/topStudents")
+@GetMapping("/ucitelj/topStudents")
     public ResponseEntity<List<TopStudentDTO>> getTopStudents(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
         if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();

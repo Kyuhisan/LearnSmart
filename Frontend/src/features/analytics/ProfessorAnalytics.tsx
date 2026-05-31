@@ -261,7 +261,7 @@ export function ProfessorAnalytics() {
 
           {/* Weekly activity chart */}
           <Panel title="WEEKLY ACTIVITY" accent={C.yellow}
-            action={!isMobile ? (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} />{!isMobile && (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />)}</div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
                 {WEEKLY_ACTIVITY.map(d => {
@@ -315,7 +315,7 @@ export function ProfessorAnalytics() {
 
           {/* Avg quiz score by day */}
           <Panel title="AVG QUIZ SCORE BY DAY" accent={C.green}
-            action={<Tag label="THIS WEEK" bg={C.greenLt} />}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label="THIS WEEK" bg={C.greenLt} /></div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
               {WEEKLY_ACTIVITY.map(d => (
                 <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
@@ -334,7 +334,7 @@ export function ProfessorAnalytics() {
 
           {/* Concept mastery */}
           <Panel title="CONCEPT MASTERY" accent={C.cyan}
-            action={<Tag label={`${CONCEPT_MASTERY.length} CONCEPTS`} bg={C.cyanLt} />}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${CONCEPT_MASTERY.length} CONCEPTS`} bg={C.cyanLt} /></div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
               {CONCEPT_MASTERY.map(c => (
                 <div key={c.concept} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: c.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
@@ -349,7 +349,7 @@ export function ProfessorAnalytics() {
 
         {/* Module performance */}
         <Panel title="MODULE PERFORMANCE" accent={C.cyan}
-          action={<Tag label={selectedModule ? '1 MODULE' : `${MODULE_STATS.length} MODULES`} bg={C.cyanLt} />}>
+          action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={selectedModule ? '1 MODULE' : `${MODULE_STATS.length} MODULES`} bg={C.cyanLt} /></div>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3], padding: 0 }}>
 
             {!activeModuleDetail && mockFilteredModules.map(m => (

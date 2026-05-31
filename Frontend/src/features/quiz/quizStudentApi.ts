@@ -29,3 +29,12 @@ export async function getMojiRezultati(token: string) {
   })
   return res.json()
 }
+
+export interface ModuleCompletion { total: number; completed: number; avgScore: number }
+
+export async function getModuleCompletion(token: string): Promise<Record<string, ModuleCompletion>> {
+  const res = await fetch(`${API}/kvizi/completion`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}

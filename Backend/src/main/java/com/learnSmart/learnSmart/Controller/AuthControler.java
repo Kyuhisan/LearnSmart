@@ -5,6 +5,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.learnSmart.learnSmart.Model.Profil;
+import com.learnSmart.learnSmart.Model.QuizResult;
+import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.QuizResultRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -12,12 +17,20 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 @Tag(name = "Auth", description = "User identity and registration endpoints — JWT Bearer required")
 public class AuthControler {
+
+    private final ProfilRepository profilRepository;
+    private final QuizResultRepository quizResultRepository;
 
     @Value("${SUPABASE_URL}")
     private String supabaseUrl;
@@ -54,7 +67,7 @@ public class AuthControler {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         ResponseEntity<Object[]> response = restTemplate.exchange(
-                supabaseUrl + "/rest/v1/profili?id=eq." + userId + "&select=username,vloga,ucni_tip,vark_visual,vark_auditory,vark_reading,vark_kinesthetic",
+                supabaseUrl + "/rest/v1/profili?id=eq." + userId + "&select=username,vloga,ucni_tip,vark_visual,vark_auditory,vark_reading,vark_kinesthetic,xp,nivo",
                 HttpMethod.GET,
                 entity,
                 Object[].class
@@ -73,7 +86,9 @@ public class AuthControler {
                     "varkVisual",      profil.getOrDefault("vark_visual",      0),
                     "varkAuditory",    profil.getOrDefault("vark_auditory",    0),
                     "varkReading",     profil.getOrDefault("vark_reading",     0),
-                    "varkKinesthetic", profil.getOrDefault("vark_kinesthetic", 0)
+                    "varkKinesthetic", profil.getOrDefault("vark_kinesthetic", 0),
+                    "xp",   profil.getOrDefault("xp",   0),
+                    "nivo", profil.getOrDefault("nivo", 1)
             ));
         }
         return ResponseEntity.ok(Map.of("isNewUser", true, "vloga", "ucenec", "username", ""));
@@ -139,5 +154,53 @@ public class AuthControler {
                 Void.class
         );
         return ResponseEntity.ok(Map.of("success", true, "vloga", vloga));
+    }
+
+    @GetMapping("/leaderboard")
+    @Operation(summary = "Get XP leaderboard", description = "Returns all students ranked by total XP descending. The current user is marked with isMe=true.")
+    public ResponseEntity<List<Map<String, Object>>> getLeaderboard(@AuthenticationPrincipal Jwt jwt) {
+        UUID meId = UUID.fromString(jwt.getSubject());
+        List<Profil> students = profilRepository.findByVlogaOrderByXpDesc("ucenec");
+
+        // Bulk-fetch all quiz results for these students (single query)
+        List<UUID> studentIds = students.stream().map(Profil::getId).toList();
+        List<QuizResult> allResults = studentIds.isEmpty()
+                ? List.of()
+                : quizResultRepository.findByUporabnikIdIn(studentIds);
+
+        OffsetDateTime weekAgo = OffsetDateTime.now().minusDays(7);
+
+        // Group results by student
+        java.util.Map<UUID, List<QuizResult>> resultsByStudent = allResults.stream()
+                .collect(java.util.stream.Collectors.groupingBy(QuizResult::getUporabnikId));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int i = 0; i < students.size(); i++) {
+            Profil p = students.get(i);
+            List<QuizResult> studentResults = resultsByStudent.getOrDefault(p.getId(), List.of());
+            int quizzesTaken = studentResults.size();
+            int avgScore = quizzesTaken == 0 ? 0 : (int) Math.round(
+                    studentResults.stream()
+                            .mapToDouble(r -> r.getSkupajVprasanj() > 0
+                                    ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                            .average().orElse(0));
+            int weeklyXp = studentResults.stream()
+                    .filter(r -> r.getOddanoOb() != null && r.getOddanoOb().isAfter(weekAgo))
+                    .mapToInt(r -> r.getXpZasluzen() != null ? r.getXpZasluzen() : 0)
+                    .sum();
+            Map<String, Object> entry = new java.util.LinkedHashMap<>();
+            entry.put("id", p.getId());
+            entry.put("rank", i + 1);
+            entry.put("username", p.getUsername() != null ? p.getUsername() : "—");
+            entry.put("xp", p.getXp() != null ? p.getXp() : 0);
+            entry.put("weeklyXp", weeklyXp);
+            entry.put("nivo", p.getNivo() != null ? p.getNivo() : 1);
+            entry.put("ucniTip", p.getUcniTip());
+            entry.put("quizzesTaken", quizzesTaken);
+            entry.put("avgScore", avgScore);
+            entry.put("isMe", p.getId().equals(meId));
+            result.add(entry);
+        }
+        return ResponseEntity.ok(result);
     }
 }

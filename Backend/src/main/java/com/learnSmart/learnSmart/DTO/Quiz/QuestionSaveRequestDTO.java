@@ -18,5 +18,6 @@ public class QuestionSaveRequestDTO {
         private List<String> moznosti;
         private Integer indeksPravilnegaOdgovora;
         private String razlaga;
+        private String tezavnost;
     }
 }

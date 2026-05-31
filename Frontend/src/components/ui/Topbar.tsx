@@ -6,13 +6,14 @@ interface TopbarProps {
   subtitle?: string
   back?: () => void
   actions?: ReactNode
+  actionsKey?: string | number
 }
 
-export function Topbar({ title, subtitle, back, actions }: TopbarProps) {
+export function Topbar({ title, subtitle, back, actions, actionsKey }: TopbarProps) {
   const { setConfig } = useTopbarContext()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useLayoutEffect(() => { setConfig({ title, subtitle, back, actions }) }, [title, subtitle])
+  useLayoutEffect(() => { setConfig({ title, subtitle, back, actions }) }, [title, subtitle, actionsKey])
 
   return null
 }

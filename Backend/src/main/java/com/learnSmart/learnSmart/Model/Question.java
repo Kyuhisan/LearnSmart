@@ -40,4 +40,7 @@ public class Question {
 
     @Column(name = "razlaga", columnDefinition = "text")
     private String razlaga;
+
+    @Column(name = "tezavnost")
+    private String tezavnost;
 }

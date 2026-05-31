@@ -79,14 +79,22 @@ function OptionButton({ letter, label, state, onClick, disabled }: OptionButtonP
   )
 }
 
+interface QuizRezultat {
+  xpZasluzen?: number
+  skupajXp?: number
+  nivo?: number
+}
+
 export function QuizSession({ quiz, onClose }: QuizSessionProps) {
-  const { session } = useAuth()
+  const { session, profil, refreshProfil } = useAuth()
   const [step, setStep] = useState<SessionStep>('intro')
   const [vprasanja, setVprasanja] = useState<BackendVprasanje[]>([])
   const [questionIndex, setQuestionIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const [answers, setAnswers] = useState<number[]>([])
   const [visible, setVisible] = useState(true)
+  const [rezultat, setRezultat] = useState<QuizRezultat | null>(null)
+  const [oldNivo, setOldNivo] = useState<number>(profil?.nivo ?? 1)
 
   // Skupni čas za cel kviz
   const totalLimitS = (quiz.casIzvajanja ?? 10) * 60
@@ -159,9 +167,13 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
       const casResevanja = totalLimitS - timeLeftRef.current
       setTotalTimeSpent(casResevanja)
       if (session?.access_token) {
+        setOldNivo(profil?.nivo ?? 1)
         shraniRezultat(session.access_token, quiz.id, {
           odgovori: answers,
           casResevanjaS: casResevanja
+        }).then(r => {
+          setRezultat(r)
+          refreshProfil()
         }).catch(e => console.error('Save result failed:', e))
       }
       transition(() => setStep('result'))
@@ -307,6 +319,18 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
                 {score} / {vprasanja.length} correct · {Math.floor(totalTimeSpent / 60)}m {totalTimeSpent % 60}s
               </div>
               <Bar value={finalScore} color={passed ? C.green : C.red} height={12} shadow />
+              <div style={{ display: 'flex', alignItems: 'center', gap: S[3], marginTop: S[4] }}>
+                {rezultat?.xpZasluzen !== undefined && rezultat.xpZasluzen > 0 ? (
+                  <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.yellow }}>
+                    +{rezultat.xpZasluzen} XP
+                  </div>
+                ) : rezultat?.xpZasluzen === 0 ? (
+                  <Tag label="0 XP · MAX ATTEMPTS REACHED" bg={C.mutedLt} />
+                ) : null}
+                {rezultat?.nivo !== undefined && rezultat.nivo > oldNivo && (
+                  <Tag label={`LEVEL UP! → LVL ${rezultat.nivo}`} bg={C.yellow} />
+                )}
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], marginTop: S[4] }}>
                 {vprasanja.map((question, i) => {
                   const correct = answers[i] === question.indeksPravilnegaOdgovora
@@ -325,10 +349,12 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
                 if (timerRef.current) clearInterval(timerRef.current)
                 timeLeftRef.current = totalLimitS
                 setTimeLeft(totalLimitS)
+                setOldNivo(profil?.nivo ?? 1)
                 setStep('intro')
                 setQuestionIndex(0)
                 setSelectedOption(null)
                 setAnswers([])
+                setRezultat(null)
               }}>
                 RETRY
               </ComicBtn>

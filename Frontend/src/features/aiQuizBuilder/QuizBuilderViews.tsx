@@ -3,7 +3,7 @@ import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Panel } from '../../components/ui/Panel'
 import { Tag } from '../../components/ui/Tag'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
-import { AI_DIFFICULTY_OPTIONS, type AIDifficulty } from './mockData'
+import { AI_DIFFICULTY_OPTIONS, DIFFICULTY_COLOR, type AIDifficulty } from './mockData'
 import type { QuestionState, BankaQuestion, KvizQuestion, Kviz, Modul, AIDifficultyColor } from './quizBuilderTypes'
 import { GeneratedQuestionCard, BankaQuestionCard, KvizQuestionCard, Dropdown, StepperField } from './QuizBuilderCards'
 
@@ -183,16 +183,17 @@ export function NewQuizView({ isMobile, banka, newKvizNaziv, setNewKvizNaziv, ne
 }
 
 // ── QUIZZES VIEW ──
-export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelectedKviz, kvizVprasanja, loadingKvizVprasanja, banka, loadingBanka, removingId, addingToKvizId, publishing, onRemove, onAdd, onPublish, onNewQuiz }: {
+export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelectedKviz, kvizVprasanja, loadingKvizVprasanja, banka, loadingBanka, removingId, addingToKvizId, publishing, deletingKviz, onRemove, onAdd, onPublish, onDelete, onNewQuiz }: {
   isMobile: boolean
   kvizi: Kviz[]; loadingKvizi: boolean
   selectedKviz: Kviz | null; setSelectedKviz: (k: Kviz) => void
   kvizVprasanja: KvizQuestion[]; loadingKvizVprasanja: boolean
   banka: BankaQuestion[]; loadingBanka: boolean
-  removingId: string | null; addingToKvizId: string | null; publishing: boolean
+  removingId: string | null; addingToKvizId: string | null; publishing: boolean; deletingKviz: boolean
   onRemove: (id: string) => void
   onAdd: (id: string) => void
   onPublish: () => void
+  onDelete: () => void
   onNewQuiz: () => void
 }) {
   return (
@@ -225,6 +226,9 @@ export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelec
                     {publishing ? 'PUBLISHING...' : ' PUBLISH QUIZ'}
                   </ComicBtn>
                 )}
+                <ComicBtn color={C.red} onClick={onDelete} disabled={deletingKviz} style={{ width: '100%', justifyContent: 'center' }}>
+                  {deletingKviz ? 'DELETING...' : '✕ DELETE QUIZ'}
+                </ComicBtn>
               </div>
             </Panel>
 
@@ -237,6 +241,7 @@ export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelec
                 ) : banka.map((q, i) => (
                   <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
                     <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, flexShrink: 0 }}>Q{i + 1}</span>
+                    {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
                     <span style={{ fontSize: FS.xs, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.besediloVprasanja}</span>
                     <ComicBtn sm color={C.green} onClick={() => onAdd(q.id)} disabled={addingToKvizId === q.id}>
                       {addingToKvizId === q.id ? '...' : '+ ADD'}

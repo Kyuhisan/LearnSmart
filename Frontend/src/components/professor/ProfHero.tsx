@@ -76,9 +76,9 @@ export function ProfHero({ username, isTeacher, onSettings, level, learningType,
 
   const buttons = (
     <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
-      <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onSettings}>SETTINGS</ComicBtn>
+      <ComicBtn sm color={C.yellow} onClick={onSettings}>SETTINGS · WIP</ComicBtn>
       {!isTeacher && onRetakeVark && (
-        <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
+        <ComicBtn sm color={C.yellow} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
       )}
     </div>
   )
