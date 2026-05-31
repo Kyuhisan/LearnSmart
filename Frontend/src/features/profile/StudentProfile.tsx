@@ -68,7 +68,7 @@ export function StudentProfile() {
           <StatCard
             label="XP TOTAL"
             value={(profil.xp).toLocaleString()}
-            sub={`${500 - (profil.xp % 500)} XP to Level ${profil.nivo + 1}`}
+            sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`}
             bg={C.yellowLt}
           />
           <StatCard
@@ -94,10 +94,10 @@ export function StudentProfile() {
         <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow(), background: C.paper, padding: `${S[3]} ${S[4]}`, display: 'flex', flexDirection: 'column', gap: S[2] }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>LEVEL {profil.nivo}</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{profil.xp % 500} / 500 XP</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{profil.xp % 200} / 200 XP</span>
           </div>
-          <Bar value={profil.xp % 500} max={500} color={C.yellow} shadow />
-          <span style={{ fontSize: FS.xs, color: C.muted, fontFamily: "'Space Mono', monospace" }}>{500 - (profil.xp % 500)} XP TO LEVEL {profil.nivo + 1}</span>
+          <Bar value={profil.xp % 200} max={200} color={C.yellow} shadow />
+          <span style={{ fontSize: FS.xs, color: C.muted, fontFamily: "'Space Mono', monospace" }}>{200 - (profil.xp % 200)} XP TO LEVEL {profil.nivo + 1}</span>
         </div>
 
         <LearningStylePanel

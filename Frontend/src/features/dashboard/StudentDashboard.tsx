@@ -11,13 +11,12 @@ import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { getMojiRezultati, getMojiKvizi } from '../quiz/quizStudentApi'
+import { getLeaderboard, type LeaderboardEntry } from '../leaderboard/leaderboardApi'
 import { getModuliJavni, getMojiVpisi } from '../modules/moduleApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
   STUDENT_STATS,
   STUDENT_DAILY_QUESTS,
-  STUDENT_BIT_PICKS,
-  STUDENT_LEADERBOARD,
   STUDENT_BADGES,
   VARK_PROFILES,
 } from './mockData'
@@ -153,6 +152,8 @@ export function StudentDashboard() {
   const [completedQuizIds, setCompletedQuizIds] = useState<Set<string>>(new Set())
   const [completedScores, setCompletedScores] = useState<Record<string, number>>({})
   const [moduleMap, setModuleMap] = useState<Record<string, string>>({})
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null)
+  const [bitPicks, setBitPicks] = useState<DashboardModule[]>([])
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -168,6 +169,7 @@ export function StudentDashboard() {
       }
     })
     getMojiKvizi(session.access_token).then(setAllQuizzes).catch(() => setAllQuizzes([]))
+    getLeaderboard(session.access_token).then(setLeaderboard).catch(() => setLeaderboard([]))
     Promise.all([getModuliJavni(), getMojiVpisi(session.access_token)]).then(
       ([allMods, vpisi]: [{ id: string; naziv: string; opis: string; tezavnost: number; uciteljImePriimek: string }[], { predmetId: string; casNaModulu: number }[]]) => {
         const casMap = Object.fromEntries(vpisi.map(v => [v.predmetId, v.casNaModulu ?? 0]))
@@ -178,6 +180,11 @@ export function StudentDashboard() {
           .slice(0, 5)
           .map((m, i) => ({ ...m, color: MODULE_COLORS[i % MODULE_COLORS.length], casNaModulu: casMap[m.id] ?? 0 }))
         setRecentModules(enrolled)
+        const picks = allMods
+          .filter(m => !enrolledIds.has(m.id))
+          .slice(0, 3)
+          .map((m, i) => ({ ...m, color: MODULE_COLORS[(i + 3) % MODULE_COLORS.length], casNaModulu: 0 }))
+        setBitPicks(picks)
       }
     )
   }, [session])
@@ -186,11 +193,14 @@ export function StudentDashboard() {
     : quizCount === 0 ? '—'
     : `${quizAvg}%`
 
+  const myRank = leaderboard?.find(e => e.isMe)?.rank ?? null
+  const rankValue = leaderboard === null ? '…' : myRank === null ? '—' : `#${myRank}`
+
   const STAT_COLS = [
-    { label: 'XP POINTS',  value: (profil?.xp ?? 0).toLocaleString(), accent: C.yellow },
-    { label: 'DAY STREAK', value: `${STUDENT_STATS.streak}`,          accent: C.orange },
-    { label: 'QUIZ AVG',   value: quizAvgValue, accent: quizCount === 0 ? C.mutedLt : C.cyan, noData: quizCount === 0 },
-    { label: 'CLASS RANK', value: `#${STUDENT_STATS.rank}`,           accent: C.purple },
+    { label: 'XP POINTS',       value: (profil?.xp ?? 0).toLocaleString(), accent: C.yellow },
+    { label: 'DAY STREAK',      value: `${STUDENT_STATS.streak}`,           accent: C.orange },
+    { label: 'QUIZ AVG',        value: quizAvgValue, accent: quizCount === 0 ? C.mutedLt : C.cyan, noData: quizCount === 0 },
+    { label: 'LEADERBOARD RANK', value: rankValue,                          accent: C.purple },
   ]
 
   const styleKey = profil?.ucniTip && VARK_PROFILES[profil.ucniTip] ? profil.ucniTip : null
@@ -212,15 +222,29 @@ export function StudentDashboard() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
         {/* BIT greeting */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: S[3] }}>
-          <BitMascot size={70} mood="happy" float />
-          <SpeechBubble color={C.cyan} style={{ flex: 1, maxWidth: 480 }}>
-            <div style={{ fontSize: FS.xs, fontFamily: "'Archivo Black', sans-serif", letterSpacing: 1 }}>BIT SAYS:</div>
-            <div style={{ fontSize: FS.lg, fontWeight: 700, marginTop: S[1], lineHeight: 1.4 }}>
-              You're on a <strong>{STUDENT_STATS.streak}-day streak!</strong> {STUDENT_STATS.modulesInProgress} modules in progress. Keep pushing!
+        {(() => {
+          const hasQuizzes = quizCount !== null && quizCount > 0
+          const goodAvg = hasQuizzes && (quizAvg ?? 0) >= 50
+          const topRank = myRank !== null && myRank <= 3
+          const mood = topRank ? 'wink' : goodAvg ? 'happy' : hasQuizzes ? 'thinking' : 'happy'
+          const bubbleColor = topRank ? C.yellow : goodAvg ? C.cyan : hasQuizzes ? C.orange : C.cyan
+          const message = !hasQuizzes
+            ? <>You're enrolled in <strong>{recentModules.length} module{recentModules.length !== 1 ? 's' : ''}</strong>. Complete your first quiz to start earning XP!</>
+            : topRank
+            ? <>You're ranked <strong>#{myRank} on the leaderboard</strong> with {(profil?.xp ?? 0).toLocaleString()} XP. Incredible work!</>
+            : goodAvg
+            ? <>You've completed <strong>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</strong> with a {quizAvg}% average. {myRank ? `You're ranked #${myRank}.` : ''} Keep it up!</>
+            : <>You've done <strong>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</strong> with a {quizAvg}% average. Review the material and push that score up!</>
+          return (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: S[3] }}>
+              <BitMascot size={70} mood={mood} float />
+              <SpeechBubble color={bubbleColor} style={{ flex: 1, maxWidth: 480 }}>
+                <div style={{ fontSize: FS.xs, fontFamily: "'Archivo Black', sans-serif", letterSpacing: 1 }}>BIT SAYS:</div>
+                <div style={{ fontSize: FS.lg, fontWeight: 700, marginTop: S[1], lineHeight: 1.4 }}>{message}</div>
+              </SpeechBubble>
             </div>
-          </SpeechBubble>
-        </div>
+          )
+        })()}
 
         {/* YOUR STATISTICS */}
         <Panel title="YOUR STATISTICS" accent={C.yellow} p={0}>
@@ -240,7 +264,8 @@ export function StudentDashboard() {
         {/* Row 1: Learning Type (wide) + Quests (narrow) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'stretch' }}>
 
-          <Panel title="YOUR LEARNING TYPE" accent={info.bg} p={S[4]}>
+          <Panel title="YOUR LEARNING TYPE" accent={info.bg} p={S[4]}
+            action={styleProfile ? <Tag label={styleProfile.label} bg={info.color} /> : <Tag label="NOT SET" bg={C.mutedLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
               {!styleProfile ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3], padding: `${S[4]} 0`, color: C.muted }}>
@@ -281,23 +306,50 @@ export function StudentDashboard() {
             </div>
           </Panel>
 
-          <Panel title="TODAY'S QUESTS" accent={C.green} p={S[4]}
-            action={<Tag label={`+${totalXpToday}XP`} bg={C.greenLt} />}>
+          <Panel title="BIT PICKS FOR YOU" accent={C.cyan} p={S[4]}
+            action={<Tag label={`${bitPicks.length} PICKS`} bg={C.cyanLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {quests.map((q) => (
-                <QuestRow key={q.id} q={q} onToggle={() => toggleQuest(q.id)} />
-              ))}
-              <div style={{ marginTop: S[1] }}>
-                <Bar value={(doneCount / quests.length) * 100} color={C.green} shadow />
-              </div>
+              {bitPicks.length === 0 ? (
+                <div style={{ padding: `${S[4]} 0`, textAlign: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>
+                  ALL MODULES ENROLLED
+                </div>
+              ) : bitPicks.map((pick, i) => {
+                const reasons = [
+                  profil?.ucniTip ? `Suits your ${profil.ucniTip} learning style` : 'Explore something new',
+                  'Trending among students',
+                  'Expand your knowledge',
+                ]
+                return (
+                  <div key={pick.id} onClick={() => navigate(`/modules/${pick.id}`)}
+                    style={{ padding: S[2], background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), cursor: 'pointer' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = C.yellowLt; e.currentTarget.style.transform = 'translate(-1px,-1px)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = C.paper; e.currentTarget.style.transform = 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                      {!isMobile && (
+                        <div style={{ width: 32, height: 32, background: pick.color, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>
+                          {pick.naziv.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pick.naziv}</div>
+                        <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{reasons[i]}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: S[1], marginTop: S[2] }}>
+                      <Tag label={STAR_LABELS[pick.tezavnost] ?? '★'} bg={C.yellowLt} />
+                      <Tag label={pick.uciteljImePriimek} bg={C.cyanLt} />
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </Panel>
         </div>
 
-        {/* Row 2: Modules (wide) + BIT Picks / Upcoming Quizzes (narrow stacked) */}
+        {/* Row 2: Modules (wide) + Quests (narrow) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'stretch' }}>
 
-          <Panel title="YOUR MODULES" accent={C.yellow} p={S[4]}
+          <Panel title="YOUR MODULES" accent={C.pink} p={S[4]}
             action={<ComicBtn sm color={C.yellow} onClick={() => navigate('/modules')}>SEE ALL →</ComicBtn>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {recentModules.length === 0 ? (
@@ -309,52 +361,6 @@ export function StudentDashboard() {
                   <ModuleRow key={mod.id} mod={mod} onClick={() => navigate(`/modules/${mod.id}`)} />
                 ))
               )}
-            </div>
-          </Panel>
-
-          <Panel title="BIT PICKS FOR YOU" accent={C.cyan} p={S[4]}
-            action={<Tag label="FOR YOU" bg={C.cyanLt} />}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {STUDENT_BIT_PICKS.map((pick) => (
-                <div key={pick.id} onClick={() => navigate(`/modules/${pick.id}`)}
-                  style={{ padding: S[2], background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), cursor: 'pointer' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = C.yellowLt; e.currentTarget.style.transform = 'translate(-1px,-1px)' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = C.paper; e.currentTarget.style.transform = 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-                    {!isMobile && (
-                      <div style={{ width: 32, height: 32, background: pick.color, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <IconBox size={14} />
-                      </div>
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{pick.title}</div>
-                      <div style={{ fontSize: FS['2xs'], color: C.muted, marginTop: S[0.5] }}>{pick.reason}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: S[1], marginTop: S[2] }}>
-                    <Tag label={`+${pick.xp} XP`} bg={C.yellowLt} />
-                    <Tag label={pick.duration} bg={C.mutedLt} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-        </div>
-
-        {/* Row 3: Leaderboard (left) + Upcoming Quizzes (right) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'stretch' }}>
-
-          <Panel title="THIS WEEK · LEADERBOARD" accent={C.purple} p={S[4]}
-            action={<ComicBtn sm color={C.purple} onClick={() => navigate('/leaderboard')}>SEE ALL →</ComicBtn>}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {STUDENT_LEADERBOARD.map((entry) => (
-                <div key={entry.rank} style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], background: entry.isMe ? C.yellowLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <div style={{ width: 28, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: entry.rank <= 3 ? C.yellow : C.muted, flexShrink: 0, textAlign: 'center' }}>#{entry.rank}</div>
-                  <span style={{ flex: 1, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{entry.name}</span>
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{entry.xp.toLocaleString()} XP</span>
-                  {entry.isMe && <Tag label="YOU" bg={C.yellow} />}
-                </div>
-              ))}
             </div>
           </Panel>
 
@@ -418,6 +424,75 @@ export function StudentDashboard() {
               </Panel>
             )
           })()}
+        </div>
+
+        {/* Row 3: Leaderboard (left) + Quests (right) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[3], alignItems: 'stretch' }}>
+
+          <Panel title="LEADERBOARD" accent={C.purple} p={S[4]}
+            action={<ComicBtn sm color={C.yellow} onClick={() => navigate('/leaderboard')}>SEE ALL →</ComicBtn>}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+              {leaderboard === null ? (
+                [C.purple, C.yellow, C.cyan, C.green, C.mutedLt].map((color, i) => (
+                  <div key={i} className="skeleton-pulse" style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.paper, overflow: 'hidden' }}>
+                    <div style={{ padding: `${S[1.5]} ${S[2]}`, display: 'flex', alignItems: 'center', gap: S[2] }}>
+                      <div style={{ width: 28, height: 28, background: color, opacity: 0.25, borderRadius: R.sm, flexShrink: 0 }} />
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[1] }}>
+                        <div style={{ height: 10, width: '55%', background: C.mutedLt, borderRadius: R.sm }} />
+                        <div style={{ height: 8, width: '35%', background: C.divider, borderRadius: R.sm }} />
+                      </div>
+                      <div style={{ width: 40, height: 18, background: color, opacity: 0.2, borderRadius: R.sm }} />
+                    </div>
+                    <div style={{ height: 3, background: C.divider }} />
+                  </div>
+                ))
+              ) : leaderboard.length === 0 ? (
+                <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO DATA YET</div>
+              ) : (
+                leaderboard.slice(0, 5).map((entry) => {
+                  const nivo = entry.nivo ?? 1
+                  const medalColor = entry.rank === 1 ? C.yellow : entry.rank === 2 ? C.cyan : entry.rank === 3 ? C.orange : null
+                  const xpInLevel = entry.xp % 200
+                  const barPct = Math.round((xpInLevel / 200) * 100)
+                  const barColor = entry.isMe ? C.yellow : medalColor ?? C.purple
+                  return (
+                    <div key={entry.rank} style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: entry.isMe ? C.yellowLt : C.paper, overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[2]}` }}>
+                        <div style={{ width: 32, height: 32, borderRadius: R.sm, background: medalColor ?? C.cream, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>
+                          #{entry.rank}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
+                            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username}</span>
+                            {entry.isMe && <Tag label="YOU" bg={C.yellow} />}
+                          </div>
+                          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{entry.xp.toLocaleString()} XP</div>
+                        </div>
+                        <Tag label={`LVL ${nivo}`} bg={medalColor ?? C.purpleLt} />
+                        <Tag label={`${entry.quizzesTaken} QUIZ${entry.quizzesTaken !== 1 ? 'ZES' : ''}`} bg={C.cyanLt} />
+                        {entry.quizzesTaken > 0 && <Tag label={`AVG ${entry.avgScore}%`} bg={entry.avgScore >= 50 ? C.greenLt : C.redLt} />}
+                      </div>
+                      <div style={{ height: 3, background: C.divider }}>
+                        <div style={{ height: '100%', width: `${barPct}%`, background: barColor, transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </Panel>
+
+          <Panel title="TODAY'S QUESTS" accent={C.green} p={S[4]}
+            action={<Tag label={`+${totalXpToday}XP`} bg={C.greenLt} />}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
+              {quests.map((q) => (
+                <QuestRow key={q.id} q={q} onToggle={() => toggleQuest(q.id)} />
+              ))}
+              <div style={{ marginTop: S[1] }}>
+                <Bar value={(doneCount / quests.length) * 100} color={C.green} shadow />
+              </div>
+            </div>
+          </Panel>
         </div>
 
         {/* Badges — full width */}

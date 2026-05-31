@@ -240,7 +240,7 @@ public class QuizService {
         Profil profil = profilRepository.findById(ucenecId)
                 .orElseThrow(() -> new RuntimeException("Profil ne obstaja"));
         int newXp = profil.getXp() + xpZasluzen;
-        int newNivo = newXp / 500 + 1;
+        int newNivo = newXp / 200 + 1;
         profil.setXp(newXp);
         profil.setNivo(newNivo);
         profilRepository.save(profil);
