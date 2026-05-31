@@ -7,7 +7,6 @@ import { useBreakpoint } from '../../hooks/useBreakpoint'
 interface ProfHeroProps {
   readonly username: string
   readonly isTeacher: boolean
-  readonly onSettings?: () => void
   readonly level?: number
   readonly learningType?: string
   readonly streak?: number
@@ -17,7 +16,7 @@ interface ProfHeroProps {
 }
 
 
-export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark, moduleCount, email }: ProfHeroProps) {
+export function ProfHero({ username, isTeacher, level, learningType, streak, onRetakeVark, moduleCount, email }: ProfHeroProps) {
   const mobile = useBreakpoint() === 'mobile'
 
   const avatar = (
@@ -76,7 +75,6 @@ export function ProfHero({ username, isTeacher, onSettings, level, learningType,
 
   const buttons = (
     <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
-      <ComicBtn sm color={C.yellow} onClick={onSettings}>SETTINGS · WIP</ComicBtn>
       {!isTeacher && onRetakeVark && (
         <ComicBtn sm color={C.yellow} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
       )}

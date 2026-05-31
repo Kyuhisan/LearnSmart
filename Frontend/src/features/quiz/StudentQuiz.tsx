@@ -111,10 +111,64 @@ export function StudentQuiz() {
     poskusiPoKvizu[r.id] = poskusCounter[r.kvizId]
   })
 
-  const publishedCount = kvizi.filter(q => q.status === 'PUBLISHED').length
-  const draftCount = kvizi.filter(q => q.status !== 'PUBLISHED').length
+  const published = kvizi.filter(q => q.status === 'PUBLISHED')
+  const drafts = kvizi.filter(q => q.status !== 'PUBLISHED')
   const passedCount = rezultati.filter(r => r.odstotek >= 50).length
   const failedCount = rezultati.length - passedCount
+
+  // Attempts and best score per quiz
+  const attemptsByQuizId: Record<string, number> = {}
+  const bestByQuizId: Record<string, number> = {}
+  rezultati.forEach(r => {
+    attemptsByQuizId[r.kvizId] = (attemptsByQuizId[r.kvizId] ?? 0) + 1
+    if ((bestByQuizId[r.kvizId] ?? -1) < r.odstotek) bestByQuizId[r.kvizId] = r.odstotek
+  })
+
+  function QuizCard({ q, idx }: { q: BackendQuiz; idx: number }) {
+    const colorLt = MODULE_COLORS[idx % MODULE_COLORS.length]
+    const casMin = q.casIzvajanja ? `${q.casIzvajanja} min` : 'no limit'
+    const attempts = attemptsByQuizId[q.id] ?? 0
+    const best = bestByQuizId[q.id]
+    const triesLeft = Math.max(0, 3 - attempts)
+    const noXpWarning = attempts >= 3
+    const btnLabel = attempts === 0 ? 'START' : 'RETRY'
+
+    const tags = (
+      <>
+        <Tag label={casMin} bg={C.paper} />
+        {attempts > 0 && <Tag label={`BEST: ${best}%`} bg={best >= 80 ? C.greenLt : best >= 50 ? C.yellowLt : C.redLt} />}
+        {attempts > 0 && !noXpWarning && <Tag label={`${triesLeft} TR${triesLeft === 1 ? 'Y' : 'IES'} LEFT`} bg={C.cyanLt} />}
+        {noXpWarning && <Tag label="0 XP ON RETRY" bg={C.mutedLt} />}
+      </>
+    )
+
+    if (isMobile) return (
+      <div style={{ display: 'flex', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: colorLt, overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[1.5], padding: `${S[2.5]} ${S[3]}` }}>
+          <div style={{ display: 'flex', gap: S[1], flexWrap: 'wrap' }}>{tags}</div>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{q.naziv}</span>
+          <ComicBtn sm color={C.yellow} onClick={() => setSessionQuiz(q)}>{btnLabel}</ComicBtn>
+        </div>
+      </div>
+    )
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[2.5]} ${S[3]}`, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: colorLt }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[0.5] }}>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{q.naziv}</span>
+          {attempts > 0 && (
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>
+              {attempts} attempt{attempts !== 1 ? 's' : ''} · best {best}%
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexShrink: 0 }}>
+          {tags}
+          <ComicBtn sm color={C.yellow} onClick={() => setSessionQuiz(q)}>{btnLabel}</ComicBtn>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="dashboard-main">
@@ -133,64 +187,55 @@ export function StudentQuiz() {
         </div>
 
         <Panel title="AVAILABLE QUIZZES" accent={C.yellow}
-          action={<div style={{ display: 'flex', gap: S[1] }}><Tag label={`${publishedCount} AVAILABLE`} bg={C.yellowLt} /><Tag label={`${draftCount} COMING SOON`} bg={C.mutedLt} /></div>}>
+          action={<Tag label={`${published.length} AVAILABLE`} bg={C.yellowLt} />}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
             {loading ? (
               <div style={{ padding: S[4], textAlign: 'center', color: C.muted, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm }}>
                 LOADING...
               </div>
-            ) : kvizi.length === 0 ? (
+            ) : published.length === 0 ? (
               <div style={{ padding: S[4], textAlign: 'center', color: C.muted, fontSize: FS.sm }}>
                 No quizzes available yet
               </div>
-            ) : kvizi.map((q, idx) => {
-              const colorLt = MODULE_COLORS[idx % MODULE_COLORS.length]
-              const casMin = q.casIzvajanja ? `${q.casIzvajanja} min` : '—'
-              const isPublished = q.status === 'PUBLISHED'
-              return isMobile ? (
-                <div key={q.id} style={{ display: 'flex', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: isPublished ? colorLt : C.mutedLt, overflow: 'hidden', opacity: isPublished ? 1 : 0.6 }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[1.5], padding: `${S[2.5]} ${S[3]}` }}>
-                    <div style={{ display: 'flex', gap: S[1] }}>
-                      <Tag label={casMin} bg={C.paper} />
-                      <Tag label={q.status} bg={isPublished ? C.greenLt : C.yellowLt} />
-                      {q.ustvarjenOb && <Tag label={formatDatum(q.ustvarjenOb)} bg={C.cyanLt} />}
-                    </div>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{q.naziv}</span>
-                    <ComicBtn
-                      sm
-                      color={isPublished ? C.yellow : C.muted}
-                      disabled={!isPublished}
-                      onClick={() => { if (isPublished) setSessionQuiz(q) }}
-                    >
-                      {isPublished ? 'START' : 'WAITING FOR PUBLISH'}
-                    </ComicBtn>
-                  </div>
-                </div>
-              ) : (
-                <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[2.5]} ${S[3]}`, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: isPublished ? colorLt : C.mutedLt, opacity: isPublished ? 1 : 0.6 }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[0.5] }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>{q.naziv}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexShrink: 0 }}>
-                    <Tag label={casMin} bg={C.paper} />
-                    <Tag label={q.status} bg={isPublished ? C.greenLt : C.yellowLt} />
-                    {q.ustvarjenOb && <Tag label={formatDatum(q.ustvarjenOb)} bg={C.cyanLt} />}
-                    <ComicBtn
-                      sm
-                      color={isPublished ? C.yellow : C.muted}
-                      disabled={!isPublished}
-                      onClick={() => { if (isPublished) setSessionQuiz(q) }}
-                    >
-                      {isPublished ? 'START' : 'WAITING FOR PUBLISH'}
-                    </ComicBtn>
-                  </div>
-                </div>
-              )
-            })}
+            ) : published.map((q, idx) => <QuizCard key={q.id} q={q} idx={idx} />)}
           </div>
         </Panel>
 
-        <Panel title="COMPLETED QUIZZES" accent={C.green}
+        {drafts.length > 0 && (
+          <Panel title="UPCOMING QUIZZES" accent={C.muted}
+            action={<Tag label={`${drafts.length} COMING SOON`} bg={C.mutedLt} />}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
+              {drafts.map((q, idx) => {
+                const casMin = q.casIzvajanja ? `${q.casIzvajanja} min` : 'no limit'
+                return isMobile ? (
+                  <div key={q.id} style={{ display: 'flex', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.mutedLt, overflow: 'hidden', opacity: 0.7 }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[1.5], padding: `${S[2.5]} ${S[3]}` }}>
+                      <div style={{ display: 'flex', gap: S[1] }}>
+                        <Tag label={casMin} bg={C.paper} />
+                        <Tag label="DRAFT" bg={C.yellowLt} />
+                      </div>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.muted }}>{q.naziv}</span>
+                      <ComicBtn sm color={C.muted} disabled>NOT YET AVAILABLE</ComicBtn>
+                    </div>
+                  </div>
+                ) : (
+                  <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[2.5]} ${S[3]}`, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: C.mutedLt, opacity: 0.7 }}>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.muted }}>{q.naziv}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: S[2], flexShrink: 0 }}>
+                      <Tag label={casMin} bg={C.paper} />
+                      <Tag label="DRAFT" bg={C.yellowLt} />
+                      <ComicBtn sm color={C.muted} disabled>NOT YET AVAILABLE</ComicBtn>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </Panel>
+        )}
+
+        <Panel title="QUIZ HISTORY" accent={C.green}
           action={<div style={{ display: 'flex', gap: S[1] }}><Tag label={`${passedCount} PASSED`} bg={C.greenLt} /><Tag label={`${failedCount} FAILED`} bg={C.redLt} /></div>}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
             {rezultati.length === 0 ? (

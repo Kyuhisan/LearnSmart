@@ -1,11 +1,20 @@
 import { useState } from 'react'
 import { ComicBtn } from '../../components/ui/ComicBtn'
-import { C } from '../../styles/tokens'
-import { ustvariModul } from './moduleApi'
+import { C, FS } from '../../styles/tokens'
+import { ustvariModul, checkKodaVpisa } from './moduleApi'
 import { useAuth } from '../../context/AuthContext'
 import '../../styles/moduleLibrary.css'
 
 import { ALL_TAGS, TAG_COLORS } from './moduleTags'
+
+const COURSE_CODE_RE = /^[A-Z]{3}-\d{3}$/
+
+function formatKoda(raw: string): string {
+  const upper = raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const letters = upper.slice(0, 3)
+  const digits = upper.slice(3).replace(/[^0-9]/g, '').slice(0, 3)
+  return digits.length > 0 ? `${letters}-${digits}` : letters
+}
 
 interface Props {
   onClose: () => void
@@ -17,14 +26,31 @@ export function NewModuleModal({ onClose, onSave }: Props) {
   const [naziv, setNaziv] = useState('')
   const [opis, setOpis] = useState('')
   const [kodaVpisa, setKodaVpisa] = useState('')
+  const [kodaError, setKodaError] = useState('')
   const [tezavnost, setTezavnost] = useState(1)
   const [kategorije, setKategorije] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const validateKoda = async (koda: string): Promise<boolean> => {
+    if (!COURSE_CODE_RE.test(koda)) {
+      setKodaError('Must follow the format ABC-000')
+      return false
+    }
+    const taken = await checkKodaVpisa(session!.access_token, koda)
+    if (taken) {
+      setKodaError('This course code is already in use')
+      return false
+    }
+    setKodaError('')
+    return true
+  }
+
   const handleSave = async () => {
-    if (!naziv.trim()) { setError('Naziv ne sme biti prazen'); return }
-    if (!kodaVpisa.trim()) { setError('Koda vpisa ne sme biti prazna'); return }
+    if (!naziv.trim()) { setError('Title cannot be empty'); return }
+    if (!kodaVpisa.trim()) { setError('Course code cannot be empty'); return }
+    const kodaOk = await validateKoda(kodaVpisa)
+    if (!kodaOk) return
     setSaving(true)
     await ustvariModul(session!.access_token, { naziv, opis, kodaVpisa, tezavnost, kategorije, jeObjavljen: false })
     setSaving(false)
@@ -42,22 +68,42 @@ export function NewModuleModal({ onClose, onSave }: Props) {
         </div>
 
         <div className="modal-field">
-          <label className="modal-label">TITLE</label>
-          <input className="modal-input" value={naziv} onChange={e => setNaziv(e.target.value)} placeholder="E.g., Mathematics" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <label className="modal-label">TITLE</label>
+            <span style={{ fontSize: FS.xs, color: naziv.length > 40 ? C.red : C.muted, fontFamily: "'Space Mono', monospace" }}>
+              {naziv.length}/45
+            </span>
+          </div>
+          <input
+            className="modal-input"
+            value={naziv}
+            maxLength={45}
+            onChange={e => setNaziv(e.target.value.toUpperCase())}
+            placeholder="E.G., MATHEMATICS"
+          />
         </div>
 
         <div className="modal-field">
-          <label className="modal-label">DESCRIPTION</label>
+          <label className="modal-label">DESCRIPTION <span style={{ fontWeight: 400, opacity: 0.6 }}>(OPTIONAL)</span></label>
           <textarea className="modal-input modal-textarea" value={opis} onChange={e => setOpis(e.target.value)} placeholder="Brief description of the module..." />
         </div>
 
         <div className="modal-field">
           <label className="modal-label">COURSE CODE</label>
-          <input className="modal-input" value={kodaVpisa} onChange={e => setKodaVpisa(e.target.value)} placeholder="E.g., MAT-001" />
+          <input
+            className="modal-input"
+            value={kodaVpisa}
+            onChange={e => { setKodaVpisa(formatKoda(e.target.value)); setKodaError('') }}
+            onBlur={() => { if (COURSE_CODE_RE.test(kodaVpisa)) validateKoda(kodaVpisa) }}
+            placeholder="ABC-000"
+            maxLength={7}
+            style={kodaError ? { borderColor: C.red } : undefined}
+          />
+          {kodaError && <div style={{ fontSize: FS.xs, color: C.red, marginTop: '0.25rem', fontFamily: "'Space Mono', monospace" }}>{kodaError}</div>}
         </div>
 
         <div className="modal-field">
-          <label className="modal-label">CATEGORY</label>
+          <label className="modal-label">CATEGORY <span style={{ fontWeight: 400, opacity: 0.6 }}>(OPTIONAL)</span></label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {ALL_TAGS.map(cat => (
               <button

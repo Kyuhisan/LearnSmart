@@ -62,7 +62,6 @@ export function StudentProfile() {
           learningType={styleInfo ? styleInfo.label.toUpperCase() : undefined}
           streak={STUDENT_PROFILE.streak}
           onRetakeVark={() => navigate('/questionnaire')}
-          onSettings={() => navigate('/settings')}
         />
 
         <div className="quiz-stat-grid">

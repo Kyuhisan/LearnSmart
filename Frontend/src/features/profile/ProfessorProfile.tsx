@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
@@ -21,7 +20,6 @@ const ACTIVITY: ActivityItem[] = [
 
 export function ProfessorProfile() {
   const { profil, session } = useAuth()
-  const navigate = useNavigate()
   const [moduli, setModuli] = useState<BackendModul[]>([])
   const [stilMix, setStilMix] = useState<Record<string, number> | null>(null)
   const [kvizi, setKvizi] = useState<QuizDTO[] | null>(null)
@@ -47,7 +45,7 @@ export function ProfessorProfile() {
       />
 
       <div className="prof-content">
-        <ProfHero username={profil.username} isTeacher onSettings={() => navigate('/settings')} moduleCount={moduli.length > 0 ? moduli.length : null} email={session?.user?.email} />
+        <ProfHero username={profil.username} isTeacher moduleCount={moduli.length > 0 ? moduli.length : null} email={session?.user?.email} />
 
         <div className="quiz-stat-grid">
           <StatCard label="STUDENTS"  value={stilMix === null ? '…' : String(stilMix['_total'] ?? 0)}  sub={stilMix !== null ? `across ${moduli.length} module${moduli.length !== 1 ? 's' : ''}` : ''} bg={C.yellowLt} />

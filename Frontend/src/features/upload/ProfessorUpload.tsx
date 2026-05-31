@@ -231,7 +231,7 @@ function DropZonePanel({ dragOver, setDragOver, stagedFiles, onFiles, onRemove }
     <Panel
       title="DROP FILES HERE"
       accent={C.yellow}
-      action={<Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} />}
+      action={<div style={{ display: 'flex', gap: S[1] }}><Tag label="STEP 1" bg={C.yellow} /><Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} /></div>}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <input
@@ -294,7 +294,7 @@ function AssignModulePanel({ selectedModule, setSelectedModule, modules, loading
   const canUpload = !!selectedModule && stagedFiles.length > 0 && !uploading
 
   return (
-    <Panel title="ASSIGN TO MODULE" accent={C.cyan} action={<Tag label="SELECT" bg={C.cyanLt} />} overflow="visible">
+    <Panel title="ASSIGN TO MODULE" accent={C.cyan} action={<div style={{ display: 'flex', gap: S[1] }}><Tag label="STEP 2" bg={C.yellow} /><Tag label="SELECT" bg={C.cyanLt} /></div>} overflow="visible">
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <ModuleSelect value={selectedModule} options={modules} onChange={setSelectedModule} loading={loadingModules} />
         <ComicBtn color={C.yellow} style={{ width: '100%', justifyContent: 'center' }} disabled={!canUpload} onClick={onUpload}>
@@ -310,7 +310,7 @@ function RecentUploadsPanel({ files, loading }: { files: UploadedFileReal[]; loa
     <Panel
       title="RECENT UPLOADS"
       accent={C.purple}
-      action={<Tag label={loading ? '…' : `${files.length} FILES`} bg={C.purpleLt} />}
+      action={<div style={{ display: 'flex', gap: S[1] }}><Tag label="STEP 3" bg={C.yellow} /><Tag label={loading ? '…' : `${files.length} FILES`} bg={C.purpleLt} /></div>}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
         {loading

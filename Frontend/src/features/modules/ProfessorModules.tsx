@@ -473,7 +473,7 @@ export function ProfessorModules() {
   return (
     <div className="dashboard-main">
       <Topbar
-        title="MODULES — PROF"
+        title="MODULES"
         subtitle={`${published} published · ${draft} drafts`}
         actions={
           <ComicBtn color={C.green} onClick={() => setNewModul(true)}>
