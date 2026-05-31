@@ -8,6 +8,8 @@ export interface LeaderboardEntry {
   weeklyXp: number
   nivo: number
   ucniTip: string | null
+  quizzesTaken: number
+  avgScore: number
   isMe: boolean
 }
 
