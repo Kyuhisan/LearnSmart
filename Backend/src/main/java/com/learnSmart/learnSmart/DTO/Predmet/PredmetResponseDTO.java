@@ -21,4 +21,6 @@ public class PredmetResponseDTO {
     private UUID uciteljId;
     private String uciteljImePriimek;
     private java.util.List<String> kategorije;
+    private long steviloVpisanih;
+    private boolean hasTranscript;
 }

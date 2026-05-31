@@ -66,4 +66,7 @@ public class Predmet {
 
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
     private List<VsebinaPredmet> vsebinaPredmet;
+
+    @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
+    private List<Quiz> kvizi;
 }

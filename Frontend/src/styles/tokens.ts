@@ -108,7 +108,7 @@ export function mkShadow(
 export const STYLE_INFO = {
   visual:      { label: 'Visual',      color: C.purple, bg: C.purpleLt, desc: 'Charts, diagrams, flowcharts & symbolic representations' },
   reading:     { label: 'Read / Write', color: C.cyan,   bg: C.cyanLt,   desc: 'Written text, notes, lists & structured summaries' },
-  auditory:    { label: 'Aural',        color: C.green,  bg: C.greenLt,  desc: 'Discussions, lectures, talking & verbal explanation' },
+  auditory:    { label: 'Auditory',     color: C.green,  bg: C.greenLt,  desc: 'Discussions, lectures, talking & verbal explanation' },
   kinesthetic: { label: 'Kinesthetic',  color: C.red,    bg: C.redLt,    desc: 'Real examples, case studies, practice & lived experience' },
 } as const
 

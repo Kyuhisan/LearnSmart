@@ -29,6 +29,8 @@ export function Panel({
       boxShadow: mkShadow(),
       borderRadius: R.base,
       overflow,
+      display: 'flex',
+      flexDirection: 'column',
       ...style,
     }}>
       <div style={{
@@ -51,7 +53,7 @@ export function Panel({
         </div>
         {action && <div style={{ flexShrink: 0 }}>{action}</div>}
       </div>
-      <div style={{ padding: p }}>{children}</div>
+      <div style={{ padding: p, flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</div>
     </div>
   )
 }

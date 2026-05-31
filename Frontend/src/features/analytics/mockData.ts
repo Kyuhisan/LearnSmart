@@ -16,13 +16,6 @@ export interface ModuleStats {
   colorLt: string
 }
 
-export interface StyleBreakdown {
-  label: string
-  percent: number
-  color: string
-  colorLt: string
-}
-
 export const WEEKLY_ACTIVITY: WeeklyActivity[] = [
   { day: 'MON', sessions: 38, avgScore: 74 },
   { day: 'TUE', sessions: 52, avgScore: 79 },
@@ -39,13 +32,6 @@ export const MODULE_STATS: ModuleStats[] = [
   { id: '3', title: 'Computer Vision Basics',        students: 54,  avgCompletion: 22, avgScore: 65, color: C.orange, colorLt: C.orangeLt },
   { id: '4', title: 'Statistics for Data Science',   students: 91,  avgCompletion: 73, avgScore: 82, color: C.green,  colorLt: C.greenLt  },
   { id: '5', title: 'Linear Algebra Refresher',      students: 110, avgCompletion: 91, avgScore: 88, color: C.cyan,   colorLt: C.cyanLt   },
-]
-
-export const STYLE_BREAKDOWN: StyleBreakdown[] = [
-  { label: 'VISUAL',      percent: 38, color: C.purple, colorLt: C.purpleLt },
-  { label: 'READING',     percent: 27, color: C.cyan,   colorLt: C.cyanLt   },
-  { label: 'AUDITORY',    percent: 21, color: C.green,  colorLt: C.greenLt  },
-  { label: 'KINESTHETIC', percent: 14, color: C.red,    colorLt: C.redLt    },
 ]
 
 export interface ModuleQuizDetail {
@@ -106,14 +92,3 @@ export const CONCEPT_MASTERY: ConceptMastery[] = [
   { concept: 'Regularisation',        mastery: 38, students: 61,  color: C.red,    colorLt: C.redLt    },
 ]
 
-export const ANALYTICS_STATS = {
-  activeStudents: 134,
-  totalStudents: 248,
-  activeStudentsDelta: '+12 this week',
-  avgScore: 78,
-  avgScoreDelta: '+4% vs last week',
-  avgCompletion: 61,
-  avgCompletionDelta: '+7% this week',
-  quizzesGraded: 86,
-  quizzesPending: 12,
-}

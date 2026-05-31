@@ -1,3 +1,4 @@
+import type React from 'react'
 import { Panel } from '../ui/Panel'
 import { IconBox } from '../ui/IconBox'
 import { C, S, FS, BW, R } from '../../styles/tokens'
@@ -15,12 +16,13 @@ interface ActivityPanelProps {
   readonly title?: string
   readonly accent?: string
   readonly showBadge?: boolean
+  readonly action?: React.ReactNode
 }
 
-export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.yellow, showBadge = true }: ActivityPanelProps) {
+export function ActivityPanel({ items, title = 'TEACHING ACTIVITY', accent = C.yellow, showBadge = true, action }: ActivityPanelProps) {
   const isMobile = useBreakpoint() === 'mobile'
   return (
-    <Panel title={title} accent={accent}>
+    <Panel title={title} accent={accent} action={action}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {items.map((item, i) => (
           <div key={i} style={{

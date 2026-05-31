@@ -55,4 +55,5 @@ public class IzvornaDatoteka {
 
     @OneToMany(mappedBy = "generiranaIz", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<IzvornaDatoteka> generiraneDatoteke;
+
 }

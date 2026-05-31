@@ -29,6 +29,7 @@ interface BackendModul {
   ustvarjenOb: string;
   uciteljImePriimek: string;
   kategorije: string[] | null;
+  steviloVpisanih: number;
 }
 
 function ConfirmDialog({
@@ -100,8 +101,11 @@ function ProfModuleCard({
         padding: S[3], paddingTop: S[5],
         display: 'flex', flexDirection: 'column', gap: S[2], flex: 1,
       }}>
-        {/* Difficulty */}
-        <div><Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} /></div>
+        {/* Difficulty + student count */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
+          <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+          <Tag label={`${mod.steviloVpisanih} ${mod.steviloVpisanih === 1 ? 'STUDENT' : 'STUDENTS'}`} bg={C.cyanLt} />
+        </div>
 
         {/* Title */}
         <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xl, color: C.ink, lineHeight: 1.25, wordBreak: 'break-word' }}>
@@ -178,6 +182,7 @@ function ProfModuleListRow({
         {/* Tags */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: S[1.5] }}>
           <Tag label={STAR_LABELS[mod.tezavnost] ?? '★'} bg={C.yellowLt} />
+          <Tag label={`${mod.steviloVpisanih} ${mod.steviloVpisanih === 1 ? 'STUDENT' : 'STUDENTS'}`} bg={C.cyanLt} />
           {tags.map(t => <Tag key={t} label={t} bg={TAG_COLORS[t] ?? C.mutedLt} />)}
           <Tag label={mod.jeObjavljen ? '● LIVE' : '○ DRAFT'} bg={mod.jeObjavljen ? C.green : C.mutedLt} />
         </div>
@@ -247,7 +252,7 @@ function SkeletonRow({ color }: { color: string }) {
 }
 
 function isNew(ustvarjenOb: string): boolean {
-  return (Date.now() - new Date(ustvarjenOb).getTime()) / (1000 * 60 * 60 * 24) <= 30
+  return (Date.now() - new Date(ustvarjenOb).getTime()) / (1000 * 60 * 60 * 24) <= 1
 }
 
 function PublicModuleCard({ mod, color, isOwn }: { mod: BackendModul; color: string; isOwn: boolean }) {
@@ -406,8 +411,9 @@ export function ProfessorModules() {
   }, [naloziPubl]);
 
   const getCategoryCount = (cat: string): number => {
-    if (cat === 'ALL') return moduli.length + publModuli.length
-    return [...moduli, ...publModuli].filter(m => m.kategorije?.includes(cat)).length
+    const otherPubl = publModuli.filter(m => !moduli.some(own => own.id === m.id))
+    if (cat === 'ALL') return moduli.length + otherPubl.length
+    return [...moduli, ...otherPubl].filter(m => m.kategorije?.includes(cat)).length
   }
 
   const handleIzbrisi = (e: React.MouseEvent, id: string) => {
@@ -467,7 +473,7 @@ export function ProfessorModules() {
   return (
     <div className="dashboard-main">
       <Topbar
-        title="MODULES — PROF"
+        title="MODULES"
         subtitle={`${published} published · ${draft} drafts`}
         actions={
           <ComicBtn color={C.green} onClick={() => setNewModul(true)}>
@@ -506,7 +512,8 @@ export function ProfessorModules() {
         </div>
       </div>
 
-      <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.lg, color: C.ink, marginBottom: S[2] }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], fontWeight: 800, color: C.ink, marginBottom: S[2] }}>
+        <Tag label={loading ? '—' : String(filtered.length)} bg={C.yellowLt} fontSize={FS.lg} />
         YOUR MODULES
       </div>
 
@@ -550,7 +557,8 @@ export function ProfessorModules() {
 
       {/* All Published Modules — student view */}
       <div style={{ marginTop: S[6] }}>
-        <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.lg, color: C.ink, marginBottom: S[3] }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2], fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], fontWeight: 800, color: C.ink, marginBottom: S[3] }}>
+          <Tag label={loadingPubl ? '—' : String(filteredPubl.length)} bg={C.cyanLt} fontSize={FS.lg} />
           OTHER PUBLISHED MODULES
         </div>
 

@@ -38,4 +38,22 @@ public class Profil {
 
     @Column(name = "ucni_tip")
     private String ucniTip;
+
+    @Column(name = "vark_visual")
+    private Integer varkVisual;
+
+    @Column(name = "vark_auditory")
+    private Integer varkAuditory;
+
+    @Column(name = "vark_reading")
+    private Integer varkReading;
+
+    @Column(name = "vark_kinesthetic")
+    private Integer varkKinesthetic;
+
+    @Column(name = "xp", nullable = false, columnDefinition = "integer default 0")
+    private Integer xp = 0;
+
+    @Column(name = "nivo", nullable = false, columnDefinition = "integer default 1")
+    private Integer nivo = 1;
 }

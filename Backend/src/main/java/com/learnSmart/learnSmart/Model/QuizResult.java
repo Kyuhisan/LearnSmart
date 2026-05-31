@@ -41,4 +41,10 @@ public class QuizResult {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "odgovori", columnDefinition = "jsonb")
     private List<Integer> odgovori;
+
+    @Column(name = "cas_resevanja_s")
+    private Integer casResevanjaS;
+
+    @Column(name = "xp_zasluzen", columnDefinition = "integer default 0")
+    private Integer xpZasluzen = 0;
 }

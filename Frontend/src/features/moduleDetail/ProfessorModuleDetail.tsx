@@ -9,9 +9,10 @@ import { Panel } from '../../components/ui/Panel'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 import { PROF_MODULE} from './mockData'
-import { getModuleContent, getVisualContent, updateVsebinaPredmet } from './moduleDetailApi'
-import '../../styles/moduleDetailPage.css'
+import { getModuleContent, getModul, getVisualContent, updateVsebinaPredmet } from './moduleDetailApi'
+import { getSteviloVpisanih } from '../modules/moduleApi'
 import { useAuth } from '../../context/AuthContext'
+import '../../styles/moduleDetailPage.css'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
@@ -704,6 +705,8 @@ export function ProfessorModuleDetail() {
 
   const { id } = useParams()
   const [moduleContent, setModuleContent] = useState<ModuleContentItem[]>([])
+  const [steviloVpisanih, setSteviloVpisanih] = useState<number | null>(null)
+  const [modulNaziv, setModulNaziv] = useState<string>('')
   const [visualContent, setVisualContent] = useState<VisualContentItem[]>([])
   
   // READING
@@ -753,7 +756,12 @@ export function ProfessorModuleDetail() {
     }
 
     fetchContent()
-  }, [id])
+    getModul(id).then((m: { naziv: string }) => setModulNaziv(m.naziv)).catch(() => {})
+
+    if (session?.access_token) {
+      getSteviloVpisanih(session.access_token, id).then(setSteviloVpisanih)
+    }
+  }, [id, session?.access_token])
 
   useEffect(() => {
     if (!id) {
@@ -857,8 +865,8 @@ export function ProfessorModuleDetail() {
   return (
     <div className="module-detail-page">
       <Topbar
-        title={PROF_MODULE.title}
-        subtitle={`${PROF_MODULE.subject} · ${PROF_MODULE.students} students enrolled`}
+        title={modulNaziv || '…'}
+        subtitle={steviloVpisanih === null ? '…' : `${steviloVpisanih} ${steviloVpisanih === 1 ? 'student' : 'students'} enrolled`}
         back={() => navigate('/modules')}
         actions={
           <>
@@ -886,7 +894,7 @@ export function ProfessorModuleDetail() {
           ))}
         </div>
         <div className="module-detail-tabbar-right">
-          <Tag label={`${PROF_MODULE.students} STUDENTS`} bg={C.cyanLt} />
+          <Tag label={steviloVpisanih === null ? '…' : `${steviloVpisanih} ${steviloVpisanih === 1 ? 'STUDENT' : 'STUDENTS'}`} bg={C.cyanLt} />
         </div>
       </div>
 

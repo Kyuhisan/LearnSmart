@@ -6,7 +6,8 @@ import { Topbar } from "../../components/ui/Topbar";
 import { ComicBox } from "../../components/ui/ComicBox";
 import { ComicBtn } from "../../components/ui/ComicBtn";
 import { C, S, FS, BW, R, mkShadow } from "../../styles/tokens";
-import { getModuliJavni, getMojiVpisi } from "./moduleApi";
+import { getModuliJavni, getMojiVpisi, vpisZKodo, odjavaIzModula } from "./moduleApi";
+import { getModuleCompletion, type ModuleCompletion } from "../quiz/quizStudentApi";
 import { ALL_TAGS, TAG_COLORS } from "./moduleTags";
 import { Panel } from "../../components/ui/Panel";
 import { JoinModuleModal } from "./JoinModuleModal";
@@ -25,7 +26,7 @@ const STAR_LABELS: Record<number, string> = {
 
 function isNew(ustvarjenOb: string): boolean {
   return (
-    (Date.now() - new Date(ustvarjenOb).getTime()) / (1000 * 60 * 60 * 24) <= 30
+    (Date.now() - new Date(ustvarjenOb).getTime()) / (1000 * 60 * 60 * 24) <= 1
   );
 }
 
@@ -47,6 +48,7 @@ interface BackendModul {
   ustvarjenOb: string;
   uciteljImePriimek: string;
   kategorije: string[] | null;
+  kodaVpisa?: string;
 }
 
 interface VpisInfo {
@@ -60,13 +62,23 @@ function ModuleCard({
   color,
   isVpisan,
   casNaModulu,
+  completedQuizzes,
+  totalQuizzes,
+  onJoin,
+  onLeave,
 }: {
   mod: BackendModul;
   color: string;
   isVpisan: boolean;
   casNaModulu?: number;
+  completedQuizzes?: number;
+  totalQuizzes?: number;
+  onJoin?: () => Promise<void>;
+  onLeave?: () => Promise<void>;
 }) {
   const navigate = useNavigate();
+  const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const tags = mod.kategorije ?? [];
   const showNew = isNew(mod.ustvarjenOb);
 
@@ -161,43 +173,42 @@ function ModuleCard({
           flexShrink: 0,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "'Archivo Black', sans-serif",
-              fontSize: FS.xs,
-              color: C.muted,
-            }}
-          >
-            {isVpisan ? "ENROLLED" : "NOT STARTED"}
-          </span>
-          <span
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: FS.xs,
-              color: C.ink,
-            }}
-          >
-            0%
-          </span>
-        </div>
-        <Bar value={0} color={isVpisan ? C.green : C.mutedLt} />
-        {isVpisan && casNaModulu !== undefined && casNaModulu > 0 && (
-          <div
-            style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: FS["2xs"],
-              color: C.muted,
-              textAlign: "right",
-            }}
-          >
-            ⏱ {formatCas(casNaModulu)} spent
+        {(() => {
+          const total = totalQuizzes ?? 0
+          const done = completedQuizzes ?? 0
+          const pct = total > 0 ? Math.round(done / total * 100) : 0
+          return (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted }}>
+                  {isVpisan ? (total > 0 ? `${done}/${total} QUIZZES` : "ENROLLED") : "NOT STARTED"}
+                </span>
+                <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.ink }}>
+                  {isVpisan && total > 0 ? `${pct}%` : isVpisan ? "" : "0%"}
+                </span>
+              </div>
+              <Bar value={isVpisan ? pct : 0} color={isVpisan ? C.green : C.mutedLt} />
+            </>
+          )
+        })()}
+        {(isVpisan || onJoin || onLeave) && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }} onClick={e => e.stopPropagation()}>
+            {isVpisan && casNaModulu !== undefined
+              ? <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>⏱ {formatCas(casNaModulu)} spent</span>
+              : <span />
+            }
+            <div style={{ display: "flex", gap: S[2] }}>
+              {onJoin && (
+                <ComicBtn sm color={C.green} onClick={async () => { setJoining(true); await onJoin(); setJoining(false); }}>
+                  {joining ? 'JOINING...' : 'JOIN'}
+                </ComicBtn>
+              )}
+              {onLeave && (
+                <ComicBtn sm color={C.redLt} onClick={async () => { setLeaving(true); await onLeave(); setLeaving(false); }}>
+                  {leaving ? 'LEAVING...' : 'LEAVE'}
+                </ComicBtn>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -210,14 +221,24 @@ function ModuleListRow({
   color,
   isVpisan,
   casNaModulu,
+  completedQuizzes,
+  totalQuizzes,
+  onJoin,
+  onLeave,
 }: {
   mod: BackendModul;
   color: string;
   isVpisan: boolean;
   casNaModulu?: number;
+  completedQuizzes?: number;
+  totalQuizzes?: number;
+  onJoin?: () => Promise<void>;
+  onLeave?: () => Promise<void>;
 }) {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const tags = mod.kategorije ?? [];
 
   return (
@@ -285,7 +306,7 @@ function ModuleListRow({
           >
             <Tag label={STAR_LABELS[mod.tezavnost] ?? "★"} bg={C.yellowLt} />
             {isVpisan && <Tag label="✓" bg={C.greenLt} />}
-            {isVpisan && casNaModulu !== undefined && casNaModulu > 0 && (
+            {isVpisan && casNaModulu !== undefined && (
               <Tag label={`⏱ ${formatCas(casNaModulu)}`} bg={C.cyanLt} />
             )}
             {tags.map((t) => (
@@ -301,28 +322,41 @@ function ModuleListRow({
             }}
           />
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: S[2],
-              minWidth: 140,
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <Bar value={0} color={isVpisan ? C.green : C.mutedLt} />
-            </div>
-            <span
-              style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: FS.xs,
-                color: C.ink,
-                flexShrink: 0,
-              }}
-            >
-              0%
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: S[2], minWidth: 140 }}>
+            {(() => {
+              const total = totalQuizzes ?? 0
+              const done = completedQuizzes ?? 0
+              const pct = total > 0 ? Math.round(done / total * 100) : 0
+              return (
+                <>
+                  <div style={{ flex: 1 }}>
+                    <Bar value={isVpisan ? pct : 0} color={isVpisan ? C.green : C.mutedLt} />
+                  </div>
+                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.ink, flexShrink: 0 }}>
+                    {isVpisan && total > 0 ? `${done}/${total}` : isVpisan ? "—" : "0%"}
+                  </span>
+                </>
+              )
+            })()}
           </div>
+
+          {(onJoin || onLeave) && (
+            <>
+              <div style={{ width: BW.base, alignSelf: "stretch", background: C.divider }} />
+              <div style={{ display: 'flex', gap: S[2] }} onClick={e => e.stopPropagation()}>
+                {onJoin && (
+                  <ComicBtn sm color={C.green} onClick={async () => { setJoining(true); await onJoin(); setJoining(false); }}>
+                    {joining ? 'JOINING...' : 'JOIN'}
+                  </ComicBtn>
+                )}
+                {onLeave && (
+                  <ComicBtn sm color={C.redLt} onClick={async () => { setLeaving(true); await onLeave(); setLeaving(false); }}>
+                    {leaving ? 'LEAVING...' : 'LEAVE'}
+                  </ComicBtn>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </ComicBox>
     </div>
@@ -535,19 +569,23 @@ export function StudentModules() {
   const { session } = useAuth();
   const [moduli, setModuli] = useState<BackendModul[]>([]);
   const [mojiVpisi, setMojiVpisi] = useState<VpisInfo[]>([]);
+  const [completion, setCompletion] = useState<Record<string, ModuleCompletion>>({});
   const [search, setSearch] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [showJoin, setShowJoin] = useState(false);
-  const [showOnlyMoji, setShowOnlyMoji] = useState(true);
 
   const nalozi = useCallback(async () => {
     const data = await getModuliJavni();
     setModuli(data);
     if (session?.access_token) {
-      const vpisi = await getMojiVpisi(session.access_token);
+      const [vpisi, comp] = await Promise.all([
+        getMojiVpisi(session.access_token),
+        getModuleCompletion(session.access_token),
+      ]);
       setMojiVpisi(vpisi);
+      setCompletion(comp);
     }
     setInitialized(true);
   }, [session]);
@@ -563,27 +601,43 @@ export function StudentModules() {
   const getCas = (modulId: string): number =>
     mojiVpisi.find((v) => v.predmetId === modulId)?.casNaModulu ?? 0;
 
+  const getComp = (modulId: string) => completion[modulId] ?? { total: 0, completed: 0 };
+
+  const handleJoin = async (mod: BackendModul) => {
+    if (!session?.access_token || !mod.kodaVpisa) return
+    await vpisZKodo(session.access_token, mod.kodaVpisa)
+    await nalozi()
+  }
+
+  const handleLeave = async (mod: BackendModul) => {
+    if (!session?.access_token) return
+    await odjavaIzModula(session.access_token, mod.id)
+    await nalozi()
+  }
+
   const getCategoryCount = (cat: string): number => {
     if (cat === "ALL") return moduli.length;
     return moduli.filter((m) => m.kategorije?.includes(cat)).length;
   };
 
-  const filtered = moduli.filter((m) => {
+  const baseFiltered = moduli.filter((m) => {
     const matchesSearch = m.naziv.toLowerCase().includes(search.toLowerCase());
     const matchesCategory =
       activeCategory === "ALL" || m.kategorije?.includes(activeCategory);
-    const matchesMoji = !showOnlyMoji || isVpisan(m.id);
-    return matchesSearch && matchesCategory && matchesMoji;
+    return matchesSearch && matchesCategory;
   });
+
+  const mojiModuli = baseFiltered.filter((m) => isVpisan(m.id));
+  const ostaliModuli = baseFiltered.filter((m) => !isVpisan(m.id));
 
   return (
     <div className="dashboard-main">
       <Topbar
-        title="MODULE LIBRARY"
+        title="MODULES"
         subtitle={`${moduli.length} modules · ${mojiVpisi.length} enrolled`}
         actions={
           <ComicBtn color={C.green} onClick={() => setShowJoin(true)}>
-            + JOIN MODULE
+            JOIN MODULE WITH CODE
           </ComicBtn>
         }
       />
@@ -628,52 +682,157 @@ export function StudentModules() {
               </button>
             ))}
           </div>
-          <button
-            onClick={() => setShowOnlyMoji((o) => !o)}
-            className={`modules-filter-btn ${showOnlyMoji ? "active" : ""}`}
-          >
-            {showOnlyMoji ? "SHOW ALL MODULES" : "SHOW MY MODULES"}{" "}
-            <span className="modules-filter-count">
-              {showOnlyMoji ? moduli.length : mojiVpisi.length}
-            </span>
-          </button>
         </div>
       </div>
 
       {view === "grid" ? (
-        <div className="modules-grid">
-          {!initialized
-            ? COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
-            : filtered.map((mod, i) => (
-                <ModuleCard
-                  key={mod.id}
-                  mod={mod}
-                  color={COLORS[i % COLORS.length]}
-                  isVpisan={isVpisan(mod.id)}
-                  casNaModulu={getCas(mod.id)}
-                />
-              ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: S[6] }}>
+          {/* My Modules */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: S[2], fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], fontWeight: 800, color: C.ink, marginBottom: S[3] }}>
+              <Tag label={!initialized ? "—" : String(mojiModuli.length)} bg={C.greenLt} fontSize={FS.lg} />
+              MY MODULES
+            </div>
+            <div className="modules-grid">
+              {!initialized
+                ? COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
+                : mojiModuli.length === 0
+                  ? (
+                    <div style={{
+                      gridColumn: "1 / -1",
+                      padding: `${S[6]} 0`,
+                      fontFamily: "'Archivo Black', sans-serif",
+                      fontSize: FS.sm,
+                      color: C.muted,
+                      textAlign: "center",
+                    }}>
+                      You haven't enrolled in any modules yet.
+                    </div>
+                  )
+                  : mojiModuli.map((mod, i) => (
+                    <ModuleCard
+                      key={mod.id}
+                      mod={mod}
+                      color={COLORS[i % COLORS.length]}
+                      isVpisan
+                      casNaModulu={getCas(mod.id)}
+                      completedQuizzes={getComp(mod.id).completed}
+                      totalQuizzes={getComp(mod.id).total}
+                      onLeave={() => handleLeave(mod)}
+                    />
+                  ))}
+            </div>
+          </div>
+
+          {/* All Other Modules */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: S[2], fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xl'], fontWeight: 800, color: C.ink, marginBottom: S[3] }}>
+              <Tag label={!initialized ? "—" : String(ostaliModuli.length)} bg={C.yellowLt} fontSize={FS.lg} />
+              ALL MODULES
+            </div>
+            <div className="modules-grid">
+              {!initialized
+                ? COLORS.map((color, i) => <SkeletonCard key={i} color={color} />)
+                : ostaliModuli.length === 0
+                  ? (
+                    <div style={{
+                      gridColumn: "1 / -1",
+                      padding: `${S[6]} 0`,
+                      fontFamily: "'Archivo Black', sans-serif",
+                      fontSize: FS.sm,
+                      color: C.muted,
+                      textAlign: "center",
+                    }}>
+                      No other modules available.
+                    </div>
+                  )
+                  : ostaliModuli.map((mod, i) => (
+                    <ModuleCard
+                      key={mod.id}
+                      mod={mod}
+                      color={COLORS[i % COLORS.length]}
+                      isVpisan={false}
+                      casNaModulu={undefined}
+                      completedQuizzes={0}
+                      totalQuizzes={0}
+                      onJoin={() => handleJoin(mod)}
+                    />
+                  ))}
+            </div>
+          </div>
         </div>
       ) : (
-        <Panel
-          title={!initialized ? "— MODULES" : `${filtered.length} MODULES`}
-          accent={C.yellow}
-          p={S[3]}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: S[2] }}>
-            {!initialized
-              ? COLORS.map((color, i) => <SkeletonRow key={i} color={color} />)
-              : filtered.map((mod, i) => (
-                  <ModuleListRow
-                    key={mod.id}
-                    mod={mod}
-                    color={COLORS[i % COLORS.length]}
-                    isVpisan={isVpisan(mod.id)}
-                    casNaModulu={getCas(mod.id)}
-                  />
-                ))}
-          </div>
-        </Panel>
+        <div style={{ display: "flex", flexDirection: "column", gap: S[4] }}>
+          <Panel
+            title={!initialized ? "— MY MODULES" : `${mojiModuli.length} MY MODULES`}
+            accent={C.green}
+            p={S[3]}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: S[2] }}>
+              {!initialized
+                ? COLORS.map((color, i) => <SkeletonRow key={i} color={color} />)
+                : mojiModuli.length === 0
+                  ? (
+                    <div style={{
+                      padding: `${S[4]} 0`,
+                      fontFamily: "'Archivo Black', sans-serif",
+                      fontSize: FS.sm,
+                      color: C.muted,
+                      textAlign: "center",
+                    }}>
+                      You haven't enrolled in any modules yet.
+                    </div>
+                  )
+                  : mojiModuli.map((mod, i) => (
+                    <ModuleListRow
+                      key={mod.id}
+                      mod={mod}
+                      color={COLORS[i % COLORS.length]}
+                      isVpisan
+                      casNaModulu={getCas(mod.id)}
+                      completedQuizzes={getComp(mod.id).completed}
+                      totalQuizzes={getComp(mod.id).total}
+                      onLeave={() => handleLeave(mod)}
+                    />
+                  ))}
+            </div>
+          </Panel>
+
+          <Panel
+            title={!initialized ? "— ALL MODULES" : `${ostaliModuli.length} ALL MODULES`}
+            accent={C.yellow}
+            p={S[3]}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: S[2] }}>
+              {!initialized
+                ? COLORS.map((color, i) => <SkeletonRow key={i} color={color} />)
+                : ostaliModuli.length === 0
+                  ? (
+                    <div style={{
+                      padding: `${S[4]} 0`,
+                      fontFamily: "'Archivo Black', sans-serif",
+                      fontSize: FS.sm,
+                      color: C.muted,
+                      textAlign: "center",
+                    }}>
+                      No other modules available.
+                    </div>
+                  )
+                  : ostaliModuli.map((mod, i) => (
+                    <ModuleListRow
+                      key={mod.id}
+                      mod={mod}
+                      color={COLORS[i % COLORS.length]}
+                      isVpisan={false}
+                      casNaModulu={undefined}
+                      completedQuizzes={0}
+                      totalQuizzes={0}
+                      onJoin={() => handleJoin(mod)}
+                    />
+                  ))}
+            </div>
+          </Panel>
+        </div>
       )}
 
       {showJoin && (

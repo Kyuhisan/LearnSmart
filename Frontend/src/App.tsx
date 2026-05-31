@@ -19,11 +19,9 @@ import { ModuleLibrary } from "./pages/ModuleLibrary";
 import { ModuleDetailPage } from "./pages/ModuleDetailPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { QuizPage } from "./pages/QuizPage";
-import { QuizHistoryPage } from "./pages/QuizHistoryPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
 import { ProgressPage } from "./pages/ProgressPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
-import { SettingsPage } from "./pages/SettingsPage";
 import { StudentDetailPage } from "./pages/StudentDetailPage";
 import { StudentsPage } from "./pages/StudentsPage";
 import { UploadPage } from "./pages/UploadPage";
@@ -108,14 +106,6 @@ function App() {
             }
           />
           <Route
-            path="/quiz/history"
-            element={
-              <ProtectedRoute role="ucenec">
-                <QuizHistoryPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/leaderboard"
             element={
               <ProtectedRoute role="ucenec">
@@ -141,15 +131,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-
           {/* ── Professor only ── */}
           <Route
             path="/students"

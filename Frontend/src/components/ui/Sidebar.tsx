@@ -39,23 +39,23 @@ interface SidebarItem {
 }
 
 const studentItems: SidebarItem[] = [
-  { label: 'Home Base',     path: '/dashboard',    icon: Icons.home          },
+  { label: 'Dashboard',     path: '/dashboard',    icon: Icons.home          },
   { label: 'Modules',       path: '/modules',      icon: Icons.modules       },
   { label: 'Quizzes',       path: '/quiz',         icon: Icons.quiz          },
   { label: 'Leaderboard',   path: '/leaderboard',  icon: Icons.leaderboard   },
   { label: 'My Progress',   path: '/progress',     icon: Icons.progress      },
   { label: 'Notifications', path: '/notifications',icon: Icons.notifications  },
-  { label: 'Profile',       path: '/profile',      icon: Icons.profile       },
+  { label: 'Profile',            path: '/profile',      icon: Icons.profile       },
 ]
 
 const teacherItems: SidebarItem[] = [
-  { label: 'Home Base',     path: '/dashboard',       icon: Icons.home          },
-  { label: 'Modules',       path: '/modules',         icon: Icons.modules       },
-  { label: 'Upload',        path: '/upload',          icon: Icons.upload        },
-  { label: 'AI Quiz',       path: '/ai-quiz-builder', icon: Icons.aiQuiz        },
-  { label: 'Analytics',     path: '/analytics',       icon: Icons.analytics     },
-  { label: 'Students',      path: '/students',        icon: Icons.students      },
-  { label: 'Notifications', path: '/notifications',   icon: Icons.notifications  },
+  { label: 'Dashboard',          path: '/dashboard',       icon: Icons.home          },
+  { label: 'Modules',            path: '/modules',         icon: Icons.modules       },
+  { label: 'Upload',             path: '/upload',          icon: Icons.upload        },
+  { label: 'AI Quiz Generator',  path: '/ai-quiz-builder', icon: Icons.aiQuiz        },
+  { label: 'Analytics',          path: '/analytics',       icon: Icons.analytics     },
+  { label: 'Students',           path: '/students',        icon: Icons.students      },
+  { label: 'Notifications', path: '/notifications',  icon: Icons.notifications  },
   { label: 'Profile',       path: '/profile',         icon: Icons.profile       },
 ]
 
