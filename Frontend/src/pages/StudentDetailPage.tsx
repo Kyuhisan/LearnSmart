@@ -6,7 +6,7 @@ import { AppHeader } from '../components/ui/AppHeader'
 import { ProfessorStudentDetail } from '../features/studentDetail/ProfessorStudentDetail'
 
 export function StudentDetailPage() {
-  useParams() // will use { id } when implemented
+  const { id } = useParams<{ id: string }>()
   const { profil } = useAuth()
 
   if (!profil) return (
@@ -20,7 +20,7 @@ export function StudentDetailPage() {
       <AppHeader />
       <div className="app-body">
         <Sidebar vloga={profil.vloga} username={profil.username} />
-        <ProfessorStudentDetail />
+        <ProfessorStudentDetail studentId={id ?? ''} />
       </div>
     </div>
   )

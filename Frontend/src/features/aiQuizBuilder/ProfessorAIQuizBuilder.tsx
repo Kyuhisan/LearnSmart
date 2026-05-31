@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Topbar } from '../../components/ui/Topbar'
-import { C, S, FS, BW, R } from '../../styles/tokens'
+import { Panel } from '../../components/ui/Panel'
+import { Tag } from '../../components/ui/Tag'
+import { ComicBtn } from '../../components/ui/ComicBtn'
+import { C, S } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
 import { getModuliUcitelj } from '../modules/moduleApi'
@@ -16,6 +20,7 @@ import { GenerateView, BankaView, NewQuizView, KvizView } from './QuizBuilderVie
 
 export function ProfessorAIQuizBuilder() {
   const { session } = useAuth()
+  const navigate = useNavigate()
   const bp = useBreakpoint()
   const isMobile = bp === 'mobile' || bp === 'tablet'
 
@@ -232,33 +237,37 @@ export function ProfessorAIQuizBuilder() {
   }
 
   const tabs: { key: View; label: string }[] = [
-    { key: 'generate', label: ' GENERATE QUESTIONS' },
-    { key: 'banka',    label: ` AVAILABLE QUESTIONS (${banka.length})` },
-    { key: 'newquiz',  label: ' NEW QUIZ' },
-    { key: 'kviz',     label: ` QUIZZES (${kvizi.length})` },
+    { key: 'generate', label: 'STEP 1 · GENERATE QUESTIONS' },
+    { key: 'banka',    label: `STEP 2 · AVAILABLE QUESTIONS (${banka.length})` },
+    { key: 'newquiz',  label: 'STEP 3 · NEW QUIZ' },
+    { key: 'kviz',     label: `STEP 4 · QUIZZES (${kvizi.length})` },
   ]
 
   return (
     <div className="dashboard-main">
       <Topbar title="AI QUIZ BUILDER" subtitle="Generate · Bank · Publish" />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: S[3], marginBottom: S[2] }}>
-        <div>
-          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, letterSpacing: 1, marginBottom: S[1] }}>MODULE</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
+        <Panel title="SELECT WORKFLOW" accent={C.cyan} action={<Tag label="STEP 1" bg={C.yellow} />}>
+          <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
+            {tabs.map(t => (
+              <ComicBtn key={t.key} sm color={view === t.key ? C.yellow : C.paper} onClick={() => setView(t.key)}>
+                {t.label}
+              </ComicBtn>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="SELECT MODULE" accent={C.yellow} action={<Tag label="STEP 2" bg={C.yellow} />} overflow="visible">
           <Dropdown value={module} options={modules} onChange={m => { setModule(m); setSelectedKviz(null) }} loading={loadingModules} placeholder="Select a module" />
-        </div>
-        <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setView(t.key)}
-              style={{ padding: `${S[2]} ${S[3]}`, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: view === t.key ? C.ink : C.muted, background: view === t.key ? C.yellowLt : C.paper, border: `${BW.base} solid ${view === t.key ? C.ink : C.divider}`, borderRadius: R.sm, cursor: 'pointer', transition: 'all 0.1s', whiteSpace: 'nowrap' }}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+        </Panel>
       </div>
 
+      <hr style={{ border: 'none', borderTop: `2px solid ${C.divider}`, margin: 0 }} />
+
       {view === 'generate' && (
-        <GenerateView isMobile={isMobile} module={module} difficulty={difficulty} setDifficulty={setDifficulty} count={count} setCount={setCount} generating={generating} generatingMore={generatingMore} questions={questions} approvedCount={approvedCount} rejectedCount={rejectedCount} pendingCount={pendingCount} savedToBank={savedToBank} savingToBank={savingToBank} difficultyColor={difficultyColor} onGenerate={generate} onGenerateMore={generateMore} onApproval={setApproval} onSaveToBank={saveApprovedToBank} />
+        <GenerateView isMobile={isMobile} module={module} difficulty={difficulty} setDifficulty={setDifficulty} count={count} setCount={setCount} generating={generating} generatingMore={generatingMore} questions={questions} approvedCount={approvedCount} rejectedCount={rejectedCount} pendingCount={pendingCount} savedToBank={savedToBank} savingToBank={savingToBank} difficultyColor={difficultyColor} onGenerate={generate} onGenerateMore={generateMore} onApproval={setApproval} onSaveToBank={saveApprovedToBank} onGoUpload={() => navigate('/upload')} />
       )}
       {view === 'banka' && (
         <BankaView banka={banka} loadingBanka={loadingBanka} deletingBankaId={deletingBankaId} onDelete={handleDeleteFromBank} onGoGenerate={() => setView('generate')} />
@@ -269,6 +278,7 @@ export function ProfessorAIQuizBuilder() {
       {view === 'kviz' && (
         <KvizView isMobile={isMobile} kvizi={kvizi} loadingKvizi={loadingKvizi} selectedKviz={selectedKviz} setSelectedKviz={setSelectedKviz} kvizVprasanja={kvizVprasanja} loadingKvizVprasanja={loadingKvizVprasanja} banka={banka} loadingBanka={loadingBanka} removingId={removingId} addingToKvizId={addingToKvizId} publishing={publishing} deletingKviz={deletingKviz} onRemove={handleRemoveFromKviz} onAdd={handleAddToKviz} onPublish={handlePublish} onDelete={handleDeleteKviz} onNewQuiz={() => setView('newquiz')} />
       )}
+      </div>
     </div>
   )
 }

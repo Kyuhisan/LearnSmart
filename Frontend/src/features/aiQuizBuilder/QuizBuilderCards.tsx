@@ -126,8 +126,8 @@ export function Dropdown<T extends { id: string; naziv: string }>({ value, optio
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={() => { if (canOpen) setOpen(o => !o) }}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `${S[2]} ${S[3]}`, background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), cursor: canOpen ? 'pointer' : 'not-allowed', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: loading || !value ? C.muted : C.ink, textTransform: 'uppercase' }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: `${S[2]} ${S[3]}`, minHeight: '2.5rem', background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), cursor: canOpen ? 'pointer' : 'not-allowed', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: loading || !value ? C.muted : C.ink, textTransform: 'uppercase' }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1 }}>{label}</span>
         {canOpen && <span style={{ fontSize: FS.xs, marginLeft: S[2], flexShrink: 0 }}>{open ? '▲' : '▼'}</span>}
       </button>
       {open && (

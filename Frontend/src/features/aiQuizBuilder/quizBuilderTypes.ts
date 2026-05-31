@@ -1,4 +1,4 @@
-export interface Modul { id: string; naziv: string }
+export interface Modul { id: string; naziv: string; hasTranscript: boolean }
 
 export interface BackendQuestion {
   besediloVprasanja: string

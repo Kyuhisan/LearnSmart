@@ -8,8 +8,7 @@ import { ActivityPanel, type ActivityItem } from '../../components/professor/Act
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
-import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
-import { Bar } from '../../components/ui/Bar'
+import { C, S, FS, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
 import { Tag } from '../../components/ui/Tag'
 import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
@@ -21,8 +20,10 @@ const ACTIVITY: ActivityItem[] = [
   { iconBg: C.purpleLt, title: 'Completed module: Linear Algebra',         time: '2D AGO', badge: 'DONE'    },
 ]
 
+const API = import.meta.env.VITE_API_URL
+
 export function StudentProfile() {
-  const { profil, session } = useAuth()
+  const { profil, session, signOut } = useAuth()
   const navigate = useNavigate()
   const [quizCount, setQuizCount] = useState<number | null>(null)
   const [quizAvg, setQuizAvg] = useState<number | null>(null)
@@ -51,7 +52,13 @@ export function StudentProfile() {
       <Topbar
         title="MY PROFILE"
         subtitle="Account · learning style · activity"
-        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn>}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          2 NEW
+        </ComicBtn>}
       />
 
       <div className="prof-content">
@@ -59,9 +66,13 @@ export function StudentProfile() {
           username={profil.username}
           isTeacher={false}
           level={profil.nivo}
+          xp={profil.xp}
           learningType={styleInfo ? styleInfo.label.toUpperCase() : undefined}
-          streak={STUDENT_PROFILE.streak}
           onRetakeVark={() => navigate('/questionnaire')}
+          onDeleteAccount={async () => {
+            await fetch(`${API}/api/me`, { method: 'DELETE', headers: { Authorization: `Bearer ${session?.access_token}` } })
+            await signOut()
+          }}
         />
 
         <div className="quiz-stat-grid">
@@ -91,16 +102,7 @@ export function StudentProfile() {
           />
         </div>
 
-        <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow(), background: C.paper, padding: `${S[3]} ${S[4]}`, display: 'flex', flexDirection: 'column', gap: S[2] }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>LEVEL {profil.nivo}</span>
-            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{profil.xp % 200} / 200 XP</span>
-          </div>
-          <Bar value={profil.xp % 200} max={200} color={C.yellow} shadow />
-          <span style={{ fontSize: FS.xs, color: C.muted, fontFamily: "'Space Mono', monospace" }}>{200 - (profil.xp % 200)} XP TO LEVEL {profil.nivo + 1}</span>
-        </div>
-
-        <LearningStylePanel
+<LearningStylePanel
           learningStyle={styleKey}
           varkScores={varkScores}
           onRetakeVark={() => navigate('/questionnaire')}

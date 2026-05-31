@@ -22,6 +22,7 @@ public class PredmetMapper {
         dto.setUciteljImePriimek(profil != null ? profil.getImePriimek() : "Neznan");
         dto.setKategorije(predmet.getKategorije());
         dto.setSteviloVpisanih(steviloVpisanih);
+        dto.setHasTranscript(predmet.getZdruzenTranscript() != null && !predmet.getZdruzenTranscript().isBlank());
         return dto;
     }
 
