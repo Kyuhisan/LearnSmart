@@ -10,6 +10,7 @@ import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Service.IzvornaDatotekaService;
 import com.learnSmart.learnSmart.Service.StorageService;
 import com.learnSmart.learnSmart.Service.Transcript.TranscriptService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 
 
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring dependency injection.")
 @RestController
 @RequestMapping("/content")
 @RequiredArgsConstructor

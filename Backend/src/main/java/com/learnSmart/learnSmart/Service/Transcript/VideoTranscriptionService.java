@@ -4,6 +4,7 @@ import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Service.StorageService;
 import com.learnSmart.learnSmart.Service.SupaBaseConnectionService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring dependency injection.")
 @Service
 @RequiredArgsConstructor
 @Slf4j

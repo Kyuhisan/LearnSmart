@@ -140,28 +140,14 @@ function ReadingContent({
     glossary: false
   });
 
-  const [formData, setFormData] = useState({
-    definition: '',
-    summary: '',
-    keyConcepts: '',
-    structuredNotes: '',
-    glossary: ''
-  });
+  const [formData, setFormData] = useState(() => ({
+    definition: data?.definition ?? '',
+    summary: data?.summary ?? '',
+    keyConcepts: data?.key_concepts.join('\n') ?? '',
+    structuredNotes: data?.structured_notes.join('\n') ?? '',
+    glossary: data?.glossary.map(item => `${item.term}: ${item.definition}`).join('\n\n') ?? ''
+  }))
 
-  useEffect(() => {
-    if (!data) {
-      return
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      definition: data.definition,
-      summary: data.summary,
-      keyConcepts: data.key_concepts.join('\n'),
-      structuredNotes: data.structured_notes.join('\n'),
-      glossary: data.glossary.map(item => `${item.term}: ${item.definition}`).join('\n\n')
-    }))
-  }, [data])
 
   if (!data) return null
 
@@ -526,15 +512,7 @@ function KinestheticContent({
 
   const [revealed, setRevealed] = useState<number[]>([])
   const [editingQuestion, setEditingQuestion] = useState<number | null>(null)
-  const [editedQuestions, setEditedQuestions] = useState<Question[]>([])
-
-  useEffect(() => {
-    if (!data) {
-      return
-    }
-
-    setEditedQuestions(data.questions)
-  }, [data])
+  const [editedQuestions, setEditedQuestions] = useState<Question[]>(data?.questions ?? [])
 
   if (!data) return null
 

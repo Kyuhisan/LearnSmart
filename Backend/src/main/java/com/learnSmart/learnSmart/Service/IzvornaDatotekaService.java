@@ -2,7 +2,7 @@ package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
-import lombok.NoArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.UUID;
 
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring dependency injection.")
 @Service
 @RequiredArgsConstructor
 public class IzvornaDatotekaService {
