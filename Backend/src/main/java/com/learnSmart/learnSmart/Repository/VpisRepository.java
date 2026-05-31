@@ -17,4 +17,5 @@ public interface VpisRepository extends JpaRepository<Vpis, UUID> {
     boolean existsByUcenecIdAndPredmetIdAndJeAktivenTrue(UUID ucenecId, UUID predmetId);
     long countByPredmetIdAndJeAktivenTrue(UUID predmetId);
     List<Vpis> findByPredmetIdInAndJeAktivenTrue(Collection<UUID> predmetIds);
+    List<Vpis> findByPredmetId(UUID predmetId);
 }

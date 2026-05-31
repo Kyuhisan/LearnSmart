@@ -39,6 +39,7 @@ public class VpisService {
     private final ProfilRepository profilRepository;
     private final QuizRepository quizRepository;
     private final QuizResultRepository quizResultRepository;
+    private final ObvestiloService obvestiloService;
 
     // Vpis z kodo
     public VpisResponseDTO vpisZKodo(String kodaVpisa, UUID ucenecId) {
@@ -63,7 +64,22 @@ public class VpisService {
         vpis.setVpisanOb(OffsetDateTime.now());
         vpis.setOdjavljenOb(null);
 
-        return toResponse(vpisRepository.save(vpis));
+        VpisResponseDTO result = toResponse(vpisRepository.save(vpis));
+
+        // ── OBVESTILO: obvesti profesorja o novem vpisu ──
+        String imeUcenca = profilRepository.findById(ucenecId)
+                .map(p -> p.getImePriimek() != null ? p.getImePriimek() : "Student")
+                .orElse("Student");
+
+        obvestiloService.ustvari(
+                predmet.getUciteljId(),
+                "MODULE",
+                "New enrollment: " + predmet.getNaziv(),
+                imeUcenca + " has enrolled in the module " + predmet.getNaziv(),
+                "/moduli"
+        );
+
+        return result;
     }
 
     // Moji vpisi

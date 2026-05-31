@@ -26,6 +26,7 @@ public class QuizService {
     private final VpisRepository vpisRepository;
     private final QuizResultRepository quizResultRepository;
     private final ProfilRepository profilRepository;
+    private final ObvestiloService obvestiloService;
 
     private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
 
@@ -39,7 +40,6 @@ public class QuizService {
         return quizGeminiService.generirajVprasanja(predmet.getZdruzenTranscript(), steviloVprasanj, tezavnost);
     }
 
-    // ── STARA metoda - ohranjena za backward compatibility ──
     public QuizResponseDTO shraniKviz(UUID predmetId, String naziv, Integer casIzvajanja,
                                       List<QuizGeminiService.GeneratedQuestion> odobrenVprasanja) {
         Predmet predmet = predmetRepository.findById(predmetId)
@@ -75,7 +75,6 @@ public class QuizService {
                 predmetId, shranjeniKviz.getUstvarjenOb());
     }
 
-    // ── NOVO: Shrani odobrena vprašanja v banko (brez kviza) ──
     public List<QuestionResponseDTO> shraniVprasanjaVBanko(
             UUID predmetId, List<QuestionSaveRequestDTO.QuestionItemDTO> vprasanja) {
         predmetRepository.findById(predmetId)
@@ -98,7 +97,6 @@ public class QuizService {
         return result;
     }
 
-    // ── NOVO: Pridobi vsa vprašanja v banki za predmet ──
     public List<QuestionResponseDTO> getVprasanjaBanka(UUID predmetId) {
         return questionRepository.findByPredmetId(predmetId).stream()
                 .map(q -> new QuestionResponseDTO(q.getId(), q.getBesediloVprasanja(),
@@ -106,7 +104,6 @@ public class QuizService {
                 .toList();
     }
 
-    // ── NOVO: Ustvari nov kviz iz izbranih vprašanj ──
     public QuizResponseDTO ustvariKviz(UUID predmetId, String naziv,
                                        Integer casIzvajanja, List<UUID> vprasanjaIds) {
         Predmet predmet = predmetRepository.findById(predmetId)
@@ -131,7 +128,6 @@ public class QuizService {
                 predmetId, shranjeniKviz.getUstvarjenOb());
     }
 
-    // ── NOVO: Dodaj vprašanje iz banke na kviz ──
     public void dodajVprasanjeNaKviz(UUID kvizId, UUID vprasanjeId) {
         Quiz quiz = quizRepository.findById(kvizId)
                 .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
@@ -141,7 +137,6 @@ public class QuizService {
         });
     }
 
-    // ── NOVO: Odstrani vprašanje iz kviza (vrne v banko) ──
     public void odstraniVprasanjeIzKviza(UUID vprasanjeId) {
         questionRepository.findById(vprasanjeId).ifPresent(q -> {
             q.setQuiz(null);
@@ -154,6 +149,20 @@ public class QuizService {
                 .orElseThrow(() -> new RuntimeException("Quiz does not exist"));
         quiz.setStatus("PUBLISHED");
         Quiz saved = quizRepository.save(quiz);
+
+        // ── OBVESTILA: obvesti vse vpisane učence ──
+        List<Vpis> vpisi = vpisRepository.findByPredmetId(saved.getPredmet().getId());
+        for (Vpis vpis : vpisi) {
+            obvestiloService.ustvari(
+                    vpis.getUcenecId(),
+                    "QUIZ",
+                    "New quiz available " + saved.getNaziv(),
+                    "The teacher has published a new quiz in the module " + saved.getPredmet().getNaziv(),
+                    "/kvizi"
+            );
+        }
+        log.info("Notifications sent to {} students for quiz {}", vpisi.size(), saved.getId());
+
         return new QuizResponseDTO(saved.getId(), saved.getNaziv(), saved.getStatus(),
                 saved.getCasIzvajanja(), saved.getPredmet().getId(), saved.getUstvarjenOb());
     }
@@ -245,6 +254,19 @@ public class QuizService {
         profil.setXp(newXp);
         profil.setNivo(newNivo);
         profilRepository.save(profil);
+        // ── NOTIFY PROFESSOR ──
+        UUID uciteljId = quiz.getPredmet().getUciteljId();
+        String imeUcenca = profilRepository.findById(ucenecId)
+                .map(p -> p.getImePriimek() != null ? p.getImePriimek() : "A student")
+                .orElse("A student");
+
+        obvestiloService.ustvari(
+                uciteljId,
+                "QUIZ",
+                "Student completed a quiz",
+                imeUcenca + " completed the quiz \"" + quiz.getNaziv() + "\" with " + odstotek + "%.",
+                "/kvizi"
+        );
 
         return new QuizResultResponseDTO(shranjen.getId(), kvizId, quiz.getNaziv(),
                 tocke, skupaj, odstotek, dto.getCasResevanjaS(), shranjen.getOddanoOb(),
@@ -356,30 +378,24 @@ public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         List<Vpis> vpisi = vpisRepository.findByPredmetIdInAndJeAktivenTrue(predmetIds);
         Set<UUID> enrolledStudents = vpisi.stream().map(Vpis::getUcenecId).collect(Collectors.toSet());
         int totalStudents = enrolledStudents.size();
-
         List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds);
         if (kvizi.isEmpty()) return new AnalyticsStatsDTO(totalStudents, 0, 0, 0);
-
         List<UUID> kvizIds = kvizi.stream().map(Quiz::getId).toList();
         List<QuizResult> rezultati = quizResultRepository.findByQuizIdIn(kvizIds);
         if (rezultati.isEmpty()) return new AnalyticsStatsDTO(totalStudents, 0, 0, 0);
-
         int avgScore = (int) Math.round(rezultati.stream()
                 .mapToDouble(r -> r.getSkupajVprasanj() > 0 ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
                 .average().orElse(0));
-
         long passed = rezultati.stream()
                 .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
                 .count();
         int passRate = (int) Math.round((double) passed / rezultati.size() * 100);
-
         Set<UUID> studentsWithPass = rezultati.stream()
                 .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
                 .map(QuizResult::getUporabnikId)
                 .collect(Collectors.toSet());
         int avgCompletion = totalStudents == 0 ? 0
                 : (int) Math.round((double) studentsWithPass.size() / totalStudents * 100);
-
         return new AnalyticsStatsDTO(totalStudents, avgScore, avgCompletion, passRate);
     }
 
