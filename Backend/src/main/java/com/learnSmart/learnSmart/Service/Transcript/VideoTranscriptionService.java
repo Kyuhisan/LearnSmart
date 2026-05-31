@@ -4,6 +4,7 @@ import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
 import com.learnSmart.learnSmart.Service.StorageService;
 import com.learnSmart.learnSmart.Service.SupaBaseConnectionService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring dependency injection.")
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,6 +30,25 @@ public class VideoTranscriptionService {
     private final StorageService storageService;
     private final AudioTranscriptionService audioTranscriptionService;
 
+    private boolean hasAudioStream(Path tmpVideo) throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(
+                "ffprobe", "-v", "error",
+                "-select_streams", "a",
+                "-show_entries", "stream=codec_type",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                tmpVideo.toString()
+        );
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+
+        String output;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            output = reader.lines().collect(Collectors.joining());
+        }
+
+        process.waitFor();
+        return output.contains("audio");
+    }
 
     @SuppressWarnings("java:S5445")
     private Path extractAudioFromVideo(Path tmpVideo) throws IOException, InterruptedException {
@@ -43,7 +65,6 @@ public class VideoTranscriptionService {
                 tmpAudio.toString()
         );
         processBuilder.redirectErrorStream(true);
-
         Process process = processBuilder.start();
 
 
@@ -94,6 +115,11 @@ public class VideoTranscriptionService {
         Path tmpAudio = null;
 
         try {
+            if (!hasAudioStream(tmpVideo)) {
+                log.info("Video {} has no audio stream, skipping transcription.", videoDatoteka.getImeDatoteke());
+                return null;
+            }
+
             tmpAudio = extractAudioFromVideo(tmpVideo);
 
             String audioUrl = storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);

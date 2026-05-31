@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
@@ -35,6 +36,7 @@ public class VsebinaPredmet {
     @Column(name = "vsebina", nullable = true, columnDefinition = "jsonb")
     private Map<String, Object> vsebina;
 
+    @UpdateTimestamp
     @Column(name = "posodobljen_ob", nullable = true)
     private OffsetDateTime posodobljenOb;
 

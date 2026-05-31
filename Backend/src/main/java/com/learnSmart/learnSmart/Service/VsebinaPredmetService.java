@@ -7,7 +7,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -26,5 +28,19 @@ public class VsebinaPredmetService {
                 vsebinaPredmet.getUcniTip(),
                 vsebinaPredmet.getVsebina()
         )).toList();
+    }
+
+    public void updateVsebinaPredmet(UUID vsebinaPredmetId, Map<String, Object> vsebina) {
+        VsebinaPredmet vsebinaPredmet = vsebinaPredmetRepository.findById(vsebinaPredmetId).orElseThrow(() -> new IllegalArgumentException("Content not found."));
+
+        Map<String, Object> existingVsebina = vsebinaPredmet.getVsebina();
+
+        if (existingVsebina == null) {
+            existingVsebina = new HashMap<>();
+        }
+        
+        existingVsebina.putAll(vsebina);
+        vsebinaPredmet.setVsebina(existingVsebina);
+        vsebinaPredmetRepository.save(vsebinaPredmet);
     }
 }

@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
+import com.learnSmart.learnSmart.Util.RetryUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,8 +98,9 @@ public class GeminiService {
     }
 
     public String generateContentPacks(String combinedTranscript) {
-        try {
-            String prompt = """
+
+        return RetryUtil.executeWithRetry(() -> {
+                String prompt = """
                                 You are an educational content generator. Based on the provided transcript, generate learning content for 3 different learning styles.
                         
                                 Return ONLY a valid JSON object with no additional text, markdown, or code blocks. The JSON must have exactly these 3 keys:
@@ -142,16 +144,13 @@ public class GeminiService {
                         
                                 Transcript:
                                 %s
-            """.formatted(combinedTranscript);
+                                """.formatted(combinedTranscript);
 
-            String url = GEMINI_CONTENT_URL + apiKey;
-            ResponseEntity<Map> response = callGeminiPublic(prompt, url);
+                                String url = GEMINI_CONTENT_URL + apiKey;
+                                ResponseEntity<Map> response = callGeminiPublic(prompt, url);
 
-            return extractText(response.getBody());
+                                return extractText(response.getBody());
 
-        } catch (Exception e) {
-            log.warn("Gemini content generation failed: {}", e.getMessage());
-            return null;
-        }
+        }, "Gemini content generator.", 3);
     }
 }

@@ -1,12 +1,16 @@
 package com.learnSmart.learnSmart.Repository;
 
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
+import org.hibernate.validator.cfg.defs.UUIDDef;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 public interface IzvornaDatotekaRepository extends JpaRepository<IzvornaDatoteka, UUID> {
     List<IzvornaDatoteka> findByPredmetIdAndProcessingStatus(UUID predmetId, String processingStatus);
     long countByPredmetIdAndProcessingStatusNot(UUID predmetId, String processingStatus);
     List<IzvornaDatoteka> findByPredmet_UciteljIdOrderByUstvarjenObDesc(UUID uciteljId);
+    List<IzvornaDatoteka> findByPredmetId(UUID predmetId);
+    Optional<IzvornaDatoteka> findByPredmetIdAndHash(UUID predmetId, String hash);
 }

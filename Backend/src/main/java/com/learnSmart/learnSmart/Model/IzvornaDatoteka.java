@@ -46,6 +46,9 @@ public class IzvornaDatoteka {
     @Column(name = "manjsi_transcript", columnDefinition = "text")
     private String manjsiTranscript;
 
+    @Column(nullable = false)
+    private String hash;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nadrejena_datoteka_id")
     private IzvornaDatoteka generiranaIz;
