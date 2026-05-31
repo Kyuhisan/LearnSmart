@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Panel } from '../../components/ui/Panel'
-import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
@@ -14,6 +13,7 @@ import {
   type ModuleStudents,
 } from '../modules/moduleApi'
 import '../../styles/studentPage.css'
+import '../../styles/moduleLibrary.css'
 
 type StyleKey = keyof typeof STYLE_INFO
 type Filter = 'All' | 'At risk' | StyleKey
@@ -149,16 +149,27 @@ export function ProfessorStudents() {
     getStudentiPoModulih(session.access_token).then(setByModule).catch(() => setByModule([]))
   }, [session])
 
-  const filtered = (students ?? []).filter((s) => {
+  function matchesFilters(s: StudentSummary): boolean {
     const matchSearch = s.imePriimek.toLowerCase().includes(search.toLowerCase())
     const matchFilter =
       filter === 'All'     ? true :
       filter === 'At risk' ? isAtRisk(s) :
                              s.ucniTip === filter
     return matchSearch && matchFilter
-  })
+  }
+
+  const filtered = (students ?? []).filter(matchesFilters)
+  const filteredByModule = (byModule ?? []).map(mod => ({ ...mod, studenti: mod.studenti.filter(matchesFilters) }))
 
   const totalStudents = students?.length ?? 0
+
+  function getFilterCount(f: Filter): number {
+    const all = students ?? []
+    const matchSearch = (s: StudentSummary) => s.imePriimek.toLowerCase().includes(search.toLowerCase())
+    if (f === 'All') return all.filter(matchSearch).length
+    if (f === 'At risk') return all.filter(s => matchSearch(s) && isAtRisk(s)).length
+    return all.filter(s => matchSearch(s) && s.ucniTip === f).length
+  }
 
   return (
     <div className="dashboard-main">
@@ -169,27 +180,29 @@ export function ProfessorStudents() {
       <div className="students-page">
 
         {/* Toolbar */}
-        <div className="students-toolbar">
-          <input
-            type="text"
-            placeholder="Search student..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="students-search"
-            style={{
-              border: `${BW.base} solid ${C.ink}`,
-              borderRadius: R.base,
-              background: C.paper,
-              boxShadow: `2px 2px 0 ${C.ink}`,
-              color: C.ink,
-            }}
-          />
-          <div className="students-filters">
-            {FILTERS.map((f) => (
-              <ComicBtn key={f} color={filter === f ? C.yellow : C.paper} sm onClick={() => setFilter(f)}>
-                {FILTER_LABELS[f]}
-              </ComicBtn>
-            ))}
+        <div className="modules-toolbar" style={{ marginBottom: 0 }}>
+          <div className="modules-search-row">
+            <div className="modules-search-wrap">
+              <input
+                className="modules-search"
+                placeholder="Search student..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="modules-filter-row">
+            <div className="modules-filters">
+              {FILTERS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`modules-filter-btn ${filter === f ? 'active' : ''}`}
+                >
+                  {FILTER_LABELS[f]} <span className="modules-filter-count">{getFilterCount(f)}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -219,16 +232,16 @@ export function ProfessorStudents() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
             {byModule === null ? (
               <SkeletonRows count={3} />
-            ) : byModule.length === 0 ? (
+            ) : filteredByModule.length === 0 ? (
               <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[5] }}>
                 NO MODULES YET
               </div>
             ) : (
-              byModule.map((mod) => (
-                <div key={mod.predmetId}>
+              filteredByModule.map((mod) => (
+                <div key={mod.predmetId} style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow(), overflow: 'hidden' }}>
                   {/* Module header */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: S[2], marginBottom: S[2] }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.lg, fontWeight: 800, color: C.ink }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, background: C.cyanLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, fontWeight: 800, color: C.ink, flex: 1 }}>
                       {mod.naziv.toUpperCase()}
                     </span>
                     <Tag
@@ -237,17 +250,17 @@ export function ProfessorStudents() {
                     />
                   </div>
                   {/* Students in this module */}
-                  {mod.studenti.length === 0 ? (
-                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, padding: `${S[2]} 0` }}>
-                      No students enrolled
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
-                      {mod.studenti.map((s) => (
+                  <div style={{ padding: mod.studenti.length === 0 ? `${S[3]} ${S[3]}` : `${S[2]} ${S[3]}`, background: C.paper, display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
+                    {mod.studenti.length === 0 ? (
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>
+                        NO STUDENTS ENROLLED
+                      </span>
+                    ) : (
+                      mod.studenti.map((s) => (
                         <StudentRow key={s.ucenecId} student={s} onClick={() => navigate(`/students/${s.ucenecId}`)} />
-                      ))}
-                    </div>
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
               ))
             )}

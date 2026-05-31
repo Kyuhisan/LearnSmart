@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Service
@@ -353,7 +354,21 @@ public class QuizService {
         return result;
     }
 
-public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
+    public List<QuizResultResponseDTO> getRezultatiZaStudenta(UUID ucenecId, int limit) {
+        return quizResultRepository.findByUporabnikId(ucenecId).stream()
+                .sorted(Comparator.comparing(QuizResult::getOddanoOb).reversed())
+                .limit(limit)
+                .map(r -> {
+                    int odstotek = r.getSkupajVprasanj() > 0
+                            ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
+                    return new QuizResultResponseDTO(r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
+                            r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(),
+                            r.getOddanoOb(), r.getOdgovori(), r.getXpZasluzen(), null, null);
+                })
+                .toList();
+    }
+
+    public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         return quizResultRepository.findByUporabnikId(ucenecId).stream()
                 .map(r -> {
                     int odstotek = r.getSkupajVprasanj() > 0
@@ -409,6 +424,74 @@ public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
 
     public AnalyticsStatsDTO getAnalyticsStatsZaPredmet(UUID predmetId) {
         return computeStats(List.of(predmetId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ModulePerformanceDTO> getModulePerformanceZaUcitelja(UUID uciteljId) {
+        List<Predmet> predmeti = predmetRepository.findByUciteljId(uciteljId);
+        if (predmeti.isEmpty()) return List.of();
+
+        List<UUID> predmetIds = predmeti.stream().map(Predmet::getId).toList();
+
+        // Group enrollments by predmet
+        Map<UUID, Long> enrolledByPredmet = vpisRepository.findByPredmetIdInAndJeAktivenTrue(predmetIds)
+                .stream().collect(Collectors.groupingBy(v -> v.getPredmet().getId(), Collectors.counting()));
+
+        // Group quizzes by predmet
+        Map<UUID, List<Quiz>> kviziByPredmet = quizRepository.findByPredmetIdIn(predmetIds)
+                .stream().collect(Collectors.groupingBy(q -> q.getPredmet().getId()));
+
+        // Collect all quiz IDs and fetch results
+        List<UUID> allKvizIds = kviziByPredmet.values().stream()
+                .flatMap(List::stream).map(Quiz::getId).toList();
+        Map<UUID, List<QuizResult>> resultsByKviz = allKvizIds.isEmpty()
+                ? Map.of()
+                : quizResultRepository.findByQuizIdIn(allKvizIds)
+                        .stream().collect(Collectors.groupingBy(r -> r.getQuiz().getId()));
+
+        List<ModulePerformanceDTO> result = new ArrayList<>();
+        for (Predmet p : predmeti) {
+            int totalStudents = enrolledByPredmet.getOrDefault(p.getId(), 0L).intValue();
+            List<Quiz> kvizi = kviziByPredmet.getOrDefault(p.getId(), List.of());
+
+            List<QuizPerformanceDTO> quizDTOs = new ArrayList<>();
+            for (Quiz q : kvizi) {
+                List<QuizResult> results = resultsByKviz.getOrDefault(q.getId(), List.of());
+                int submissions = results.size();
+                int avgScore = submissions == 0 ? 0
+                        : (int) Math.round(results.stream()
+                                .mapToDouble(r -> r.getSkupajVprasanj() > 0 ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                                .average().orElse(0));
+                long passed = results.stream()
+                        .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                        .count();
+                int passRate = submissions == 0 ? 0 : (int) Math.round((double) passed / submissions * 100);
+                quizDTOs.add(new QuizPerformanceDTO(q.getId(), q.getNaziv(), avgScore, submissions, passRate));
+            }
+
+            // Module aggregates
+            List<QuizResult> allModuleResults = kvizi.stream()
+                    .flatMap(q -> resultsByKviz.getOrDefault(q.getId(), List.of()).stream()).toList();
+            int totalSubmissions = allModuleResults.size();
+            int moduleAvgScore = totalSubmissions == 0 ? 0
+                    : (int) Math.round(allModuleResults.stream()
+                            .mapToDouble(r -> r.getSkupajVprasanj() > 0 ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                            .average().orElse(0));
+            long modulePassed = allModuleResults.stream()
+                    .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                    .count();
+            int modulePassRate = totalSubmissions == 0 ? 0
+                    : (int) Math.round((double) modulePassed / totalSubmissions * 100);
+            Set<UUID> studentsWithPass = allModuleResults.stream()
+                    .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                    .map(QuizResult::getUporabnikId).collect(Collectors.toSet());
+            int avgCompletion = totalStudents == 0 ? 0
+                    : (int) Math.round((double) studentsWithPass.size() / totalStudents * 100);
+
+            result.add(new ModulePerformanceDTO(p.getId(), p.getNaziv(),
+                    totalStudents, moduleAvgScore, avgCompletion, modulePassRate, quizDTOs));
+        }
+        return result;
     }
 
     public List<TopStudentDTO> getTopStudentsZaUcitelja(UUID uciteljId) {

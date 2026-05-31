@@ -6,7 +6,7 @@ import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
-import { LEADERBOARD_STATS } from './mockData'
+
 import { useAuth } from '../../context/AuthContext'
 import { getLeaderboard, type LeaderboardEntry } from './leaderboardApi'
 import { getMojiRezultati } from '../quiz/quizStudentApi'
@@ -251,6 +251,7 @@ export function StudentLeaderboard() {
 
   const studentCount = entries.length > 0 ? entries.length : null
   const myRank = entries.find(e => e.isCurrentUser)?.rank ?? null
+  const overtaken = myRank !== null && entries.length > 0 ? entries.length - myRank : null
   const top3 = entries.slice(0, 3)
 
   const sorted = filter === 'THIS WEEK'
@@ -273,7 +274,7 @@ export function StudentLeaderboard() {
           <StatCard label="MY RANK"        value={myRank === null ? '…' : `#${myRank}`}                     sub="by total XP"    bg={C.yellowLt} />
           <StatCard label="MY XP"          value={(profil?.xp ?? 0).toLocaleString()}                        sub="total earned"   bg={C.purpleLt} />
           <StatCard label="THIS WEEK"      value={weeklyXp === null ? '…' : `+${weeklyXp}`}                 sub="XP this week"   bg={C.cyanLt}   />
-          <StatCard label="MY STREAK · WIP" value={`${LEADERBOARD_STATS.myStreak}d`}                        sub="keep it going!" bg={C.redLt}    />
+          <StatCard label="OVERTAKEN"        value={overtaken === null ? '…' : `${overtaken}`}              sub="ranked below you" bg={C.redLt}  />
         </div>
 
         {/* Podium */}

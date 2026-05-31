@@ -7,6 +7,8 @@ import java.util.UUID;
 public class StudentSummaryDTO {
     private UUID ucenecId;
     private String imePriimek;
+    private String username;
+    private String email;
     private String ucniTip;
     private int avgScore;       // 0 = no quiz results
     private int steviloModulov; // how many of this professor's modules they're enrolled in

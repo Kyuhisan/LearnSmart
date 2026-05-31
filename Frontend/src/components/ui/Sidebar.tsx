@@ -52,9 +52,9 @@ const teacherItems: SidebarItem[] = [
   { label: 'Dashboard',          path: '/dashboard',       icon: Icons.home          },
   { label: 'Modules',            path: '/modules',         icon: Icons.modules       },
   { label: 'Upload',             path: '/upload',          icon: Icons.upload        },
-  { label: 'AI Quiz',            path: '/ai-quiz-builder', icon: Icons.aiQuiz        },
+  { label: 'AI Quiz Generator',  path: '/ai-quiz-builder', icon: Icons.aiQuiz        },
   { label: 'Analytics',          path: '/analytics',       icon: Icons.analytics     },
-  { label: 'Students · WIP',     path: '/students',        icon: Icons.students      },
+  { label: 'Students',           path: '/students',        icon: Icons.students      },
   { label: 'Notifications', path: '/notifications',  icon: Icons.notifications  },
   { label: 'Profile',       path: '/profile',         icon: Icons.profile       },
 ]

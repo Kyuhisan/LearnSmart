@@ -8,58 +8,54 @@ import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
-import { getModuliUcitelj, getAnalyticsStats, getAnalyticsStatsByModule, getStilMix, type AnalyticsStats } from '../modules/moduleApi'
-import {
-  WEEKLY_ACTIVITY,
-  MODULE_STATS,
-  CONCEPT_MASTERY,
-  MODULE_DETAILS,
-  type ModuleStats,
-  type ModuleDetail,
-} from './mockData'
+import { getModuliUcitelj, getAnalyticsStats, getAnalyticsStatsByModule, getStilMix, getModulePerformance, type AnalyticsStats, type ModulePerformance } from '../modules/moduleApi'
+import { WEEKLY_ACTIVITY } from './mockData'
+
+const PERF_COLORS    = [C.cyan,   C.purple,   C.green,   C.yellow,   C.red]
+const PERF_COLORS_LT = [C.cyanLt, C.purpleLt, C.greenLt, C.yellowLt, C.redLt]
 
 interface BackendModul { id: string; naziv: string }
 
 
-function ModuleOverviewRow({ m, onDetails }: { m: ModuleStats; onDetails: () => void }) {
+function ModuleOverviewRow({ m, color, colorLt, onDetails }: { m: ModulePerformance; color: string; colorLt: string; onDetails: () => void }) {
   const isMobile = useBreakpoint() === 'mobile'
   return (
     <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', background: m.colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
+      <div style={{ display: 'flex', flexDirection: 'column', background: colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}` }}>
-          {!isMobile && <div style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />}
-          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
-          {!isMobile && <Tag label={`${m.students} students`} bg={C.mutedLt} />}
+          {!isMobile && <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />}
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.naziv}</span>
+          {!isMobile && <Tag label={`${m.totalStudents} students`} bg={C.mutedLt} />}
           {!isMobile && <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />}
-          <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onDetails}>DETAILS</ComicBtn>
+          <ComicBtn sm color={C.yellow} onClick={onDetails}>DETAILS</ComicBtn>
         </div>
         {isMobile && (
           <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap', padding: `0 ${S[3]} ${S[2]}` }}>
-            <Tag label={`${m.students} students`} bg={C.mutedLt} />
+            <Tag label={`${m.totalStudents} students`} bg={C.mutedLt} />
             <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />
           </div>
         )}
       </div>
       <div style={{ padding: `${S[2]} ${S[3]}`, background: C.paper }}>
-        <Bar value={m.avgCompletion} color={m.color} height={12} shadow />
+        <Bar value={m.avgCompletion} color={color} height={12} shadow />
       </div>
     </div>
   )
 }
 
-function ModuleDetailView({ detail, module: m, isMobile }: { detail: ModuleDetail; module: ModuleStats; isMobile: boolean }) {
+function ModuleDetailView({ m, color, isMobile }: { m: ModulePerformance; color: string; colorLt?: string; isMobile: boolean }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], paddingBottom: S[3], borderBottom: `${BW.base} solid ${C.divider}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-          {!isMobile && <div style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />}
-          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.title}</span>
-          {!isMobile && <Tag label={`${m.students} students`} bg={C.mutedLt} />}
+          {!isMobile && <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: `${BW.base} solid ${C.ink}`, flexShrink: 0 }} />}
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{m.naziv}</span>
+          {!isMobile && <Tag label={`${m.totalStudents} students`} bg={C.mutedLt} />}
           {!isMobile && <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />}
         </div>
         {isMobile && (
           <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
-            <Tag label={`${m.students} students`} bg={C.mutedLt} />
+            <Tag label={`${m.totalStudents} students`} bg={C.mutedLt} />
             <Tag label={`${m.avgCompletion}% completion`} bg={m.avgCompletion >= 75 ? C.greenLt : m.avgCompletion >= 50 ? C.yellowLt : C.redLt} />
           </div>
         )}
@@ -71,9 +67,9 @@ function ModuleDetailView({ detail, module: m, isMobile }: { detail: ModuleDetai
           ))}
         </div>
       )}
-      {detail.quizzes.map(q => (
-        <div key={q.quiz} style={isMobile ? { display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} 0`, borderBottom: `1px solid ${C.divider}` } : { display: 'grid', gridTemplateColumns: '2fr repeat(3, 1fr)', gap: S[3], alignItems: 'center' }}>
-          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{q.quiz}</span>
+      {m.kvizi.map(q => (
+        <div key={q.kvizId} style={isMobile ? { display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} 0`, borderBottom: `1px solid ${C.divider}` } : { display: 'grid', gridTemplateColumns: '2fr repeat(3, 1fr)', gap: S[3], alignItems: 'center' }}>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>{q.naziv}</span>
           {isMobile ? (
             <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap' }}>
               <Tag label={`AVG ${q.avgScore}%`} bg={q.avgScore >= 80 ? C.greenLt : q.avgScore >= 70 ? C.yellowLt : C.redLt} />
@@ -168,6 +164,8 @@ export function ProfessorAnalytics() {
   const [moduleStats, setModuleStats] = useState<AnalyticsStats | null>(null)
   const [loadingModuleStats, setLoadingModuleStats] = useState(false)
   const [stilMixData, setStilMixData] = useState<Record<string, number> | null>(null)
+  const [modulePerformance, setModulePerformance] = useState<ModulePerformance[]>([])
+  const [loadingPerformance, setLoadingPerformance] = useState(true)
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
@@ -180,6 +178,9 @@ export function ProfessorAnalytics() {
     })
     getAnalyticsStats(session.access_token).then(setAnalyticsStats).catch(() => {})
     getStilMix(session.access_token).then(setStilMixData).catch(() => {})
+    getModulePerformance(session.access_token)
+      .then(data => { setModulePerformance(data); setLoadingPerformance(false) })
+      .catch(() => setLoadingPerformance(false))
   }, [session])
 
   useEffect(() => {
@@ -195,15 +196,12 @@ export function ProfessorAnalytics() {
   }, [selectedModule, session])
 
   const maxSessions = Math.max(...WEEKLY_ACTIVITY.map(d => d.sessions))
-  // Mock stats are keyed by their own ids — use them for the performance panel regardless of real module selection
-  const filteredModules = selectedModule
-    ? MODULE_STATS.filter(m => m.id === selectedModule)
-    : MODULE_STATS
-  const mockFilteredModules = filteredModules.length > 0 ? filteredModules : MODULE_STATS
-
   const selectedModuleName = selectedModule ? modules.find(m => m.id === selectedModule)?.naziv ?? null : null
-  const activeModule = selectedModule ? { ...MODULE_STATS[0], title: selectedModuleName ?? MODULE_STATS[0].title } : null
-  const activeModuleDetail = selectedModule ? MODULE_DETAILS[0] : null
+
+  const perfToShow = selectedModule
+    ? modulePerformance.filter(m => m.predmetId === selectedModule)
+    : modulePerformance
+  const activePerf = modulePerformance.find(m => m.predmetId === selectedModule) ?? null
 
   return (
     <div className="dashboard-main">
@@ -269,7 +267,7 @@ export function ProfessorAnalytics() {
                   return (
                     <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1] }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>{d.sessions}</span>
-                      <div style={{ width: '100%', height: barH, background: activeModule ? activeModule.color : C.yellow, border: `${BW.base} solid ${C.ink}`, borderRadius: `${R.sm} ${R.sm} 0 0`, boxShadow: mkShadow() }} />
+                      <div style={{ width: '100%', height: barH, background: activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow, border: `${BW.base} solid ${C.ink}`, borderRadius: `${R.sm} ${R.sm} 0 0`, boxShadow: mkShadow() }} />
                       <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.5 }}>{d.day}</span>
                     </div>
                   )
@@ -310,7 +308,7 @@ export function ProfessorAnalytics() {
           })()}
         </div>
 
-        {/* Avg quiz score by day + Concept mastery */}
+        {/* Avg quiz score by day + Module performance */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'stretch' }}>
 
           {/* Avg quiz score by day */}
@@ -332,35 +330,37 @@ export function ProfessorAnalytics() {
             </div>
           </Panel>
 
-          {/* Concept mastery */}
-          <Panel title="CONCEPT MASTERY" accent={C.cyan}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${CONCEPT_MASTERY.length} CONCEPTS`} bg={C.cyanLt} /></div>}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
-              {CONCEPT_MASTERY.map(c => (
-                <div key={c.concept} style={{ display: 'flex', alignItems: 'center', gap: S[3], padding: `${S[1.5]} ${S[3]}`, background: c.colorLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, width: isMobile ? undefined : 160, flex: isMobile ? 1 : undefined, flexShrink: 0 }}>{c.concept}</span>
-                  {!isMobile && <div style={{ flex: 1 }}><Bar value={c.mastery} color={c.color} height={12} shadow /></div>}
-                  <Tag label={`${c.mastery}%`} bg={c.mastery >= 75 ? C.greenLt : c.mastery >= 50 ? C.yellowLt : C.redLt} />
-                </div>
+          {/* Module performance */}
+          <Panel title="MODULE PERFORMANCE" accent={C.cyan}
+            action={activePerf
+              ? <ComicBtn sm color={C.yellow} onClick={() => setSelectedModule(null)}>← BACK</ComicBtn>
+              : <Tag label={loadingPerformance ? '…' : `${modulePerformance.length} MODULES`} bg={C.cyanLt} />}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: S[3], padding: 0 }}>
+
+              {loadingPerformance && (
+                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>LOADING...</span>
+              )}
+
+              {!loadingPerformance && !activePerf && perfToShow.map((m, i) => (
+                <ModuleOverviewRow key={m.predmetId} m={m}
+                  color={PERF_COLORS[i % PERF_COLORS.length]}
+                  colorLt={PERF_COLORS_LT[i % PERF_COLORS_LT.length]}
+                  onDetails={() => setSelectedModule(m.predmetId)} />
               ))}
+
+              {!loadingPerformance && activePerf && (() => {
+                const idx = modulePerformance.indexOf(activePerf)
+                return (
+                  <ModuleDetailView m={activePerf}
+                    color={PERF_COLORS[idx % PERF_COLORS.length]}
+                    colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]}
+                    isMobile={isMobile} />
+                )
+              })()}
             </div>
           </Panel>
+
         </div>
-
-        {/* Module performance */}
-        <Panel title="MODULE PERFORMANCE" accent={C.cyan}
-          action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={selectedModule ? '1 MODULE' : `${MODULE_STATS.length} MODULES`} bg={C.cyanLt} /></div>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: S[3], padding: 0 }}>
-
-            {!activeModuleDetail && mockFilteredModules.map(m => (
-              <ModuleOverviewRow key={m.id} m={m} onDetails={() => setSelectedModule(m.id)} />
-            ))}
-
-            {activeModuleDetail && activeModule && (
-              <ModuleDetailView detail={activeModuleDetail} module={activeModule} isMobile={isMobile} />
-            )}
-          </div>
-        </Panel>
 
       </div>
     </div>

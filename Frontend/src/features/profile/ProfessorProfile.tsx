@@ -9,6 +9,8 @@ import { C } from '../../styles/tokens'
 import { getModuliUcitelj, getStilMix, getKviziUcitelja, type QuizDTO } from '../modules/moduleApi'
 import '../../styles/profile.css'
 
+const API = import.meta.env.VITE_API_URL
+
 interface BackendModul { id: string; jeObjavljen: boolean }
 
 const ACTIVITY: ActivityItem[] = [
@@ -19,7 +21,7 @@ const ACTIVITY: ActivityItem[] = [
 ]
 
 export function ProfessorProfile() {
-  const { profil, session } = useAuth()
+  const { profil, session, signOut } = useAuth()
   const [moduli, setModuli] = useState<BackendModul[]>([])
   const [stilMix, setStilMix] = useState<Record<string, number> | null>(null)
   const [kvizi, setKvizi] = useState<QuizDTO[] | null>(null)
@@ -45,7 +47,12 @@ export function ProfessorProfile() {
       />
 
       <div className="prof-content">
-        <ProfHero username={profil.username} isTeacher moduleCount={moduli.length > 0 ? moduli.length : null} email={session?.user?.email} />
+        <ProfHero username={profil.username} isTeacher moduleCount={moduli.length > 0 ? moduli.length : null} email={session?.user?.email}
+          onDeleteAccount={async () => {
+            await fetch(`${API}/api/me`, { method: 'DELETE', headers: { Authorization: `Bearer ${session?.access_token}` } })
+            await signOut()
+          }}
+        />
 
         <div className="quiz-stat-grid">
           <StatCard label="STUDENTS"  value={stilMix === null ? '…' : String(stilMix['_total'] ?? 0)}  sub={stilMix !== null ? `across ${moduli.length} module${moduli.length !== 1 ? 's' : ''}` : ''} bg={C.yellowLt} />

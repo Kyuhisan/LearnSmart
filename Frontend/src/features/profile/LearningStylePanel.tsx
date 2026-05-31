@@ -113,7 +113,7 @@ export function LearningStylePanel({ learningStyle, varkScores, onRetakeVark }: 
                   {meta.label.toUpperCase()}
                 </span>
                 <div style={{ flex: 1 }}>
-                  <Bar value={varkScores![key]} max={total} color={meta.color} height="0.75rem" />
+                  <Bar value={varkScores![key]} max={total} color={meta.color} height="0.75rem" shadow />
                 </div>
                 <span style={{
                   fontFamily: "'Space Mono', monospace",
