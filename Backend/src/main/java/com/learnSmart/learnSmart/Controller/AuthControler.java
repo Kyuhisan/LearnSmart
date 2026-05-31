@@ -17,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -167,6 +168,8 @@ public class AuthControler {
                 ? List.of()
                 : quizResultRepository.findByUporabnikIdIn(studentIds);
 
+        OffsetDateTime weekAgo = OffsetDateTime.now().minusDays(7);
+
         // Group results by student
         java.util.Map<UUID, List<QuizResult>> resultsByStudent = allResults.stream()
                 .collect(java.util.stream.Collectors.groupingBy(QuizResult::getUporabnikId));
@@ -181,15 +184,22 @@ public class AuthControler {
                             .mapToDouble(r -> r.getSkupajVprasanj() > 0
                                     ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
                             .average().orElse(0));
-            result.add(Map.of(
-                    "rank", i + 1,
-                    "username", p.getUsername() != null ? p.getUsername() : "—",
-                    "xp", p.getXp() != null ? p.getXp() : 0,
-                    "nivo", p.getNivo() != null ? p.getNivo() : 1,
-                    "quizzesTaken", quizzesTaken,
-                    "avgScore", avgScore,
-                    "isMe", p.getId().equals(meId)
-            ));
+            int weeklyXp = studentResults.stream()
+                    .filter(r -> r.getOddanoOb() != null && r.getOddanoOb().isAfter(weekAgo))
+                    .mapToInt(r -> r.getXpZasluzen() != null ? r.getXpZasluzen() : 0)
+                    .sum();
+            Map<String, Object> entry = new java.util.LinkedHashMap<>();
+            entry.put("id", p.getId());
+            entry.put("rank", i + 1);
+            entry.put("username", p.getUsername() != null ? p.getUsername() : "—");
+            entry.put("xp", p.getXp() != null ? p.getXp() : 0);
+            entry.put("weeklyXp", weeklyXp);
+            entry.put("nivo", p.getNivo() != null ? p.getNivo() : 1);
+            entry.put("ucniTip", p.getUcniTip());
+            entry.put("quizzesTaken", quizzesTaken);
+            entry.put("avgScore", avgScore);
+            entry.put("isMe", p.getId().equals(meId));
+            result.add(entry);
         }
         return ResponseEntity.ok(result);
     }

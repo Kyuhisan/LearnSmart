@@ -38,3 +38,11 @@ export async function getModuleCompletion(token: string): Promise<Record<string,
   })
   return res.json()
 }
+
+export async function backfillXpZasluzen(token: string): Promise<{ updated: number }> {
+  const res = await fetch(`${API}/kvizi/admin/backfill-xp`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}

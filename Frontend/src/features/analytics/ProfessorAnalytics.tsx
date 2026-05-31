@@ -9,6 +9,7 @@ import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
 import { getModuliUcitelj, getAnalyticsStats, getAnalyticsStatsByModule, getStilMix, type AnalyticsStats } from '../modules/moduleApi'
+import { backfillXpZasluzen } from '../quiz/quizStudentApi'
 import {
   WEEKLY_ACTIVITY,
   MODULE_STATS,
@@ -168,6 +169,8 @@ export function ProfessorAnalytics() {
   const [moduleStats, setModuleStats] = useState<AnalyticsStats | null>(null)
   const [loadingModuleStats, setLoadingModuleStats] = useState(false)
   const [stilMixData, setStilMixData] = useState<Record<string, number> | null>(null)
+  const [backfillResult, setBackfillResult] = useState<number | null>(null)
+  const [backfillLoading, setBackfillLoading] = useState(false)
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
@@ -194,6 +197,16 @@ export function ProfessorAnalytics() {
       .catch(() => setLoadingModuleStats(false))
   }, [selectedModule, session])
 
+  const handleBackfill = async () => {
+    if (!session?.access_token) return
+    setBackfillLoading(true)
+    try {
+      const data = await backfillXpZasluzen(session.access_token)
+      setBackfillResult(data.updated)
+    } catch { /* ignore */ }
+    setBackfillLoading(false)
+  }
+
   const maxSessions = Math.max(...WEEKLY_ACTIVITY.map(d => d.sessions))
   // Mock stats are keyed by their own ids — use them for the performance panel regardless of real module selection
   const filteredModules = selectedModule
@@ -207,7 +220,15 @@ export function ProfessorAnalytics() {
 
   return (
     <div className="dashboard-main">
-      <Topbar title="ANALYTICS" subtitle="Class performance and engagement overview" />
+      <Topbar
+        title="ANALYTICS"
+        subtitle="Class performance and engagement overview"
+        actions={
+          <ComicBtn sm color={C.yellow} onClick={handleBackfill}>
+            {backfillLoading ? '…' : backfillResult !== null ? `✓ ${backfillResult} FIXED` : 'BACKFILL XP'}
+          </ComicBtn>
+        }
+      />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 

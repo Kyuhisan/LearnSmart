@@ -180,6 +180,14 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getAnalyticsStatsZaPredmet(predmetId));
     }
 
+    @PostMapping("/admin/backfill-xp")
+    public ResponseEntity<?> backfillXp(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(userId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).body(DOSTOP_ZAVRNJEN);
+        int updated = quizService.backfillXpZasluzen();
+        return ResponseEntity.ok(Map.of("updated", updated));
+    }
+
     @GetMapping("/ucitelj/topStudents")
     public ResponseEntity<List<TopStudentDTO>> getTopStudents(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());

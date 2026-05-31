@@ -1,12 +1,13 @@
 const API = import.meta.env.VITE_API_URL
 
 export interface LeaderboardEntry {
+  id: string
   rank: number
   username: string
   xp: number
+  weeklyXp: number
   nivo: number
-  quizzesTaken: number
-  avgScore: number
+  ucniTip: string | null
   isMe: boolean
 }
 
