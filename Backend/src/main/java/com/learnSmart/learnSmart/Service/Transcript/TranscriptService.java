@@ -145,7 +145,7 @@ public class TranscriptService {
                         .replaceAll("```\\s*$", "")
                         .trim();
             }
-
+            
             Map<String, Object> contentPacks = mapper.readValue(jsonResponse, Map.class);
             contentPacks = (Map<String, Object>) ContentCleaner.cleanContent(contentPacks);
 

@@ -185,6 +185,25 @@
   margin: 0;
 }
 
+.module-detail-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  background: white;
+  color: black;
+  border: 3px solid black;
+  border-radius: 8px;
+  box-sizing: border-box;
+  resize: vertical;
+  outline: none;
+}
+
+.module-detail-textarea:focus {
+  box-shadow: 4px 4px 0 black;
+}
+
 .module-detail-notes {
   display: flex;
   flex-direction: column;

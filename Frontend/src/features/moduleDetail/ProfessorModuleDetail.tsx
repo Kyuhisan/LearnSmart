@@ -9,8 +9,9 @@ import { Panel } from '../../components/ui/Panel'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S } from '../../styles/tokens'
 import { PROF_MODULE} from './mockData'
-import { getModuleContent, getVisualContent } from './moduleDetailApi'
+import { getModuleContent, getVisualContent, updateVsebinaPredmet } from './moduleDetailApi'
 import '../../styles/moduleDetailPage.css'
+import { useAuth } from '../../context/AuthContext'
 
 type Tab = 'visual' | 'reading' | 'auditory' | 'kinesthetic'
 
@@ -43,6 +44,8 @@ type KinestheticData = {
 }
 
 type ModuleContentItem = {
+  predmetVsebinaId: string,
+  predmetId: string
   ucniTip: string
   vsebina: ReadingData | AuditoryData | KinestheticData
 }
@@ -85,7 +88,7 @@ function VisualContent({ data }: Readonly<{ data: VisualContentItem[] }>) {
         title="VISUAL MATERIALS"
         accent={C.purpleLt}
         p={S[4]}
-        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+        // action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
       >
 
         <div className="module-detail-grid">
@@ -118,7 +121,46 @@ function VisualContent({ data }: Readonly<{ data: VisualContentItem[] }>) {
 }
 
 
-function ReadingContent({ data }: Readonly<{data?: ReadingData}>) {
+function ReadingContent({
+  data,
+  onSaveField
+}: {
+  data?: ReadingData
+  onSaveField: (
+    field: keyof ReadingData,
+    value: string
+  ) => Promise<void>
+}) {
+  const [editingData, setEditingData] = useState({
+    definition: false,
+    summary: false,
+    keyConcepts: false,
+    structuredNotes: false,
+    glossary: false
+  });
+
+  const [formData, setFormData] = useState({
+    definition: '',
+    summary: '',
+    keyConcepts: '',
+    structuredNotes: '',
+    glossary: ''
+  });
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      definition: data.definition,
+      summary: data.summary,
+      keyConcepts: data.key_concepts.join('\n'),
+      structuredNotes: data.structured_notes.join('\n'),
+      glossary: data.glossary.map(item => `${item.term}: ${item.definition}`).join('\n\n')
+    }))
+  }, [data])
 
   if (!data) return null
 
@@ -130,80 +172,255 @@ function ReadingContent({ data }: Readonly<{data?: ReadingData}>) {
         accent={C.cyan}
         bg={C.cyanLt}
         p={S[4]}
-        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+        action={
+          <ComicBtn
+            sm
+            color={editingData.definition ? C.green : C.yellow}
+            onClick={async () => {
+              if (editingData.definition) {
+                await onSaveField('definition', formData.definition)
+                alert('Definition saved')
+                setEditingData(prev => ({
+                  ...prev, 
+                  definition: false
+                }))
+              } else {
+                setEditingData(prev => ({
+                  ...prev,
+                  definition: true
+                }))
+              }
+            }}
+          >
+            {editingData.definition ? 'SAVE' : 'EDIT'}
+          </ComicBtn>
+        }
       >
-        <p className="module-detail-definition">
-          {data.definition}
-        </p>
+        {editingData.definition ? (
+          <textarea
+            value = {formData.definition}
+            onChange = {(e) => setFormData(prev => ({
+              ...prev,
+              definition: e.target.value
+            }))}
+            className = "module-detail-textarea"
+          />
+        ): (
+          <p className="module-detail-definition">
+            {data.definition}
+          </p>
+        )}
       </Panel>
 
       <Panel
         title="SUMMARY"
         accent={C.cyan}
         p={S[4]}
-        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+        action={
+          <ComicBtn 
+            sm 
+            color={editingData.summary ? C.green : C.yellow}
+            onClick = {async () => {
+              if (editingData.summary) {
+                await onSaveField('summary' ,formData.summary)
+                alert('Summary saved')
+
+                setEditingData(prev => ({
+                  ...prev,
+                  summary: false
+                }))
+              } else {
+                setEditingData(prev => ({
+                  ...prev,
+                  summary: true
+                }))
+              }
+            }}
+          >
+            {editingData.summary ? 'SAVE' : 'EDIT'}
+          </ComicBtn>
+        }
       >
-        <p className="module-detail-definition">
-          {data.summary}
-        </p>
+        {editingData.summary ? (
+          <textarea
+            value = {formData.summary}
+            onChange = {(e) => 
+              setFormData(prev => ({
+                ...prev,
+                summary: e.target.value
+              }))
+            }
+            className = "module-detail-textarea"
+          />
+        ) : (
+          <p className="module-detail-definition">
+            {data.summary}
+          </p>
+        )}
       </Panel>
 
       <Panel
         title="KEY CONCEPTS"
         accent={C.cyan}
         p={S[4]}
-        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+        action={
+          <ComicBtn 
+            sm 
+            color={C.yellow}
+            onClick = {async () => {
+              if (editingData.keyConcepts) {
+                await onSaveField('key_concepts', formData.keyConcepts)
+                alert('Key concepts saved')
+
+                setEditingData(prev => ({
+                  ...prev,
+                  keyConcepts: false
+                }))
+              } else {
+                setEditingData (prev => ({
+                  ...prev,
+                  keyConcepts: true
+                }))
+              }
+            }}
+          >
+            {editingData.keyConcepts ? 'SAVE' : 'EDIT'}
+          </ComicBtn>
+        }
       >
-        <div className="module-detail-notes">
-          <ul className="module-detail-notes-list">
-            {data.key_concepts?.map((concept: string) => (
-              <li key={concept}>
-                {concept.replace(/^[-•]\s*/, '')}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {editingData.keyConcepts ? (
+          <textarea 
+            value = {formData.keyConcepts}
+            onChange = {(e) => 
+              setFormData(prev => ({
+                ...prev,
+                keyConcepts: e.target.value
+              }))
+            }
+            className = "module-detail-textarea"
+          />
+        ) : (
+          <div className="module-detail-notes">
+            <ul className="module-detail-notes-list">
+              {data.key_concepts?.map((concept: string) => (
+                <li key={concept}>
+                  {concept.replace(/^[-•]\s*/, '')}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </Panel>
 
       <Panel
         title="STRUCTURED NOTES"
         accent={C.cyan}
         p={S[4]}
-        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+        action={
+          <ComicBtn 
+          sm 
+          color={editingData.structuredNotes ? C.green : C.yellow}
+          onClick = {async () => {
+            if (editingData.structuredNotes) {
+              await onSaveField('structured_notes', formData.structuredNotes)
+              alert('Structured notes saved')
+              setEditingData(prev => ({
+                ...prev,
+                structuredNotes: false
+              }))
+            } else {
+              setEditingData(prev => ({
+                ...prev,
+                structuredNotes: true
+              }))
+            }
+          }}
+        >
+          {editingData.structuredNotes ? 'SAVE' : 'EDIT'}
+        </ComicBtn>}
       >
-        <div className="module-detail-notes">
-          <ul className="module-detail-notes-list">
-            {data.structured_notes?.map((note: string) => (
-              <li key={note}>
-                {note.replace(/^[-•]\s*/, '')}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {editingData.structuredNotes ? (
+          <textarea 
+            value = {formData.structuredNotes}
+            onChange = {(e) => 
+              setFormData(prev => ({
+                ...prev,
+                structuredNotes: e.target.value
+              }))
+            }
+            className = "module-detail-textarea"
+          />
+        ) : (
+          <div className="module-detail-notes">
+            <ul className="module-detail-notes-list">
+              {data.structured_notes?.map((note: string) => (
+                <li key={note}>
+                  {note.replace(/^[-•]\s*/, '')}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </Panel>
 
       <Panel
         title="GLOSSARY"
         accent={C.cyan}
         p={S[4]}
-        action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
-      >
-        <div className="module-detail-glossary">
-          {data.glossary?.map((g: GlossaryItem) => (
-            <div
-              key={g.term}
-              className="module-detail-glossary-row"
-            >
-              <span className="module-detail-glossary-term">
-                {g.term}
-              </span>
+        action={
+          <ComicBtn 
+            sm 
+            color={editingData.glossary ? C.green : C.yellow}
+            onClick = {async () => {
+              if (editingData.glossary) {
+                await onSaveField('glossary', formData.glossary)
+                alert('Glossary saved')
 
-              <span className="module-detail-glossary-def">
-                {g.definition}
-              </span>
-            </div>
-          ))}
-        </div>
+                setEditingData(prev => ({
+                  ...prev,
+                  glossary: false
+                }))
+              } else {
+                setEditingData(prev => ({
+                  ...prev,
+                  glossary: true
+                }))
+              }
+            }}
+          >
+            {editingData.glossary ? 'SAVE' : 'EDIT'}
+          </ComicBtn>
+        }
+      >
+        {editingData.glossary ? (
+          <textarea 
+            value = {formData.glossary}
+            onChange = {(e) => 
+              setFormData(prev => ({
+                ...prev,
+                glossary: e.target.value
+              }))
+            }
+            className = "module-detail-textarea"
+          />
+        ) : (
+          <div className="module-detail-glossary">
+            {data.glossary?.map((g: GlossaryItem) => (
+              <div
+                key={g.term}
+                className="module-detail-glossary-row"
+              >
+                <span className="module-detail-glossary-term">
+                  {g.term}
+                </span>
+
+                <span className="module-detail-glossary-def">
+                  {g.definition}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </Panel>
 
     </div>
@@ -265,7 +482,7 @@ function AuditoryContent({ data }: Readonly<{ data?: AuditoryData }>) {
           accent={C.green}
           bg={C.greenLt}
           p={S[4]}
-          action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+          // action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
         >
           <div className="module-detail-highlights">
 
@@ -399,6 +616,7 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
 
 export function ProfessorModuleDetail() {
   const navigate = useNavigate()
+  const { session } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>('visual')
   const tab = tabConfig[activeTab]
 
@@ -471,9 +689,63 @@ export function ProfessorModuleDetail() {
     fetchVisaulContent()
   }, [id])
 
+
+  const handleSavedField = async (
+    field: keyof ReadingData,
+    value: string 
+  ) => {
+    if (!readingContent || !readingData || !id) {
+      return
+    }
+
+    let parsedValue: string | string[] | GlossaryItem[] = value
+
+    if (field === 'key_concepts' || field === 'structured_notes') {
+      parsedValue = (value as string).split('\n').filter(line => line.trim() !== '')
+    }
+
+    if (field === 'glossary') {
+      parsedValue = (value as string)
+      .split('\n')
+      .filter(line => line.trim() !== '')
+      .map(line => {
+        const separatorIndex = line.indexOf(':')
+
+        if (separatorIndex === -1) {
+          throw new Error(`Invalid glossary line: ${line}`)
+        }
+
+        return {
+          term: line.substring(0, separatorIndex).trim(),
+          definition: line.substring(separatorIndex + 1).trim()
+        }
+      })
+    }
+    const updateContent = {
+      ...readingData,
+      [field]: parsedValue
+    }
+
+
+    await updateVsebinaPredmet(
+      session!.access_token,
+      id,
+      readingContent.predmetVsebinaId,
+      updateContent
+    )
+
+    const refreshed = await getModuleContent(id)
+    setModuleContent(refreshed)
+  }
+
   const contentMap = {
     visual: <VisualContent data={visualContent} />,
-    reading: <ReadingContent data={readingData} />,
+    reading: (
+      <ReadingContent 
+        data={readingData} 
+        onSaveField = {handleSavedField}  
+      />
+    ),
     auditory: <AuditoryContent data={auditoryData} />,
     kinesthetic: <KinestheticContent data={kinestheticData} />,
   }
