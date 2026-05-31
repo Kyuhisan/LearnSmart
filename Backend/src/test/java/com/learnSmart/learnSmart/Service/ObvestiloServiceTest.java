@@ -2,7 +2,9 @@ package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.Obvestilo.ObvestiloResponseDTO;
 import com.learnSmart.learnSmart.Model.Obvestilo;
+import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.ObvestiloRepository;
+import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +24,8 @@ import static org.mockito.Mockito.*;
 class ObvestiloServiceTest {
 
     @Mock private ObvestiloRepository obvestiloRepository;
+    @Mock private ProfilRepository profilRepository;
+    @Mock private EmailService emailService;
 
     @InjectMocks
     private ObvestiloService obvestiloService;
@@ -29,11 +33,16 @@ class ObvestiloServiceTest {
     private UUID uporabnikId;
     private UUID obvestiloId;
     private Obvestilo obvestilo;
+    private Profil profil;
 
     @BeforeEach
     void setUp() {
         uporabnikId = UUID.randomUUID();
         obvestiloId = UUID.randomUUID();
+
+        profil = new Profil();
+        profil.setId(uporabnikId);
+        profil.setEmail("test@gmail.com");
 
         obvestilo = new Obvestilo();
         obvestilo.setId(obvestiloId);
@@ -51,6 +60,7 @@ class ObvestiloServiceTest {
     @Test
     void ustvari_savesNotification() {
         when(obvestiloRepository.save(any())).thenReturn(obvestilo);
+        when(profilRepository.findById(uporabnikId)).thenReturn(Optional.of(profil));
 
         assertDoesNotThrow(() -> obvestiloService.ustvari(
                 uporabnikId, "QUIZ", "Test", "Message", "/kvizi"));
@@ -61,6 +71,7 @@ class ObvestiloServiceTest {
     @Test
     void ustvari_savesWithCorrectFields() {
         when(obvestiloRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(profilRepository.findById(uporabnikId)).thenReturn(Optional.of(profil));
 
         obvestiloService.ustvari(uporabnikId, "MODULE", "Naslov", "Sporocilo", "/moduli");
 
@@ -70,6 +81,39 @@ class ObvestiloServiceTest {
                         o.getNaslov().equals("Naslov") &&
                         !o.isJePrebrano()
         ));
+    }
+
+    @Test
+    void ustvari_sendsEmail() {
+        when(obvestiloRepository.save(any())).thenReturn(obvestilo);
+        when(profilRepository.findById(uporabnikId)).thenReturn(Optional.of(profil));
+
+        obvestiloService.ustvari(uporabnikId, "QUIZ", "Test", "Message", "/kvizi");
+
+        verify(emailService, times(1)).poslji(eq("test@gmail.com"), eq("QUIZ"), eq("Test"), eq("Message"));
+    }
+
+    @Test
+    void ustvari_skipsEmailWhenNoProfile() {
+        when(obvestiloRepository.save(any())).thenReturn(obvestilo);
+        when(profilRepository.findById(uporabnikId)).thenReturn(Optional.empty());
+
+        assertDoesNotThrow(() -> obvestiloService.ustvari(
+                uporabnikId, "QUIZ", "Test", "Message", "/kvizi"));
+
+        verify(emailService, never()).poslji(any(), any(), any(), any());
+    }
+
+    @Test
+    void ustvari_skipsEmailWhenNullEmail() {
+        profil.setEmail(null);
+        when(obvestiloRepository.save(any())).thenReturn(obvestilo);
+        when(profilRepository.findById(uporabnikId)).thenReturn(Optional.of(profil));
+
+        assertDoesNotThrow(() -> obvestiloService.ustvari(
+                uporabnikId, "QUIZ", "Test", "Message", "/kvizi"));
+
+        verify(emailService, never()).poslji(any(), any(), any(), any());
     }
 
     // ── getMoja ───────────────────────────────────────────────────────────────

@@ -23,10 +23,10 @@
 
 | Razred | Skupaj | ✅ Pravilen | ⚠️ Robni | ❌ Napačen |
 |---|:---:|:---:|:---:|:---:|
-| `ObvestiloServiceTest` | 10 | 6 | 4 | 0 |
+| `ObvestiloServiceTest` | 11 | 8 | 4 | 0 |
 | `ObvestiloControllerTest` | 6 | 4 | 2 | 0 |
 | `VpisServiceTest` | 12 | 6 | 2 | 4 |
-| **Skupaj** | **28** | **16** | **8** | **4** |
+| **Skupaj** | **29** | **18** | **8** | **4** |
 
 ### Legenda
 
@@ -333,3 +333,33 @@
 |---|---|
 | **Vhod** | `ucenecId` ki ni vpisan |
 | **Pričakovan rezultat** | `RuntimeException` |
+
+---
+
+### `ustvari_sendsEmail` — ✅ Pravilen primer
+> **Cilj:** Preveriti da se email pošlje ko ima uporabnik veljavni email naslov.
+
+| | |
+|---|---|
+| **Vhod** | `uporabnikId` s profilom in emailom `test@gmail.com` |
+| **Pričakovan rezultat** | `EmailService.poslji()` klican enkrat z emailom, tipom, naslovom |
+
+---
+
+### `ustvari_skipsEmailWhenNoProfile` — ⚠️ Robni primer
+> **Cilj:** Preveriti da sistem ne pade ko profil uporabnika ne obstaja.
+
+| | |
+|---|---|
+| **Vhod** | `uporabnikId` brez profila v bazi |
+| **Pričakovan rezultat** | Brez napake, `EmailService.poslji()` nikoli klican |
+
+---
+
+### `ustvari_skipsEmailWhenNullEmail` — ⚠️ Robni primer
+> **Cilj:** Preveriti da sistem ne pade ko profil nima nastavljenega emaila.
+
+| | |
+|---|---|
+| **Vhod** | Profil z `email = null` |
+| **Pričakovan rezultat** | Brez napake, `EmailService.poslji()` nikoli klican |

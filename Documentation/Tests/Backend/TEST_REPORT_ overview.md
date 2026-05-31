@@ -34,19 +34,19 @@ Vsi testi so implementirani kot **unit testi** z uporabo **Mockito** ogrodja. To
 | `AiControllerTest` | 4 | 2 | 2 | 0 | [TEST_REPORT_ai.md](TEST_REPORT_ai.md) |
 | `QuizServiceTest` | 33 | 17 | 4 | 12 | [TEST_REPORT_quiz.md](TEST_REPORT_quiz.md) |
 | `QuizControllerTest` | 24 | 12 | 0 | 12 | [TEST_REPORT_quiz.md](TEST_REPORT_quiz.md) |
-| `ObvestiloServiceTest` | 10 | 6 | 4 | 0 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
+| `ObvestiloServiceTest` | 11 | 8 | 4 | 0 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
 | `ObvestiloControllerTest` | 6 | 4 | 2 | 0 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
 | `VpisServiceTest` | 12 | 6 | 2 | 4 | [TEST_REPORT_notifications.md](TEST_REPORT_notifications.md) |
 | `LearnSmartApplicationTests` | 1 | 1 | 0 | 0 | — |
-| **Skupaj** | **134** | **67** | **21** | **46** | |
+| **Skupaj** | **137** | **68** | **23** | **46** | |
 
 ---
 
 ## Statistika po vrsti testov
 ```
-Skupaj testov:    134
-✅ Pravilen:      67  (50%)
-⚠️ Robni:         21  (16%)
+Skupaj testov:    137
+✅ Pravilen:      68  (50%)
+⚠️ Robni:         23  (16%)
 ❌ Napačen:       46  (34%)
 ```
 
@@ -60,7 +60,7 @@ Skupaj testov:    134
 | Avtentikacija in registracija | 7 | 5% |
 | AI klasifikacija | 10 | 7% |
 | Upravljanje kvizov | 57 | 43% |
-| Obvestila in vpisi | 28 | 21% |
+| Obvestila in vpisi | 31 | 21% |
 | Aplikacijski test | 1 | 1% |
 
 ---
