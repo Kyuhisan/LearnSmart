@@ -34,7 +34,7 @@ public class EmailService {
             log.error("Napaka pri pošiljanju emaila na {}: {}", to, e.getMessage());
         }
     }
-
+    @SuppressFBWarnings("VA_FORMAT_STRING_USES_NEWLINE")
     private String buildHtml(String tip, String naslov, String sporocilo) {
         String tagColor = switch (tip) {
             case "QUIZ"   -> "#e85d5d";
