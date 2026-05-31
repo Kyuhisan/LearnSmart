@@ -44,4 +44,7 @@ public class QuizResult {
 
     @Column(name = "cas_resevanja_s")
     private Integer casResevanjaS;
+
+    @Column(name = "xp_zasluzen", columnDefinition = "integer default 0")
+    private Integer xpZasluzen = 0;
 }

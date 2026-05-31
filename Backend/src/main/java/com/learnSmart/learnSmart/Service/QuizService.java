@@ -186,7 +186,7 @@ public class QuizService {
     }
 
     public List<QuizResponseDTO> getKviziZaUcenca(UUID ucenecId) {
-        List<Vpis> vpisi = vpisRepository.findByUcenecId(ucenecId);
+        List<Vpis> vpisi = vpisRepository.findByUcenecIdAndJeAktivenTrue(ucenecId);
         List<UUID> predmetIds = vpisi.stream().map(v -> v.getPredmet().getId()).toList();
         return predmetIds.stream()
                 .flatMap(predmetId -> quizRepository.findByPredmetId(predmetId).stream()
@@ -234,6 +234,7 @@ public class QuizService {
         rezultat.setOddanoOb(OffsetDateTime.now());
         rezultat.setOdgovori(dto.getOdgovori());
         rezultat.setCasResevanjaS(dto.getCasResevanjaS());
+        rezultat.setXpZasluzen(xpZasluzen);
         QuizResult shranjen = quizResultRepository.save(rezultat);
 
         // Update profil XP and nivo
@@ -282,6 +283,53 @@ public class QuizService {
         return 0.0;
     }
 
+    @Transactional(readOnly = true)
+    public Map<UUID, Map<String, Integer>> getCompletionZaUcenca(UUID ucenecId) {
+        List<UUID> predmetIds = vpisRepository.findByUcenecIdAndJeAktivenTrue(ucenecId)
+                .stream().map(v -> v.getPredmet().getId()).toList();
+        if (predmetIds.isEmpty()) return Map.of();
+
+        List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds).stream()
+                .filter(q -> "PUBLISHED".equals(q.getStatus()))
+                .toList();
+
+        Set<UUID> kvizIds = kvizi.stream().map(Quiz::getId).collect(Collectors.toSet());
+        List<QuizResult> studentResults = quizResultRepository.findByQuizIdIn(new ArrayList<>(kvizIds)).stream()
+                .filter(r -> r.getUporabnikId().equals(ucenecId))
+                .toList();
+
+        Map<UUID, UUID> quizToPredmet = kvizi.stream()
+                .collect(Collectors.toMap(Quiz::getId, q -> q.getPredmet().getId()));
+
+        Set<UUID> completedKvizIds = studentResults.stream()
+                .map(r -> r.getQuiz().getId())
+                .collect(Collectors.toSet());
+
+        Map<UUID, Long> totalByPredmet = kvizi.stream()
+                .collect(Collectors.groupingBy(q -> q.getPredmet().getId(), Collectors.counting()));
+        Map<UUID, Long> completedByPredmet = kvizi.stream()
+                .filter(q -> completedKvizIds.contains(q.getId()))
+                .collect(Collectors.groupingBy(q -> q.getPredmet().getId(), Collectors.counting()));
+        Map<UUID, Integer> avgScoreByPredmet = studentResults.stream()
+                .filter(r -> r.getSkupajVprasanj() != null && r.getSkupajVprasanj() > 0)
+                .collect(Collectors.groupingBy(
+                        r -> quizToPredmet.get(r.getQuiz().getId()),
+                        Collectors.collectingAndThen(
+                                Collectors.averagingDouble(r -> (double) r.getTocke() / r.getSkupajVprasanj() * 100),
+                                avg -> (int) Math.round(avg)
+                        )
+                ));
+
+        Map<UUID, Map<String, Integer>> result = new LinkedHashMap<>();
+        for (UUID predmetId : predmetIds) {
+            int total = totalByPredmet.getOrDefault(predmetId, 0L).intValue();
+            int completed = completedByPredmet.getOrDefault(predmetId, 0L).intValue();
+            int avgScore = avgScoreByPredmet.getOrDefault(predmetId, 0);
+            result.put(predmetId, Map.of("total", total, "completed", completed, "avgScore", avgScore));
+        }
+        return result;
+    }
+
     public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         return quizResultRepository.findByUporabnikId(ucenecId).stream()
                 .map(r -> {
@@ -289,7 +337,7 @@ public class QuizService {
                             ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
                     return new QuizResultResponseDTO(r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
                             r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(),
-                            r.getOddanoOb(), r.getOdgovori(), null, null, null);
+                            r.getOddanoOb(), r.getOdgovori(), r.getXpZasluzen(), null, null);
                 })
                 .toList();
     }

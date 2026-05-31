@@ -10,6 +10,7 @@ import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
 import { Bar } from '../../components/ui/Bar'
+import { Tag } from '../../components/ui/Tag'
 import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
@@ -78,13 +79,13 @@ export function StudentProfile() {
             bg={C.cyanLt}
           />
           <StatCard
-            label="STREAK"
+            label="STREAK · WIP"
             value={`${STUDENT_STATS.streak}d`}
             sub={`best: ${STUDENT_STATS.bestStreak} days`}
             bg={C.redLt}
           />
           <StatCard
-            label="ACHIEVEMENTS"
+            label="ACHIEVEMENTS · WIP"
             value={STUDENT_STATS.badges}
             sub={`${STUDENT_STATS.badgesInProgress} in progress`}
             bg={C.purpleLt}
@@ -106,7 +107,7 @@ export function StudentProfile() {
           onRetakeVark={() => navigate('/questionnaire')}
         />
 
-        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} />
+        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} action={<Tag label="WIP" bg={C.mutedLt} />} />
       </div>
     </div>
   )

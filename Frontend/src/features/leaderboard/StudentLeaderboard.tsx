@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StatCard } from '../../components/ui/StatCard'
 import { Panel } from '../../components/ui/Panel'
@@ -7,6 +7,9 @@ import { Topbar } from '../../components/ui/Topbar'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { LEADERBOARD, LEADERBOARD_STATS, type LeaderboardEntry } from './mockData'
+import { useAuth } from '../../context/AuthContext'
+import { getLeaderboard } from './leaderboardApi'
+import { getMojiRezultati } from '../quiz/quizStudentApi'
 
 const MEDAL = ['#1', '#2', '#3']
 const PODIUM_COLOR = [C.yellow, C.mutedLt, C.orange]
@@ -191,8 +194,30 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: LeaderboardEntry; 
 
 export function StudentLeaderboard() {
   const [filter, setFilter] = useState<Filter>('ALL TIME')
+  const [studentCount, setStudentCount] = useState<number | null>(null)
+  const [myRank, setMyRank] = useState<number | null>(null)
+  const [weeklyXp, setWeeklyXp] = useState<number | null>(null)
   const isMobile = useBreakpoint() === 'mobile'
+  const { session, profil } = useAuth()
   const top3 = LEADERBOARD.slice(0, 3)
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    const token = session.access_token
+    getLeaderboard(token).then(data => {
+      if (!Array.isArray(data)) return
+      setStudentCount(data.length)
+      const me = data.find(e => e.isMe)
+      setMyRank(me?.rank ?? null)
+    }).catch(() => {})
+    getMojiRezultati(token).then((rezultati: { oddanoOb: string; xpZasluzen: number }[]) => {
+      if (!Array.isArray(rezultati)) { setWeeklyXp(0); return }
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      setWeeklyXp(rezultati
+        .filter(r => r.oddanoOb && new Date(r.oddanoOb).getTime() >= weekAgo)
+        .reduce((sum, r) => sum + (r.xpZasluzen ?? 0), 0))
+    }).catch(() => setWeeklyXp(0))
+  }, [session])
   const sorted = filter === 'THIS WEEK'
     ? [...LEADERBOARD].sort((a, b) => b.weeklyXp - a.weeklyXp).map((e, i) => ({ ...e, rank: i + 1 }))
     : LEADERBOARD
@@ -202,17 +227,18 @@ export function StudentLeaderboard() {
       <Topbar
         title="LEADERBOARD"
         subtitle="XP rankings · streaks · badges"
-        actions={<Tag label={`${LEADERBOARD_STATS.totalStudents} STUDENTS`} bg={C.yellowLt} />}
+        actionsKey={studentCount ?? -1}
+        actions={studentCount !== null ? <Tag label={`${studentCount} STUDENTS`} bg={C.yellowLt} /> : undefined}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
         {/* Stat cards */}
         <div className="quiz-stat-grid">
-          <StatCard label="MY RANK"       value={`#${LEADERBOARD_STATS.myRank}`}             sub={LEADERBOARD_STATS.rankDelta}   bg={C.yellowLt} />
-          <StatCard label="MY XP"         value={LEADERBOARD_STATS.myXp.toLocaleString()}    sub="total earned"                  bg={C.purpleLt} />
-          <StatCard label="THIS WEEK"     value={`+${LEADERBOARD_STATS.myWeeklyXp}`}         sub="XP this week"                  bg={C.cyanLt}   />
-          <StatCard label="MY STREAK"     value={`${LEADERBOARD_STATS.myStreak}d`}           sub="keep it going!"                bg={C.redLt}    />
+          <StatCard label="MY RANK"        value={myRank === null ? '…' : `#${myRank}`}                       sub="by total XP"    bg={C.yellowLt} />
+          <StatCard label="MY XP"          value={(profil?.xp ?? 0).toLocaleString()}                          sub="total earned"   bg={C.purpleLt} />
+          <StatCard label="THIS WEEK"      value={weeklyXp === null ? '…' : `+${weeklyXp}`}                   sub="XP this week"   bg={C.cyanLt}   />
+          <StatCard label="MY STREAK · WIP" value={`${LEADERBOARD_STATS.myStreak}d`}                          sub="keep it going!" bg={C.redLt}    />
         </div>
 
         {/* Podium */}

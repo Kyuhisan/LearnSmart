@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { StatCard } from '../../components/ui/StatCard'
@@ -6,9 +7,22 @@ import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
-import { BADGES, PROGRESS_MODULES, BIWEEKLY_XP, CALENDAR_DAYS, PROGRESS_STATS } from './mockData'
+import { BADGES, BIWEEKLY_XP, CALENDAR_DAYS, PROGRESS_STATS, type ProgressModule } from './mockData'
+import { useAuth } from '../../context/AuthContext'
+import { getMojiVpisi, getModuliJavni } from '../modules/moduleApi'
+import { getModuleCompletion, getMojiRezultati, type ModuleCompletion } from '../quiz/quizStudentApi'
 
 const DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+
+const MODULE_COLORS = [
+  { color: C.yellow, colorLt: C.yellowLt },
+  { color: C.purple, colorLt: C.purpleLt },
+  { color: C.cyan,   colorLt: C.cyanLt   },
+  { color: C.green,  colorLt: C.greenLt  },
+  { color: C.pink,   colorLt: C.pinkLt   },
+  { color: C.orange, colorLt: C.orangeLt },
+  { color: C.red,    colorLt: C.redLt    },
+]
 
 // 5 rows × 7 cols
 const WEEKS = [
@@ -34,7 +48,7 @@ function xpToBorder(xp: number, future?: boolean): string {
 function StreakCalendarPanel() {
   return (
     <Panel title="STREAK CALENDAR" accent={C.orange}
-      action={<Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} />}>
+      action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} /></div>}>
       <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: S[2] }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
           {DAY_HEADERS.map((d, i) => (
@@ -83,7 +97,7 @@ function StreakCalendarPanelMobile() {
   const thisWeek = WEEKS[WEEKS.length - 1]
   return (
     <Panel title="STREAK CALENDAR" accent={C.orange}
-      action={<Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} />}>
+      action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} /></div>}>
       <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: S[3] }}>
 
         {/* This week — large day cards */}
@@ -138,7 +152,7 @@ function StreakCalendarPanelMobile() {
 function BadgesPanel({ limit, cols, useClass }: { limit?: number; cols: number; useClass?: boolean }) {
   const badges = limit ? BADGES.slice(0, limit) : BADGES
   return (
-    <Panel title="BADGES" accent={C.purple} action={<Tag label={`${PROGRESS_STATS.totalBadges} EARNED`} bg={C.purpleLt} />}>
+    <Panel title="BADGES" accent={C.purple} action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${PROGRESS_STATS.totalBadges} EARNED`} bg={C.purpleLt} /></div>}>
       <div className={useClass ? 'badge-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: useClass ? undefined : `repeat(${cols}, 1fr)`, gap: S[3], padding: 0 }}>
         {badges.map(b => (
           <div key={b.id} style={{
@@ -169,11 +183,17 @@ function BadgesPanel({ limit, cols, useClass }: { limit?: number; cols: number; 
   )
 }
 
-function ModuleProgressPanel({ navigate, isMobile }: { navigate: (path: string) => void; isMobile?: boolean }) {
+function ModuleProgressPanel({ navigate, isMobile, modules, completed, total }: { navigate: (path: string) => void; isMobile?: boolean; modules: ProgressModule[] | null; completed: number | null; total: number | null }) {
   return (
-    <Panel title="MODULE PROGRESS" accent={C.cyan}>
+    <Panel title="MODULE PROGRESS" accent={C.cyan}
+      action={completed !== null && total !== null ? <Tag label={`${completed} / ${total} COMPLETED`} bg={C.cyanLt} /> : undefined}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
-        {PROGRESS_MODULES.map(m => (
+        {modules === null ? (
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted, padding: `${S[3]} 0` }}>Loading...</div>
+        ) : modules.length === 0 ? (
+          <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, padding: `${S[4]} 0`, textAlign: 'center' }}>No enrolled modules yet.</div>
+        ) : null}
+        {(modules ?? []).map(m => (
           <div
             key={m.id}
             onClick={() => navigate(`/modules/${m.id}`)}
@@ -202,29 +222,86 @@ export function StudentProgress() {
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
+  const { profil, session } = useAuth()
+  const [modulesTotal, setModulesTotal] = useState<number | null>(null)
+  const [modulesCompleted, setModulesCompleted] = useState<number | null>(null)
+  const [progressModules, setProgressModules] = useState<ProgressModule[] | null>(null)
+  const [weeklyXp, setWeeklyXp] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    const token = session.access_token
+
+    // Weekly XP — independent fetch so failures don't block module data
+    getMojiRezultati(token).then((rezultati: { oddanoOb: string; xpZasluzen: number }[]) => {
+      if (!Array.isArray(rezultati)) { setWeeklyXp(0); return }
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      const xpThisWeek = rezultati
+        .filter(r => r.oddanoOb && new Date(r.oddanoOb).getTime() >= weekAgo)
+        .reduce((sum, r) => sum + (r.xpZasluzen ?? 0), 0)
+      setWeeklyXp(xpThisWeek)
+    }).catch(() => setWeeklyXp(0))
+
+    Promise.all([
+      getMojiVpisi(token),
+      getModuleCompletion(token),
+      getModuliJavni(),
+    ]).then(([vpisi, comp, allMods]: [{ predmetId: string }[], Record<string, ModuleCompletion>, { id: string; naziv: string }[]]) => {
+      const modMap = Object.fromEntries(allMods.map(m => [m.id, m]))
+      setModulesTotal(vpisi.length)
+      const done = vpisi.filter(v => {
+        const c = comp[v.predmetId]
+        return c && c.total > 0 && c.completed >= c.total
+      }).length
+      setModulesCompleted(done)
+
+      const mods: ProgressModule[] = vpisi.map((v, i) => {
+        const mod = modMap[v.predmetId]
+        const c = comp[v.predmetId] ?? { total: 0, completed: 0, avgScore: 0 }
+        const progress = c.total > 0 ? Math.round(c.completed / c.total * 100) : 0
+        const colors = MODULE_COLORS[i % MODULE_COLORS.length]
+        return {
+          id: v.predmetId,
+          title: mod?.naziv ?? v.predmetId,
+          progress,
+          color: colors.color,
+          colorLt: colors.colorLt,
+          quizzesPassed: c.completed,
+          quizzesTotal: c.total,
+          avgScore: c.avgScore,
+        }
+      })
+      setProgressModules(mods)
+    })
+  }, [session])
+
+  const xp = profil?.xp ?? 0
+  const nivo = profil?.nivo ?? 1
+  const xpToNext = 200 - (xp % 200)
 
   return (
     <div className="dashboard-main">
       <Topbar
         title="MY PROGRESS"
         subtitle="XP · streaks · modules · badges"
-        actions={<Tag label={PROGRESS_STATS.xpDelta} bg={C.greenLt} />}
+        actionsKey={weeklyXp ?? -1}
+        actions={weeklyXp !== null && weeklyXp > 0 ? <Tag label={`+${weeklyXp} XP THIS WEEK`} bg={C.greenLt} /> : undefined}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
         {/* Stat cards */}
         <div className="quiz-stat-grid">
-          <StatCard label="TOTAL XP"  value={PROGRESS_STATS.xp.toLocaleString()}                                      sub={PROGRESS_STATS.xpDelta}                                                          bg={C.yellowLt} />
-          <StatCard label="STREAK"    value={`${PROGRESS_STATS.streak}d`}                                              sub={`best: ${PROGRESS_STATS.streakBest} days`}                                      bg={C.redLt}    />
-          <StatCard label="MODULES"   value={`${PROGRESS_STATS.modulesCompleted} / ${PROGRESS_STATS.modulesTotal}`}   sub={`${PROGRESS_STATS.modulesTotal - PROGRESS_STATS.modulesCompleted} in progress`}  bg={C.cyanLt}   />
-          <StatCard label="BADGES"    value={`${PROGRESS_STATS.totalBadges} / ${PROGRESS_STATS.badgesTotal}`}         sub={`${PROGRESS_STATS.badgesTotal - PROGRESS_STATS.totalBadges} remaining`}           bg={C.purpleLt} />
+          <StatCard label="TOTAL XP"  value={xp.toLocaleString()}                                                                                                                  sub={`LVL ${nivo} · ${xpToNext} XP to next`}                                                                                         bg={C.yellowLt} />
+          <StatCard label="STREAK · WIP" value={`${PROGRESS_STATS.streak}d`}                                                                                                     sub={`best: ${PROGRESS_STATS.streakBest} days`}                                                                                       bg={C.redLt}    />
+          <StatCard label="MODULES"     value={modulesTotal === null ? '…' : `${modulesCompleted} / ${modulesTotal}`} sub={modulesTotal === null ? '' : `${(modulesTotal ?? 0) - (modulesCompleted ?? 0)} in progress`}  bg={C.cyanLt}   />
+          <StatCard label="BADGES · WIP" value={`${PROGRESS_STATS.totalBadges} / ${PROGRESS_STATS.badgesTotal}`}     sub={`${PROGRESS_STATS.badgesTotal - PROGRESS_STATS.totalBadges} remaining`}                       bg={C.purpleLt} />
         </div>
 
         {/* XP chart */}
         {isMobile ? (
           <Panel title="XP ACTIVITY" accent={C.yellow}
-            action={<Tag label={`+${PROGRESS_STATS.biweeklyGain}%`} bg={C.greenLt} />}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${PROGRESS_STATS.biweeklyGain}%`} bg={C.greenLt} /></div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
                 {BIWEEKLY_XP.slice(7).map((d) => {
@@ -247,7 +324,7 @@ export function StudentProgress() {
           </Panel>
         ) : (
           <Panel title="XP ACTIVITY" accent={C.yellow}
-            action={<Tag label={`+${PROGRESS_STATS.biweeklyGain}% VS PREV WEEK`} bg={C.greenLt} />}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${PROGRESS_STATS.biweeklyGain}% VS PREV WEEK`} bg={C.greenLt} /></div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
                 {BIWEEKLY_XP.map((d, i) => {
@@ -285,13 +362,13 @@ export function StudentProgress() {
           <>
             {/* Mobile: calendar redesign + modules + badges stacked */}
             <StreakCalendarPanelMobile />
-            <ModuleProgressPanel navigate={navigate} isMobile />
+            <ModuleProgressPanel navigate={navigate} isMobile modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             <BadgesPanel cols={1} />
           </>
         ) : isTablet ? (
           <>
             {/* Tablet: Module progress full width, then Streak + Badges 50:50 */}
-            <ModuleProgressPanel navigate={navigate} />
+            <ModuleProgressPanel navigate={navigate} modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[4], alignItems: 'stretch' }}>
               <StreakCalendarPanel />
               <BadgesPanel limit={4} cols={2} />
@@ -302,7 +379,7 @@ export function StudentProgress() {
             {/* Desktop: Streak calendar + Module progress 2fr 3fr, Badges full width */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: S[4], alignItems: 'stretch' }}>
               <StreakCalendarPanel />
-              <ModuleProgressPanel navigate={navigate} />
+              <ModuleProgressPanel navigate={navigate} modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             </div>
             <BadgesPanel cols={4} />
           </>

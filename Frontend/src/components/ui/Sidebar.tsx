@@ -44,18 +44,18 @@ const studentItems: SidebarItem[] = [
   { label: 'Quizzes',       path: '/quiz',         icon: Icons.quiz          },
   { label: 'Leaderboard',   path: '/leaderboard',  icon: Icons.leaderboard   },
   { label: 'My Progress',   path: '/progress',     icon: Icons.progress      },
-  { label: 'Notifications', path: '/notifications',icon: Icons.notifications  },
-  { label: 'Profile',       path: '/profile',      icon: Icons.profile       },
+  { label: 'Notifications · WIP', path: '/notifications',icon: Icons.notifications  },
+  { label: 'Profile',            path: '/profile',      icon: Icons.profile       },
 ]
 
 const teacherItems: SidebarItem[] = [
-  { label: 'Home Base',     path: '/dashboard',       icon: Icons.home          },
-  { label: 'Modules',       path: '/modules',         icon: Icons.modules       },
-  { label: 'Upload',        path: '/upload',          icon: Icons.upload        },
-  { label: 'AI Quiz',       path: '/ai-quiz-builder', icon: Icons.aiQuiz        },
-  { label: 'Analytics',     path: '/analytics',       icon: Icons.analytics     },
-  { label: 'Students',      path: '/students',        icon: Icons.students      },
-  { label: 'Notifications', path: '/notifications',   icon: Icons.notifications  },
+  { label: 'Home Base',          path: '/dashboard',       icon: Icons.home          },
+  { label: 'Modules',            path: '/modules',         icon: Icons.modules       },
+  { label: 'Upload',             path: '/upload',          icon: Icons.upload        },
+  { label: 'AI Quiz',            path: '/ai-quiz-builder', icon: Icons.aiQuiz        },
+  { label: 'Analytics',          path: '/analytics',       icon: Icons.analytics     },
+  { label: 'Students',           path: '/students',        icon: Icons.students      },
+  { label: 'Notifications · WIP', path: '/notifications',  icon: Icons.notifications  },
   { label: 'Profile',       path: '/profile',         icon: Icons.profile       },
 ]
 

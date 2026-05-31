@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -149,6 +150,12 @@ public class QuizController {
     public ResponseEntity<?> getMojiRezultati(@AuthenticationPrincipal Jwt jwt) {
         UUID ucenecId = UUID.fromString(jwt.getSubject());
         return ResponseEntity.ok(quizService.getMojiRezultati(ucenecId));
+    }
+
+    @GetMapping("/completion")
+    public ResponseEntity<Map<UUID, Map<String, Integer>>> getCompletion(@AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.getCompletionZaUcenca(ucenecId));
     }
 
     @GetMapping("/ucitelj/vsi")

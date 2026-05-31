@@ -198,7 +198,7 @@ export function StudentDashboard() {
 
   const STAT_COLS = [
     { label: 'XP POINTS',       value: (profil?.xp ?? 0).toLocaleString(), accent: C.yellow },
-    { label: 'DAY STREAK',      value: `${STUDENT_STATS.streak}`,           accent: C.orange },
+    { label: 'DAY STREAK · WIP', value: `${STUDENT_STATS.streak}`,           accent: C.orange },
     { label: 'QUIZ AVG',        value: quizAvgValue, accent: quizCount === 0 ? C.mutedLt : C.cyan, noData: quizCount === 0 },
     { label: 'LEADERBOARD RANK', value: rankValue,                          accent: C.purple },
   ]
@@ -216,7 +216,7 @@ export function StudentDashboard() {
       <Topbar
         title="HOME BASE"
         subtitle={`Day ${STUDENT_STATS.streak} streak · Keep it going!`}
-        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn>}
+        actions={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn></div>}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
@@ -483,7 +483,7 @@ export function StudentDashboard() {
           </Panel>
 
           <Panel title="TODAY'S QUESTS" accent={C.green} p={S[4]}
-            action={<Tag label={`+${totalXpToday}XP`} bg={C.greenLt} />}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${totalXpToday}XP`} bg={C.greenLt} /></div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {quests.map((q) => (
                 <QuestRow key={q.id} q={q} onToggle={() => toggleQuest(q.id)} />
@@ -497,7 +497,7 @@ export function StudentDashboard() {
 
         {/* Badges — full width */}
         <Panel title="BADGES" accent={C.orange} p={S[4]}
-          action={<Tag label={`${STUDENT_BADGES.length} EARNED`} bg={C.orangeLt} />}>
+          action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${STUDENT_BADGES.length} EARNED`} bg={C.orangeLt} /></div>}>
           <div className="badge-grid">
             {(isTablet ? STUDENT_BADGES.slice(0, 4) : STUDENT_BADGES).map((badge) => (
               <div key={badge.id} className="badge-grid-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[1], padding: S[3], background: badge.bg, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), textAlign: 'center' }}>
