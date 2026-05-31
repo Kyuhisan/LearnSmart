@@ -247,6 +247,9 @@ public class QuizService {
         QuizResult shranjen = quizResultRepository.save(rezultat);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b4b1b317e6ec7570900896aaba1f55c683600c24
         // Update profil XP and nivo
         Profil profil = profilRepository.findById(ucenecId)
                 .orElseThrow(() -> new RuntimeException("Profil ne obstaja"));
@@ -255,7 +258,10 @@ public class QuizService {
         profil.setXp(newXp);
         profil.setNivo(newNivo);
         profilRepository.save(profil);
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> b4b1b317e6ec7570900896aaba1f55c683600c24
         // ── NOTIFY PROFESSOR ──
         UUID uciteljId = quiz.getPredmet().getUciteljId();
         String imeUcenca = profilRepository.findById(ucenecId)
@@ -269,7 +275,10 @@ public class QuizService {
                 imeUcenca + " completed the quiz \"" + quiz.getNaziv() + "\" with " + odstotek + "%.",
                 "/kvizi"
         );
+<<<<<<< HEAD
 >>>>>>> 9200d31389955e4a641e84d450fdb94129704d5b
+=======
+>>>>>>> b4b1b317e6ec7570900896aaba1f55c683600c24
 
         return new QuizResultResponseDTO(shranjen.getId(), kvizId, quiz.getNaziv(),
                 tocke, skupaj, odstotek, dto.getCasResevanjaS(), shranjen.getOddanoOb(),
