@@ -8,9 +8,9 @@ import { ActivityPanel, type ActivityItem } from '../../components/professor/Act
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
-import { C, S, FS, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { C, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
 import { Tag } from '../../components/ui/Tag'
-import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
+import { STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
 const ACTIVITY: ActivityItem[] = [

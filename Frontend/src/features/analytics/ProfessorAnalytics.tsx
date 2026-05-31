@@ -43,7 +43,7 @@ function ModuleOverviewRow({ m, color, colorLt, onDetails }: { m: ModulePerforma
   )
 }
 
-function ModuleDetailView({ m, color, colorLt, isMobile }: { m: ModulePerformance; color: string; colorLt: string; isMobile: boolean }) {
+function ModuleDetailView({ m, color, isMobile }: { m: ModulePerformance; color: string; colorLt?: string; isMobile: boolean }) {
   return (
     <>
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], paddingBottom: S[3], borderBottom: `${BW.base} solid ${C.divider}` }}>
