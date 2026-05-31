@@ -515,9 +515,25 @@ function AuditoryContent({ data }: Readonly<{ data?: AuditoryData }>) {
   )
 }
 
-function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
+function KinestheticContent({ 
+  data,
+  onSaveQuestions 
+}: {
+  data?: KinestheticData,
+  onSaveQuestions: (questions: Question[]) => Promise<void>
+}) {
 
   const [revealed, setRevealed] = useState<number[]>([])
+  const [editingQuestion, setEditingQuestion] = useState<number | null>(null)
+  const [editedQuestions, setEditedQuestions] = useState<Question[]>([])
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+
+    setEditedQuestions(data.questions)
+  }, [data])
 
   if (!data) return null
 
@@ -532,7 +548,7 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
   return (
     <div className="module-detail-content">
 
-      {data.questions?.map((q: Question, i: number) => {
+      {editedQuestions.map((q: Question, i: number) => {
 
         const correctOption = q.options?.find((option: string) =>
           option.startsWith(q.correct_answer)
@@ -542,12 +558,27 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
 
         return (
           <Panel
-            key={`${q.question}-${q.correct_answer}`}
+            key = {i}
             title={`Problem ${String(i + 1).padStart(2, '0')}`}
             accent={C.red}
             bg={C.redLt}
             p={S[4]}
-            action={<ComicBtn sm color={C.yellow}>EDIT</ComicBtn>}
+            action={
+              <ComicBtn 
+                sm 
+                color={editingQuestion === i ? C.green : C.yellow}
+                onClick = {async () => {
+                  if (editingQuestion === i) {
+                    await onSaveQuestions(editedQuestions)
+                    setEditingQuestion(null)
+                    alert('Saved.')
+                  } else {
+                    setEditingQuestion(i)
+                  }
+                }}
+              >
+                {editingQuestion === i ? 'SAVE' : 'EDIT'}
+              </ComicBtn>}
           >
 
             <div
@@ -557,10 +588,26 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
                 gap: S[3]
               }}
             >
+              {editingQuestion === i ? (
+                <textarea 
+                  value = {q.question}
+                  onChange = {(e) => {
+                    const updated = [...editedQuestions]
 
-              <p className="module-detail-problem-text">
-                {q.question}
-              </p>
+                    updated[i] = {
+                      ...updated[i],
+                      question: e.target.value
+                    }
+
+                    setEditedQuestions(updated)  
+                  }}
+                  className = "module-detail-textarea"
+                />
+              ) : (
+                <p className="module-detail-problem-text">
+                  {q.question}
+                </p>
+              )}
 
               <div
                 style={{
@@ -570,15 +617,31 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
                 }}
               >
 
-                {q.options?.map((option: string) => (
+                {q.options?.map((option: string, optionIndex: number) => (
+                  editingQuestion === i ? (
+                    <input 
+                      key={`${i}-${optionIndex}`}
+                      value = {option}
+                      onChange = {(e) => {
+                        const updated = [...editedQuestions]
 
-                  <div
-                    key={`${q.question}-${option}`}
-                    className="module-detail-check-text"
-                  >
-                    {option}
-                  </div>
-
+                        updated[i] = {
+                          ...updated[i],
+                          options: updated[i].options.map((opt, idx) =>
+                            idx === optionIndex ? e.target.value : opt
+                          )
+                        }
+                        setEditedQuestions(updated)
+                      }}
+                    />
+                  ) : (
+                    <div
+                      key={`${i}-${option}`}
+                      className="module-detail-check-text"
+                    >
+                      {option}
+                    </div>
+                  )
                 ))}
 
               </div>
@@ -593,19 +656,38 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
               </div>
 
               {isOpen && (
-                <div
-                  className="module-detail-definition"
-                  style={{
-                    marginTop: S[2],
-                    fontWeight: 700
-                  }}
-                >
-                  Correct Answer: {correctOption} 
-                </div>
+                editingQuestion === i ? (
+                  <select 
+                    value = {q.correct_answer}
+                    onChange = {(e) => {
+                      const updated = [...editedQuestions]
+
+                      updated[i] = {
+                        ...updated[i],
+                        correct_answer: e.target.value
+                      }
+
+                      setEditedQuestions(updated)
+                    }}
+                  >
+                    <option value = {"A"}>A</option>
+                    <option value = {"B"}>B</option>
+                    <option value = {"C"}>C</option>
+                    <option value = {"D"}>D</option>
+                  </select>
+                ) : (
+                  <div
+                    className="module-detail-definition"
+                    style={{
+                      marginTop: S[2],
+                      fontWeight: 700
+                    }}
+                  >
+                    Correct Answer: {correctOption} 
+                  </div>
+                )
               )}
-
             </div>
-
           </Panel>
         )
       })}
@@ -738,6 +820,28 @@ export function ProfessorModuleDetail() {
     setModuleContent(refreshed)
   }
 
+  const handleSaveKinesthetic = async (
+    questions: Question[]
+  ) => {
+    if (!kinestheticContent || !kinestheticData || !id) {
+      return
+    }
+
+    const updateContent = {
+      questions
+    }
+
+    await updateVsebinaPredmet(
+      session!.access_token,
+      id,
+      kinestheticContent.predmetVsebinaId,
+      updateContent
+    )
+
+    const refreshed = await getModuleContent(id)
+    setModuleContent(refreshed)
+  }
+
   const contentMap = {
     visual: <VisualContent data={visualContent} />,
     reading: (
@@ -747,7 +851,7 @@ export function ProfessorModuleDetail() {
       />
     ),
     auditory: <AuditoryContent data={auditoryData} />,
-    kinesthetic: <KinestheticContent data={kinestheticData} />,
+    kinesthetic: <KinestheticContent data={kinestheticData} onSaveQuestions = {handleSaveKinesthetic} />,
   }
 
   return (
