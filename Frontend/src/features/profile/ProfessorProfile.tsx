@@ -5,8 +5,9 @@ import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
 import { Topbar } from '../../components/ui/Topbar'
+import { Tag } from '../../components/ui/Tag'
 import { C } from '../../styles/tokens'
-import { getModuliUcitelj } from '../modules/moduleApi'
+import { getModuliUcitelj, getStilMix, getKviziUcitelja, type QuizDTO } from '../modules/moduleApi'
 import '../../styles/profile.css'
 
 interface BackendModul { id: string; jeObjavljen: boolean }
@@ -22,10 +23,14 @@ export function ProfessorProfile() {
   const { profil, session } = useAuth()
   const navigate = useNavigate()
   const [moduli, setModuli] = useState<BackendModul[]>([])
+  const [stilMix, setStilMix] = useState<Record<string, number> | null>(null)
+  const [kvizi, setKvizi] = useState<QuizDTO[] | null>(null)
 
   useEffect(() => {
     if (!session?.access_token) return
     getModuliUcitelj(session.access_token).then((data: BackendModul[]) => setModuli(data))
+    getStilMix(session.access_token).then(setStilMix).catch(() => {})
+    getKviziUcitelja(session.access_token).then(setKvizi).catch(() => setKvizi([]))
   }, [session])
 
   if (!profil) return null
@@ -42,16 +47,16 @@ export function ProfessorProfile() {
       />
 
       <div className="prof-content">
-        <ProfHero username={profil.username} isTeacher onSettings={() => navigate('/settings')} moduleCount={moduli.length > 0 ? moduli.length : null} />
+        <ProfHero username={profil.username} isTeacher onSettings={() => navigate('/settings')} moduleCount={moduli.length > 0 ? moduli.length : null} email={session?.user?.email} />
 
         <div className="quiz-stat-grid">
-          <StatCard label="STUDENTS"  value="248" sub="134 active today"   bg={C.yellowLt} />
+          <StatCard label="STUDENTS"  value={stilMix === null ? '…' : String(stilMix['_total'] ?? 0)}  sub={stilMix !== null ? `across ${moduli.length} module${moduli.length !== 1 ? 's' : ''}` : ''} bg={C.yellowLt} />
           <StatCard label="MODULES"   value={moduleValue}  sub={moduleSub}  bg={C.greenLt}  />
-          <StatCard label="QUIZZES"   value="89"  sub="11 AI-pending"      bg={C.pinkLt}   />
-          <StatCard label="AVG SCORE" value="78%" sub="↑ 4% vs last term"  bg={C.purpleLt} />
+          <StatCard label="QUIZZES"   value={kvizi === null ? '…' : String(kvizi.length)} sub={kvizi !== null ? `${kvizi.filter(q => q.status === 'active').length} active` : ''} bg={C.pinkLt} />
+          <StatCard label="AVG SCORE" value={kvizi === null ? '…' : kvizi.length === 0 ? '—' : '78%'} sub={kvizi === null ? '' : kvizi.length === 0 ? 'no quizzes taken yet' : `across ${kvizi.length} quiz${kvizi.length !== 1 ? 'zes' : ''}`} bg={C.purpleLt} />
         </div>
 
-        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" showBadge={false} />
+        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" showBadge={false} action={<Tag label="WIP" bg={C.mutedLt} />} />
       </div>
     </div>
   )

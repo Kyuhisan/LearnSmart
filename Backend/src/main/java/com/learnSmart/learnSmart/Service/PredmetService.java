@@ -2,14 +2,15 @@ package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.Profil;
+import com.learnSmart.learnSmart.Model.Vpis;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.VpisRepository;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
 import com.learnSmart.learnSmart.Mapper.PredmetMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 
 import java.util.List;
 import java.util.UUID;
@@ -23,10 +24,13 @@ public class PredmetService {
 
     private final PredmetRepository predmetRepository;
     private final ProfilRepository profilRepository;
+    private final VpisRepository vpisRepository;
+    private final ObvestiloService obvestiloService;
 
     private PredmetResponseDTO toResponseWithProfil(Predmet predmet) {
         Profil profil = profilRepository.findById(predmet.getUciteljId()).orElse(null);
-        return PredmetMapper.toResponse(predmet, profil);
+        long count = vpisRepository.countByPredmetIdAndJeAktivenTrue(predmet.getId());
+        return PredmetMapper.toResponse(predmet, profil, count);
     }
 
     public List<PredmetResponseDTO> getObjavljene() {
@@ -77,7 +81,21 @@ public class PredmetService {
             throw new RuntimeException(NI_DOVOLJENJA);
         }
         predmet.setJeObjavljen(true);
-        return toResponseWithProfil(predmetRepository.save(predmet));
+        PredmetResponseDTO result = toResponseWithProfil(predmetRepository.save(predmet));
+
+        // ── OBVESTILA: obvesti vse vpisane učence ──
+        List<Vpis> vpisi = vpisRepository.findByPredmetId(id);
+        for (Vpis vpis : vpisi) {
+            obvestiloService.ustvari(
+                    vpis.getUcenecId(),
+                    "MODULE",
+                    "Module published: " + predmet.getNaziv(),
+                    "Professor has published the module " + predmet.getNaziv(),
+                    "/moduli"
+            );
+        }
+
+        return result;
     }
 
     public PredmetResponseDTO umakni(UUID id, UUID uciteljId) {

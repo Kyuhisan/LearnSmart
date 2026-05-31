@@ -1,13 +1,16 @@
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { getMojiRezultati } from '../quiz/quizStudentApi'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
-import { C, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
-import { VARK_PROFILES } from '../dashboard/mockData'
+import { C, S, FS, BW, R, mkShadow, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
+import { Bar } from '../../components/ui/Bar'
+import { Tag } from '../../components/ui/Tag'
 import { STUDENT_PROFILE, STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
@@ -19,18 +22,29 @@ const ACTIVITY: ActivityItem[] = [
 ]
 
 export function StudentProfile() {
-  const { profil } = useAuth()
+  const { profil, session } = useAuth()
   const navigate = useNavigate()
+  const [quizCount, setQuizCount] = useState<number | null>(null)
+  const [quizAvg, setQuizAvg] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!session?.access_token) return
+    getMojiRezultati(session.access_token).then((data: { odstotek: number }[]) => {
+      if (!Array.isArray(data) || data.length === 0) {
+        setQuizCount(0)
+        setQuizAvg(null)
+      } else {
+        setQuizCount(data.length)
+        setQuizAvg(Math.round(data.reduce((sum, r) => sum + r.odstotek, 0) / data.length))
+      }
+    })
+  }, [session])
 
   if (!profil) return null
 
-  const KEY_MAP: Record<string, LearningStyle> = { V: 'visual', A: 'auditory', R: 'reading', K: 'kinesthetic' }
   const styleKey = profil.ucniTip && STYLE_INFO[profil.ucniTip as LearningStyle] ? profil.ucniTip as LearningStyle : null
   const styleInfo = styleKey ? STYLE_INFO[styleKey] : null
-  const varkProfile = styleKey ? VARK_PROFILES[styleKey] : null
-  const varkScores: Record<LearningStyle, number> | null = varkProfile
-    ? varkProfile.vark.reduce((acc, v) => { acc[KEY_MAP[v.key]] = v.score; return acc }, { visual: 0, auditory: 0, reading: 0, kinesthetic: 0 } as Record<LearningStyle, number>)
-    : null
+  const varkScores = profil.varkScores ?? null
 
   return (
     <div className="dashboard-main" style={{ padding: 0 }}>
@@ -44,7 +58,7 @@ export function StudentProfile() {
         <ProfHero
           username={profil.username}
           isTeacher={false}
-          level={STUDENT_PROFILE.level}
+          level={profil.nivo}
           learningType={styleInfo ? styleInfo.label.toUpperCase() : undefined}
           streak={STUDENT_PROFILE.streak}
           onRetakeVark={() => navigate('/questionnaire')}
@@ -54,28 +68,37 @@ export function StudentProfile() {
         <div className="quiz-stat-grid">
           <StatCard
             label="XP TOTAL"
-            value={STUDENT_STATS.xp.toLocaleString()}
-            sub={`↑ ${STUDENT_STATS.xpRankDelta} positions this week`}
+            value={(profil.xp).toLocaleString()}
+            sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`}
             bg={C.yellowLt}
           />
           <StatCard
             label="QUIZZES"
-            value={STUDENT_STATS.quizzes}
-            sub={`avg. ${STUDENT_STATS.avgScore}% score`}
+            value={quizCount === null ? '…' : String(quizCount)}
+            sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''}
             bg={C.cyanLt}
           />
           <StatCard
-            label="STREAK"
+            label="STREAK · WIP"
             value={`${STUDENT_STATS.streak}d`}
             sub={`best: ${STUDENT_STATS.bestStreak} days`}
             bg={C.redLt}
           />
           <StatCard
-            label="ACHIEVEMENTS"
+            label="ACHIEVEMENTS · WIP"
             value={STUDENT_STATS.badges}
             sub={`${STUDENT_STATS.badgesInProgress} in progress`}
             bg={C.purpleLt}
           />
+        </div>
+
+        <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow(), background: C.paper, padding: `${S[3]} ${S[4]}`, display: 'flex', flexDirection: 'column', gap: S[2] }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink }}>LEVEL {profil.nivo}</span>
+            <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{profil.xp % 200} / 200 XP</span>
+          </div>
+          <Bar value={profil.xp % 200} max={200} color={C.yellow} shadow />
+          <span style={{ fontSize: FS.xs, color: C.muted, fontFamily: "'Space Mono', monospace" }}>{200 - (profil.xp % 200)} XP TO LEVEL {profil.nivo + 1}</span>
         </div>
 
         <LearningStylePanel
@@ -84,7 +107,7 @@ export function StudentProfile() {
           onRetakeVark={() => navigate('/questionnaire')}
         />
 
-        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} />
+        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} action={<Tag label="WIP" bg={C.mutedLt} />} />
       </div>
     </div>
   )

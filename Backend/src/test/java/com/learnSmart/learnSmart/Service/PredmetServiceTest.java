@@ -4,8 +4,10 @@ import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
 import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.Profil;
+import com.learnSmart.learnSmart.Model.Vpis;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.VpisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,11 +25,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PredmetServiceTest {
 
-    @Mock
-    private PredmetRepository predmetRepository;
-
-    @Mock
-    private ProfilRepository profilRepository;
+    @Mock private PredmetRepository predmetRepository;
+    @Mock private ProfilRepository profilRepository;
+    @Mock private VpisRepository vpisRepository;
+    @Mock private ObvestiloService obvestiloService;
 
     @InjectMocks
     private PredmetService predmetService;
@@ -61,6 +62,7 @@ class PredmetServiceTest {
     void getPublished_returnsPublishedModules() {
         when(predmetRepository.findAll()).thenReturn(List.of(predmet));
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         List<PredmetResponseDTO> result = predmetService.getObjavljene();
 
@@ -82,6 +84,7 @@ class PredmetServiceTest {
     void getById_returnsModule() {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.getById(predmetId);
 
@@ -110,6 +113,7 @@ class PredmetServiceTest {
 
         when(predmetRepository.save(any())).thenReturn(saved);
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.ustvari(dto, uciteljId);
 
@@ -128,6 +132,7 @@ class PredmetServiceTest {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
         when(predmetRepository.save(any())).thenReturn(predmet);
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         PredmetResponseDTO result = predmetService.uredi(predmetId, dto, uciteljId);
 
@@ -144,7 +149,8 @@ class PredmetServiceTest {
         UUID otherTeacher = UUID.randomUUID();
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
 
-        assertThrows(RuntimeException.class, () -> predmetService.uredi(predmetId, dto, otherTeacher));
+        assertThrows(RuntimeException.class,
+                () -> predmetService.uredi(predmetId, dto, otherTeacher));
     }
 
     @Test
@@ -155,7 +161,8 @@ class PredmetServiceTest {
 
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> predmetService.uredi(predmetId, dto, uciteljId));
+        assertThrows(RuntimeException.class,
+                () -> predmetService.uredi(predmetId, dto, uciteljId));
     }
 
     @Test
@@ -172,14 +179,16 @@ class PredmetServiceTest {
         UUID otherTeacher = UUID.randomUUID();
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
 
-        assertThrows(RuntimeException.class, () -> predmetService.izbrisi(predmetId, otherTeacher));
+        assertThrows(RuntimeException.class,
+                () -> predmetService.izbrisi(predmetId, otherTeacher));
     }
 
     @Test
     void delete_throwsWhenNotFound() {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> predmetService.izbrisi(predmetId, uciteljId));
+        assertThrows(RuntimeException.class,
+                () -> predmetService.izbrisi(predmetId, uciteljId));
     }
 
     @Test
@@ -188,6 +197,8 @@ class PredmetServiceTest {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
         when(predmetRepository.save(any())).thenReturn(predmet);
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
+        when(vpisRepository.findByPredmetId(predmetId)).thenReturn(List.of());
 
         PredmetResponseDTO result = predmetService.objavi(predmetId, uciteljId);
 
@@ -196,24 +207,46 @@ class PredmetServiceTest {
     }
 
     @Test
+    void publish_sendsNotificationsToStudents() {
+        predmet.setJeObjavljen(false);
+
+        Vpis vpis = new Vpis();
+        vpis.setUcenecId(UUID.randomUUID());
+        vpis.setPredmet(predmet);
+
+        when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
+        when(predmetRepository.save(any())).thenReturn(predmet);
+        when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(1L);
+        when(vpisRepository.findByPredmetId(predmetId)).thenReturn(List.of(vpis));
+
+        predmetService.objavi(predmetId, uciteljId);
+
+        verify(obvestiloService, times(1)).ustvari(any(), any(), any(), any(), any());
+    }
+
+    @Test
     void publish_throwsWhenWrongOwner() {
         UUID otherTeacher = UUID.randomUUID();
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.of(predmet));
 
-        assertThrows(RuntimeException.class, () -> predmetService.objavi(predmetId, otherTeacher));
+        assertThrows(RuntimeException.class,
+                () -> predmetService.objavi(predmetId, otherTeacher));
     }
 
     @Test
     void publish_throwsWhenNotFound() {
         when(predmetRepository.findById(predmetId)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> predmetService.objavi(predmetId, uciteljId));
+        assertThrows(RuntimeException.class,
+                () -> predmetService.objavi(predmetId, uciteljId));
     }
 
     @Test
     void getMyModules_returnsTeacherModules() {
         when(predmetRepository.findAll()).thenReturn(List.of(predmet));
         when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(profil));
+        when(vpisRepository.countByPredmetIdAndJeAktivenTrue(any())).thenReturn(0L);
 
         List<PredmetResponseDTO> result = predmetService.getMoji(uciteljId);
 

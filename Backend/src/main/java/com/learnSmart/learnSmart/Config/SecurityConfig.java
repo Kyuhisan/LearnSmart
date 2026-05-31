@@ -34,6 +34,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/moduli", "/moduli/**").permitAll()
                 .requestMatchers("/moduli/**").authenticated()
+                .requestMatchers("/vpisi/**").authenticated()
+                .requestMatchers("/kvizi/**").authenticated()
                 .anyRequest().authenticated()
         )
         .oauth2ResourceServer(oauth2 -> oauth2

@@ -58,3 +58,10 @@ export const AI_QUIZ_MODULE_OPTIONS = [
 
 export const AI_DIFFICULTY_OPTIONS = ['EASY', 'MEDIUM', 'HARD'] as const
 export type AIDifficulty = (typeof AI_DIFFICULTY_OPTIONS)[number]
+
+import { C } from '../../styles/tokens'
+export const DIFFICULTY_COLOR: Record<AIDifficulty, string> = {
+  EASY: C.greenLt,
+  MEDIUM: C.yellowLt,
+  HARD: C.redLt,
+}

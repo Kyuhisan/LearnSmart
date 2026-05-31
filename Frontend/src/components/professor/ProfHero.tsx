@@ -13,10 +13,11 @@ interface ProfHeroProps {
   readonly streak?: number
   readonly onRetakeVark?: () => void
   readonly moduleCount?: number | null
+  readonly email?: string
 }
 
 
-export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark, moduleCount }: ProfHeroProps) {
+export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark, moduleCount, email }: ProfHeroProps) {
   const mobile = useBreakpoint() === 'mobile'
 
   const avatar = (
@@ -67,17 +68,17 @@ export function ProfHero({ username, isTeacher, onSettings, level, learningType,
     </div>
   )
 
-  const affiliation = (
+  const affiliation = email ? (
     <div style={{ fontSize: FS.md, color: C.navy, fontWeight: 600 }}>
-      {username}@uni-lj.si · Faculty of Informatics
+      {email}
     </div>
-  )
+  ) : null
 
   const buttons = (
     <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
-      <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onSettings}>SETTINGS</ComicBtn>
+      <ComicBtn sm color={C.yellow} onClick={onSettings}>SETTINGS · WIP</ComicBtn>
       {!isTeacher && onRetakeVark && (
-        <ComicBtn sm color={C.paper} hoverColor={C.yellowLt} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
+        <ComicBtn sm color={C.yellow} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
       )}
     </div>
   )

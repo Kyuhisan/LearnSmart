@@ -4,10 +4,20 @@ import type { Session } from '@supabase/supabase-js'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+export interface VarkScores {
+  visual: number
+  auditory: number
+  reading: number
+  kinesthetic: number
+}
+
 interface Profil {
   username: string
   vloga: string
   ucniTip: string
+  varkScores: VarkScores | null
+  xp: number
+  nivo: number
 }
 
 interface AuthContextType {
@@ -47,7 +57,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       })
       const data = await response.json()
-      setProfil({ username: data.username, vloga: data.vloga, ucniTip: data.ucniTip ?? '' })
+      const hasScores = data.varkVisual || data.varkAuditory || data.varkReading || data.varkKinesthetic
+      setProfil({
+        username: data.username,
+        vloga: data.vloga,
+        ucniTip: data.ucniTip ?? '',
+        varkScores: hasScores ? {
+          visual: data.varkVisual ?? 0,
+          auditory: data.varkAuditory ?? 0,
+          reading: data.varkReading ?? 0,
+          kinesthetic: data.varkKinesthetic ?? 0,
+        } : null,
+        xp: data.xp ?? 0,
+        nivo: data.nivo ?? 1,
+      })
     }
     fetchProfil()
   }, [session])
@@ -69,7 +92,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { 'Authorization': `Bearer ${current.access_token}` }
     })
     const data = await response.json()
-    setProfil({ username: data.username, vloga: data.vloga, ucniTip: data.ucniTip ?? '' })
+    const hasScores = data.varkVisual || data.varkAuditory || data.varkReading || data.varkKinesthetic
+    setProfil({
+      username: data.username,
+      vloga: data.vloga,
+      ucniTip: data.ucniTip ?? '',
+      varkScores: hasScores ? {
+        visual: data.varkVisual ?? 0,
+        auditory: data.varkAuditory ?? 0,
+        reading: data.varkReading ?? 0,
+        kinesthetic: data.varkKinesthetic ?? 0,
+      } : null,
+      xp: data.xp ?? 0,
+      nivo: data.nivo ?? 1,
+    })
   }
 
   const signOut = async () => {

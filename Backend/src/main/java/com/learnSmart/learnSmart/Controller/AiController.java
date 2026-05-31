@@ -55,7 +55,16 @@ public class AiController {
 
         if (jwt != null) {
             try {
-                userService.updateLearningStyle(jwt.getSubject(), response.getLearningStyle());
+                Map<String, Long> counts = answers.stream()
+                        .collect(java.util.stream.Collectors.groupingBy(a -> a, java.util.stream.Collectors.counting()));
+                userService.updateLearningStyle(
+                        jwt.getSubject(),
+                        response.getLearningStyle(),
+                        counts.getOrDefault("visual",      0L).intValue(),
+                        counts.getOrDefault("auditory",    0L).intValue(),
+                        counts.getOrDefault("reading",     0L).intValue(),
+                        counts.getOrDefault("kinesthetic", 0L).intValue()
+                );
             } catch (Exception e) {
                 log.warn("Could not persist learning style for {}: {}", jwt.getSubject(), e.getMessage());
             }

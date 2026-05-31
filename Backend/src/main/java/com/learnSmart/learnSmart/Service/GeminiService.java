@@ -24,12 +24,12 @@ public class GeminiService {
     private static final String GEMINI_CONTENT_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
     private final RestTemplate restTemplate = buildRestTemplate();
 
-    private ResponseEntity<Map> callGemini(String prompt, String baseUrl) {
+    public ResponseEntity<Map> callGeminiPublic(String prompt, String baseUrl) {
         Map<String, Object> body = Map.of(
-          "contents", List.of(
-                  Map.of("parts", List.of(
-                          Map.of("text", prompt)
-                  ))
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", prompt)
+                        ))
                 )
         );
 
@@ -43,7 +43,6 @@ public class GeminiService {
         );
     }
 
-
     public LearningStyleResponse classify(List<String> answers) {
         log.info("GeminiService classify answers: {}", answers.size());
 
@@ -53,10 +52,10 @@ public class GeminiService {
                     "Answers: " + answers;
 
             String url = GEMINI_CLASSIFY_URL + apiKey;
-            ResponseEntity<Map> response = callGemini(prompt, url);
-            
+            ResponseEntity<Map> response = callGeminiPublic(prompt, url);
+
             String result = extractText(response.getBody()).trim().toLowerCase();
-            return new LearningStyleResponse(result, 0.87); // <---- confidence hardcoded for now, change later
+            return new LearningStyleResponse(result, 0.87);
 
         } catch (Exception e) {
             log.warn("Gemini unavailable, using count-based fallback: {}", e.getMessage());
@@ -101,50 +100,52 @@ public class GeminiService {
         try {
             String prompt = """
                                 You are an educational content generator. Based on the provided transcript, generate learning content for 3 different learning styles.
-                            
+                        
                                 Return ONLY a valid JSON object with no additional text, markdown, or code blocks. The JSON must have exactly these 3 keys:
-                            
+                        
                                 {
-                                  "branje": {
-                                    "definicija": "A clear definition of the main topic",
-                                    "povzetek": "A concise summary of the content",
-                                    "strukturirane_opombe": ["key point 1", "key point 2", "key point 3"],
-                                    "glosar": [
+                                  "reading": {
+                                    "definition": "A clear definition of the main topic",
+                                    "summary": "A concise summary of the content",
+                                    "structured_notes": ["key point 1", "key point 2", "key point 3"],
+                                    "glossary": [
                                       {
-                                        "izraz": "term",
-                                        "definicija": "definition"
+                                        "term": "term",
+                                        "definition": "definition"
                                       }
                                     ],
-                                    "kljucni_pojmi": ["concept 1", "concept 2"]
+                                    "key_concepts": ["concept 1", "concept 2"]
                                   },
-                                  "kinestetično": {
-                                    "vprasanja": [
+                                  "kinesthetic": {
+                                    "questions": [
                                       {
-                                        "vprasanje": "question text",
-                                        "moznosti": [
+                                        "question": "question text",
+                                        "options": [
                                           "A) option",
                                           "B) option",
                                           "C) option",
                                           "D) option"
                                         ],
-                                        "pravilen_odgovor": "A"
+                                        "correct_answer": "A"
                                       }
                                     ]
                                   },
-                                  "audio": {
-                                    "naracijski_skript": "A natural spoken narrative of the entire content, written as if spoken aloud by a teacher. Should be comprehensive and cover all key points."
+                                  "auditory": {
+                                    "narration_script": "A natural spoken narrative of the entire content, written as if spoken aloud by a teacher. Should be comprehensive and cover all key points."
                                   }
                                 }
-                            
+                        
                                 Generate between 10 and 15 multiple choice questions based on the transcript.
                                 Each question must have exactly 4 options (A, B, C, D) and one correct answer.
-                            
+                        
+                                All generated content must be written entirely in English.
+                        
                                 Transcript:
                                 %s
-                                """.formatted(combinedTranscript);
+            """.formatted(combinedTranscript);
 
             String url = GEMINI_CONTENT_URL + apiKey;
-            ResponseEntity<Map> response = callGemini(prompt, url);
+            ResponseEntity<Map> response = callGeminiPublic(prompt, url);
 
             return extractText(response.getBody());
 
