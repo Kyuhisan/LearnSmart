@@ -94,7 +94,7 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
   const [answers, setAnswers] = useState<number[]>([])
   const [visible, setVisible] = useState(true)
   const [rezultat, setRezultat] = useState<QuizRezultat | null>(null)
-  const oldNivoRef = useRef<number>(profil?.nivo ?? 1)
+  const [oldNivo, setOldNivo] = useState<number>(profil?.nivo ?? 1)
 
   // Skupni čas za cel kviz
   const totalLimitS = (quiz.casIzvajanja ?? 10) * 60
@@ -167,6 +167,7 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
       const casResevanja = totalLimitS - timeLeftRef.current
       setTotalTimeSpent(casResevanja)
       if (session?.access_token) {
+        setOldNivo(profil?.nivo ?? 1)
         shraniRezultat(session.access_token, quiz.id, {
           odgovori: answers,
           casResevanjaS: casResevanja
@@ -326,7 +327,7 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
                 ) : rezultat?.xpZasluzen === 0 ? (
                   <Tag label="0 XP · MAX ATTEMPTS REACHED" bg={C.mutedLt} />
                 ) : null}
-                {rezultat?.nivo !== undefined && rezultat.nivo > oldNivoRef.current && (
+                {rezultat?.nivo !== undefined && rezultat.nivo > oldNivo && (
                   <Tag label={`LEVEL UP! → LVL ${rezultat.nivo}`} bg={C.yellow} />
                 )}
               </div>
@@ -348,7 +349,7 @@ export function QuizSession({ quiz, onClose }: QuizSessionProps) {
                 if (timerRef.current) clearInterval(timerRef.current)
                 timeLeftRef.current = totalLimitS
                 setTimeLeft(totalLimitS)
-                oldNivoRef.current = profil?.nivo ?? 1
+                setOldNivo(profil?.nivo ?? 1)
                 setStep('intro')
                 setQuestionIndex(0)
                 setSelectedOption(null)
