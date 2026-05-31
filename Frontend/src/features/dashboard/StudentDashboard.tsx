@@ -7,7 +7,6 @@ import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Bar } from '../../components/ui/Bar'
 import { Panel } from '../../components/ui/Panel'
-import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { getMojiRezultati, getMojiKvizi } from '../quiz/quizStudentApi'
@@ -214,37 +213,12 @@ export function StudentDashboard() {
   return (
     <div className="dashboard-main">
       <Topbar
-        title="HOME BASE"
-        subtitle={`Day ${STUDENT_STATS.streak} streak · Keep it going!`}
-        actions={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn></div>}
+        title="DASHBOARD"
+        subtitle={`Level ${profil?.nivo ?? 1} · ${(profil?.xp ?? 0).toLocaleString()} XP earned`}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> 2 NEW</ComicBtn>}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
-
-        {/* BIT greeting */}
-        {(() => {
-          const hasQuizzes = quizCount !== null && quizCount > 0
-          const goodAvg = hasQuizzes && (quizAvg ?? 0) >= 50
-          const topRank = myRank !== null && myRank <= 3
-          const mood = topRank ? 'wink' : goodAvg ? 'happy' : hasQuizzes ? 'thinking' : 'happy'
-          const bubbleColor = topRank ? C.yellow : goodAvg ? C.cyan : hasQuizzes ? C.orange : C.cyan
-          const message = !hasQuizzes
-            ? <>You're enrolled in <strong>{recentModules.length} module{recentModules.length !== 1 ? 's' : ''}</strong>. Complete your first quiz to start earning XP!</>
-            : topRank
-            ? <>You're ranked <strong>#{myRank} on the leaderboard</strong> with {(profil?.xp ?? 0).toLocaleString()} XP. Incredible work!</>
-            : goodAvg
-            ? <>You've completed <strong>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</strong> with a {quizAvg}% average. {myRank ? `You're ranked #${myRank}.` : ''} Keep it up!</>
-            : <>You've done <strong>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</strong> with a {quizAvg}% average. Review the material and push that score up!</>
-          return (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: S[3] }}>
-              <BitMascot size={70} mood={mood} float />
-              <SpeechBubble color={bubbleColor} style={{ flex: 1, maxWidth: 480 }}>
-                <div style={{ fontSize: FS.xs, fontFamily: "'Archivo Black', sans-serif", letterSpacing: 1 }}>BIT SAYS:</div>
-                <div style={{ fontSize: FS.lg, fontWeight: 700, marginTop: S[1], lineHeight: 1.4 }}>{message}</div>
-              </SpeechBubble>
-            </div>
-          )
-        })()}
 
         {/* YOUR STATISTICS */}
         <Panel title="YOUR STATISTICS" accent={C.yellow} p={0}>

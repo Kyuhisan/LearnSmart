@@ -633,7 +633,7 @@ export function StudentModules() {
   return (
     <div className="dashboard-main">
       <Topbar
-        title="MODULE LIBRARY"
+        title="MODULES"
         subtitle={`${moduli.length} modules · ${mojiVpisi.length} enrolled`}
         actions={
           <ComicBtn color={C.green} onClick={() => setShowJoin(true)}>

@@ -12,6 +12,16 @@ export async function getModuliJavni() {
   return res.json()
 }
 
+export async function checkKodaVpisa(token: string, koda: string, excludeId?: string): Promise<boolean> {
+  const params = new URLSearchParams({ koda })
+  if (excludeId) params.set('excludeId', excludeId)
+  const res = await fetch(`${API}/moduli/check-koda?${params}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  const data = await res.json()
+  return data.taken as boolean
+}
+
 export async function ustvariModul(token: string, data: object) {
   const res = await fetch(`${API}/moduli`, {
     method: 'POST',
