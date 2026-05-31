@@ -3,6 +3,7 @@ package com.learnSmart.learnSmart.Service;
 import com.learnSmart.learnSmart.DTO.Obvestilo.ObvestiloResponseDTO;
 import com.learnSmart.learnSmart.Model.Obvestilo;
 import com.learnSmart.learnSmart.Repository.ObvestiloRepository;
+import com.learnSmart.learnSmart.Repository.ProfilRepository;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,8 @@ import java.util.UUID;
 public class ObvestiloService {
 
     private final ObvestiloRepository obvestiloRepository;
+    private final ProfilRepository profilRepository;
+    private final EmailService emailService;
 
     public void ustvari(UUID uporabnikId, String tip, String naslov, String sporocilo, String povezava) {
         Obvestilo o = new Obvestilo();
@@ -30,6 +33,13 @@ public class ObvestiloService {
         o.setUstvarjenoOb(OffsetDateTime.now());
         obvestiloRepository.save(o);
         log.info("Obvestilo ustvarjeno za {}: {}", uporabnikId, naslov);
+
+        // ── EMAIL ──
+        profilRepository.findById(uporabnikId).ifPresent(p -> {
+            if (p.getEmail() != null && !p.getEmail().isBlank()) {
+                emailService.poslji(p.getEmail(), tip, naslov, sporocilo);
+            }
+        });
     }
 
     public List<ObvestiloResponseDTO> getMoja(UUID uporabnikId) {
