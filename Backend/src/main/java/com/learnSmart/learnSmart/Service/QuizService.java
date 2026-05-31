@@ -330,62 +330,7 @@ public class QuizService {
         return result;
     }
 
-    @Transactional
-    public int backfillXpZasluzen() {
-        List<QuizResult> vsiRezultati = quizResultRepository.findAll();
-
-        // Sort by submission time so priorAttempts count is correct
-        OffsetDateTime epoch = OffsetDateTime.parse("1970-01-01T00:00:00Z");
-        vsiRezultati.sort(Comparator.comparing((QuizResult r) -> r.getOddanoOb() != null ? r.getOddanoOb() : epoch));
-
-        // Cache questions per quiz to avoid repeated DB hits
-        Map<UUID, List<Question>> vprasanjaCache = new HashMap<>();
-        // Track attempt counts per (uporabnikId, quizId) as we process in order
-        Map<String, Long> attemptCounts = new HashMap<>();
-
-        int updated = 0;
-        for (QuizResult r : vsiRezultati) {
-            if (r.getQuiz() == null) continue;
-            UUID kvizId = r.getQuiz().getId();
-            UUID userId = r.getUporabnikId();
-            String key = userId + ":" + kvizId;
-
-            long priorAttempts = attemptCounts.getOrDefault(key, 0L);
-            attemptCounts.put(key, priorAttempts + 1);
-
-            // Only backfill results that have xpZasluzen == 0 (historical ones)
-            if (r.getXpZasluzen() != null && r.getXpZasluzen() > 0) continue;
-
-            List<Question> vprasanja = vprasanjaCache.computeIfAbsent(kvizId,
-                    id -> questionRepository.findByQuizId(id));
-
-            List<Integer> odgovori = r.getOdgovori();
-            int weightedCorrect = 0, weightedTotal = 0;
-            if (odgovori != null) {
-                for (int i = 0; i < odgovori.size() && i < vprasanja.size(); i++) {
-                    Question q = vprasanja.get(i);
-                    int w = difficultyWeight(q.getTezavnost());
-                    weightedTotal += w;
-                    if (odgovori.get(i).equals(q.getIndeksPravilnegaOdgovora())) {
-                        weightedCorrect += w;
-                    }
-                }
-            }
-            int baseXp = weightedTotal > 0 ? Math.round(weightedCorrect * 100f / weightedTotal) : 0;
-            double moduleMult = moduleMultiplier(r.getQuiz().getPredmet() != null ? r.getQuiz().getPredmet().getTezavnost() : null);
-            double timeBonus = speedBonus(r.getQuiz().getCasIzvajanja(), r.getCasResevanjaS());
-            double retakeMult = retakeMultiplier(priorAttempts);
-            int xpZasluzen = (int) Math.round(baseXp * moduleMult * (1 + timeBonus) * retakeMult);
-
-            r.setXpZasluzen(xpZasluzen);
-            quizResultRepository.save(r);
-            updated++;
-        }
-        log.info("Backfill: updated xpZasluzen for {} results", updated);
-        return updated;
-    }
-
-    public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
+public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         return quizResultRepository.findByUporabnikId(ucenecId).stream()
                 .map(r -> {
                     int odstotek = r.getSkupajVprasanj() > 0

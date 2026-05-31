@@ -5,6 +5,7 @@ import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
 import { Topbar } from '../../components/ui/Topbar'
+import { Tag } from '../../components/ui/Tag'
 import { C } from '../../styles/tokens'
 import { getModuliUcitelj, getStilMix, getKviziUcitelja, type QuizDTO } from '../modules/moduleApi'
 import '../../styles/profile.css'
@@ -55,7 +56,7 @@ export function ProfessorProfile() {
           <StatCard label="AVG SCORE" value={kvizi === null ? '…' : kvizi.length === 0 ? '—' : '78%'} sub={kvizi === null ? '' : kvizi.length === 0 ? 'no quizzes taken yet' : `across ${kvizi.length} quiz${kvizi.length !== 1 ? 'zes' : ''}`} bg={C.purpleLt} />
         </div>
 
-        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" showBadge={false} />
+        <ActivityPanel items={ACTIVITY} title="TEACHING ACTIVITY" showBadge={false} action={<Tag label="WIP" bg={C.mutedLt} />} />
       </div>
     </div>
   )
