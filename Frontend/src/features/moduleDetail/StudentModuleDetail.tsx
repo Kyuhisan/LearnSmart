@@ -627,7 +627,7 @@ function FlashcardMode({ questions, onBack }: { questions: Question[]; onBack: (
     setTimeout(() => {
       setFlipped(prev => {
         const next = new Set(prev)
-        next.has(i) ? next.delete(i) : next.add(i)
+        if (next.has(i)) next.delete(i); else next.add(i)
         return next
       })
       setAnimating(prev => { const next = new Set(prev); next.delete(i); return next })
@@ -637,7 +637,7 @@ function FlashcardMode({ questions, onBack }: { questions: Question[]; onBack: (
   const toggleMastered = (i: number) => {
     setMastered(prev => {
       const next = new Set(prev)
-      next.has(i) ? next.delete(i) : next.add(i)
+      if (next.has(i)) next.delete(i); else next.add(i)
       return next
     })
   }
