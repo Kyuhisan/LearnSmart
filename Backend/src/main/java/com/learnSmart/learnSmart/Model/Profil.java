@@ -3,6 +3,9 @@ package com.learnSmart.learnSmart.Model;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.time.OffsetDateTime;
 
@@ -56,4 +59,7 @@ public class Profil {
 
     @Column(name = "nivo", nullable = false, columnDefinition = "integer default 1")
     private Integer nivo = 1;
+
+    @OneToMany(mappedBy = "profil", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<Znacka> znacke = new ArrayList<>();
 }
