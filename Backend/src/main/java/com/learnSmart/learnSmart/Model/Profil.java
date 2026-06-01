@@ -62,4 +62,7 @@ public class Profil {
 
     @OneToMany(mappedBy = "profil", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Znacka> znacke = new ArrayList<>();
+
+    @OneToMany(mappedBy = "profil", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<Priporocilo> priporocilo = new ArrayList<>();
 }

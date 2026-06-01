@@ -7,6 +7,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,4 +70,7 @@ public class Predmet {
 
     @OneToMany(mappedBy = "predmet", cascade = CascadeType.ALL)
     private List<Quiz> kvizi;
+
+    @OneToMany(mappedBy = "predmet", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<Priporocilo> priporocilo = new ArrayList<>();
 }
