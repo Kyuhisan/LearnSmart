@@ -1,7 +1,6 @@
 package com.learnSmart.learnSmart.Repository;
 
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
-import org.hibernate.validator.cfg.defs.UUIDDef;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
