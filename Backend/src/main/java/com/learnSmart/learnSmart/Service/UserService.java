@@ -1,5 +1,11 @@
 package com.learnSmart.learnSmart.Service;
 
+import com.learnSmart.learnSmart.Enum.LearningStyleSource;
+import com.learnSmart.learnSmart.Model.Profil;
+import com.learnSmart.learnSmart.Model.UcniTipZgodovina;
+import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.UcniTipZgodovinaRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -7,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     @Value("${SUPABASE_URL}")
@@ -16,6 +24,9 @@ public class UserService {
 
     @Value("${SUPABASE_SERVICE_KEY}")
     private String supabaseServiceKey;
+
+    private final UcniTipZgodovinaRepository ucniTipZgodovinaRepository;
+    private final ProfilRepository profilRepository;
 
     private HttpHeaders buildHeaders() {
         HttpHeaders headers = new HttpHeaders();
@@ -45,18 +56,16 @@ public class UserService {
                     Void.class
             );
 
-            Map<String, String> historyBody = Map.of(
-                    "uporabik_id", userId,
-                    "ucni_tip", style,
-                    "ustvarjen_ob", OffsetDateTime.now().toString(),
-                    "vir", "QUESTIONNAIRE"
-            );
-            restTemplate.exchange(
-                    supabaseUrl + "/rest/v1/ucni_tip_zgodovina",
-                    HttpMethod.POST,
-                    new HttpEntity<>(historyBody, buildHeaders()),
-                    Void.class
-            );
+            Profil profil = profilRepository.findById(UUID.fromString(userId)).orElseThrow(() -> new IllegalArgumentException("Profile not found."));
+
+            UcniTipZgodovina zgodovina = new UcniTipZgodovina();
+            zgodovina.setProfil(profil);
+            zgodovina.setUcniTip(style);
+            zgodovina.setUstvarjenOb(OffsetDateTime.now());
+            zgodovina.setVir(LearningStyleSource.QUESTIONNAIRE);
+
+            ucniTipZgodovinaRepository.save(zgodovina);
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to update learning style: " + e.getMessage());
         }
