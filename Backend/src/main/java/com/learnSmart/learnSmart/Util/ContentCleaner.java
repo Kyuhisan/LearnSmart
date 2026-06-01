@@ -6,6 +6,8 @@ import java.util.Map;
 
 public class ContentCleaner {
 
+    private ContentCleaner() {}
+
     public static String cleanMarkdown(String text) {
         if (text == null) {
             return "";
@@ -32,11 +34,7 @@ public class ContentCleaner {
 
         if (value instanceof Map<?, ?> map) {
             Map<String, Object> cleaned = new HashMap<>();
-
-            map.forEach((k, v) -> {
-               cleaned.put((String) k, cleanContent(v));
-            });
-
+            map.forEach((k, v) ->  cleaned.put((String) k, cleanContent(v)));
             return cleaned;
         }
         return value;

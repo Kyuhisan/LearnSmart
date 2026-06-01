@@ -20,7 +20,17 @@ public class StorageService {
     @Value("${SUPABASE_SERVICE_KEY}")
     private String supabaseServiceKey;
 
-    private RestTemplate restTemplate = new RestTemplate();
+    private static final String API_KEY_HEADER = "apikey";
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    private HttpHeaders createHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(API_KEY_HEADER, supabaseServiceKey);
+        headers.setBearerAuth(supabaseServiceKey);
+
+        return headers;
+    }
 
 
     private void validateFile(MultipartFile file) {
@@ -66,9 +76,7 @@ public class StorageService {
             throw new IOException("Cannot determine file type");
         }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", supabaseServiceKey);
-        headers.set("Authorization", "Bearer " + supabaseServiceKey);
+        HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.parseMediaType(contentType));
 
         HttpEntity<byte[]> request = new HttpEntity<>(file.getBytes(), headers);
@@ -93,9 +101,7 @@ public class StorageService {
         String path = "modules/" + predmetId + "/" + fileName;
         String bucket = "learnsmart-media";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", supabaseServiceKey);
-        headers.set("Authorization", "Bearer " + supabaseServiceKey);
+        HttpHeaders headers = createHeaders();
         headers.setContentType(MediaType.parseMediaType(mimeType));
 
         byte[] bytes = Files.readAllBytes(filePath);
@@ -140,10 +146,7 @@ public class StorageService {
 
         String deleteUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", supabaseServiceKey);
-        headers.set("Authorization", "Bearer " + supabaseServiceKey);
-
+        HttpHeaders headers = createHeaders();
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
         restTemplate.exchange(
