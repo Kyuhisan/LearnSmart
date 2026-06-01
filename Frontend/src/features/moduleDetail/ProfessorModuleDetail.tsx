@@ -7,7 +7,7 @@ import { ComicBox } from '../../components/ui/ComicBox'
 import { Tag } from '../../components/ui/Tag'
 import { Panel } from '../../components/ui/Panel'
 import { Topbar } from '../../components/ui/Topbar'
-import { C, S } from '../../styles/tokens'
+import { C, S, FS } from '../../styles/tokens'
 import { PROF_MODULE} from './mockData'
 import { getModuleContent, getModul, getVisualContent, updateVsebinaPredmet } from './moduleDetailApi'
 import { getSteviloVpisanih } from '../modules/moduleApi'
@@ -56,6 +56,17 @@ type VisualContentItem = {
   imeDatoteke: string
   url: string
   tip: 'IMG' | 'VIDEO'
+}
+
+function ContentUnavailable({ label }: { label: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3], padding: `${S[8]} ${S[4]}`, textAlign: 'center' }}>
+      <BitMascot size={64} mood="thinking" float />
+      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>
+        {label} CONTENT NOT AVAILABLE FOR THIS MODULE
+      </span>
+    </div>
+  )
 }
 
 const tabConfig = {
@@ -686,6 +697,7 @@ export function ProfessorModuleDetail() {
   const [steviloVpisanih, setSteviloVpisanih] = useState<number | null>(null)
   const [modulNaziv, setModulNaziv] = useState<string>('')
   const [visualContent, setVisualContent] = useState<VisualContentItem[]>([])
+  const [contentLoaded, setContentLoaded] = useState(false)
   
   // READING
   const readingContent = moduleContent.find(
@@ -708,10 +720,12 @@ export function ProfessorModuleDetail() {
       (item.vsebina as AuditoryData).narration_script
   )
 
-  const auditoryData: AuditoryData = {
-    audio_url:(auditoryAudio?.vsebina as AuditoryData | undefined)?.audio_url,
-    narration_script: (auditoryScript?.vsebina as AuditoryData | undefined)?.narration_script
-  }
+  const auditoryData: AuditoryData | undefined = (auditoryAudio || auditoryScript)
+    ? {
+        audio_url: (auditoryAudio?.vsebina as AuditoryData | undefined)?.audio_url,
+        narration_script: (auditoryScript?.vsebina as AuditoryData | undefined)?.narration_script,
+      }
+    : undefined
 
   // KINESTHETIC
   const kinestheticContent = moduleContent.find(
@@ -730,6 +744,8 @@ export function ProfessorModuleDetail() {
         setModuleContent(data)
       } catch (err) {
         console.error(err)
+      } finally {
+        setContentLoaded(true)
       }
     }
 
@@ -829,15 +845,18 @@ export function ProfessorModuleDetail() {
   }
 
   const contentMap = {
-    visual: <VisualContent data={visualContent} />,
-    reading: (
-      <ReadingContent 
-        data={readingData} 
-        onSaveField = {handleSavedField}  
-      />
-    ),
-    auditory: <AuditoryContent data={auditoryData} />,
-    kinesthetic: <KinestheticContent data={kinestheticData} onSaveQuestions = {handleSaveKinesthetic} />,
+    visual:      contentLoaded && visualContent.length === 0
+                   ? <ContentUnavailable label="VISUAL" />
+                   : <VisualContent data={visualContent} />,
+    reading:     contentLoaded && !readingData
+                   ? <ContentUnavailable label="READING" />
+                   : <ReadingContent data={readingData} onSaveField={handleSavedField} />,
+    auditory:    contentLoaded && !auditoryData
+                   ? <ContentUnavailable label="AUDITORY" />
+                   : <AuditoryContent data={auditoryData} />,
+    kinesthetic: contentLoaded && !kinestheticData
+                   ? <ContentUnavailable label="KINESTHETIC" />
+                   : <KinestheticContent data={kinestheticData} onSaveQuestions={handleSaveKinesthetic} />,
   }
 
   return (
@@ -847,13 +866,10 @@ export function ProfessorModuleDetail() {
         subtitle={steviloVpisanih === null ? '…' : `${steviloVpisanih} ${steviloVpisanih === 1 ? 'student' : 'students'} enrolled`}
         back={() => navigate('/modules')}
         actions={
-          <>
-            <Tag
-              label={PROF_MODULE.status === 'published' ? '● LIVE' : '○ DRAFT'}
-              bg={PROF_MODULE.status === 'published' ? C.green : C.muted}
-            />
-            <ComicBtn color={C.yellow}>EDIT MODULE</ComicBtn>
-          </>
+          <Tag
+            label={PROF_MODULE.status === 'published' ? '● LIVE' : '○ DRAFT'}
+            bg={PROF_MODULE.status === 'published' ? C.green : C.muted}
+          />
         }
       />
 
