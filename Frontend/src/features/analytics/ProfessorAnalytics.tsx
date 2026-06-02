@@ -9,13 +9,17 @@ import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useAuth } from '../../context/AuthContext'
 import { getModuliUcitelj, getAnalyticsStats, getAnalyticsStatsByModule, getStilMix, getModulePerformance, type AnalyticsStats, type ModulePerformance } from '../modules/moduleApi'
-import { WEEKLY_ACTIVITY } from './mockData'
+import { getWeeklyStats, type WeeklyStats } from '../analytics/profesorStatsApi'
 
 const PERF_COLORS    = [C.cyan,   C.purple,   C.green,   C.yellow,   C.red]
 const PERF_COLORS_LT = [C.cyanLt, C.purpleLt, C.greenLt, C.yellowLt, C.redLt]
+const DAY_ORDER      = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 
 interface BackendModul { id: string; naziv: string }
 
+function todayIndex(): number {
+  return (new Date().getDay() + 6) % 7 // 0=MON ... 6=SUN
+}
 
 function ModuleOverviewRow({ m, color, colorLt, onDetails }: { m: ModulePerformance; color: string; colorLt: string; onDetails: () => void }) {
   const isMobile = useBreakpoint() === 'mobile'
@@ -166,6 +170,8 @@ export function ProfessorAnalytics() {
   const [stilMixData, setStilMixData] = useState<Record<string, number> | null>(null)
   const [modulePerformance, setModulePerformance] = useState<ModulePerformance[]>([])
   const [loadingPerformance, setLoadingPerformance] = useState(true)
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null)
+  const [loadingWeekly, setLoadingWeekly] = useState(false)
   const bp = useBreakpoint()
   const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
@@ -181,11 +187,21 @@ export function ProfessorAnalytics() {
     getModulePerformance(session.access_token)
       .then(data => { setModulePerformance(data); setLoadingPerformance(false) })
       .catch(() => setLoadingPerformance(false))
+    getWeeklyStats(session.access_token, null)
+      .then(setWeeklyStats)
+      .catch(() => {})
   }, [session])
 
   useEffect(() => {
+    if (!session?.access_token) return
+    setLoadingWeekly(true)
+    getWeeklyStats(session.access_token, selectedModule)
+      .then(data => { setWeeklyStats(data); setLoadingWeekly(false) })
+      .catch(() => setLoadingWeekly(false))
+  }, [selectedModule, session])
+
+  useEffect(() => {
     if (!selectedModule || !session?.access_token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModuleStats(null)
       return
     }
@@ -195,7 +211,9 @@ export function ProfessorAnalytics() {
       .catch(() => setLoadingModuleStats(false))
   }, [selectedModule, session])
 
-  const maxSessions = Math.max(...WEEKLY_ACTIVITY.map(d => d.sessions))
+  const weeklyData = weeklyStats?.days ?? []
+  const maxXp = Math.max(...weeklyData.map(d => d.xpSum), 1)
+  const today = todayIndex()
   const selectedModuleName = selectedModule ? modules.find(m => m.id === selectedModule)?.naziv ?? null : null
 
   const perfToShow = selectedModule
@@ -259,16 +277,31 @@ export function ProfessorAnalytics() {
 
           {/* Weekly activity chart */}
           <Panel title="WEEKLY ACTIVITY" accent={C.yellow}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} />{!isMobile && (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />)}</div>}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}>
+              {loadingWeekly && <Tag label="..." bg={C.mutedLt} />}
+              {!isMobile && (selectedModuleName
+                ? <Tag label={selectedModuleName} bg={C.yellowLt} />
+                : <Tag label="ALL MODULES" bg={C.yellowLt} />)}
+            </div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
-                {WEEKLY_ACTIVITY.map(d => {
-                  const barH = Math.round((d.sessions / maxSessions) * 130)
+                {weeklyData.map(d => {
+                  const dayIdx  = DAY_ORDER.indexOf(d.day)
+                  const isFuture = dayIdx > today
+                  const barH    = isFuture || d.xpSum === 0 ? 4 : Math.round((d.xpSum / maxXp) * 130)
                   return (
-                    <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1] }}>
-                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>{d.sessions}</span>
-                      <div style={{ width: '100%', height: barH, background: activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow, border: `${BW.base} solid ${C.ink}`, borderRadius: `${R.sm} ${R.sm} 0 0`, boxShadow: mkShadow() }} />
-                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.5 }}>{d.day}</span>
+                    <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1], opacity: isFuture ? 0.35 : 1 }}>
+                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>
+                        {isFuture ? '·' : d.xpSum > 0 ? `+${d.xpSum}` : '—'}
+                      </span>
+                      <div style={{
+                        width: '100%', height: barH,
+                        background: isFuture ? C.cream : d.xpSum === 0 ? C.cream : activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow,
+                        border: `${BW.base} solid ${isFuture ? C.divider : C.ink}`,
+                        borderRadius: `${R.sm} ${R.sm} 0 0`,
+                        boxShadow: isFuture || d.xpSum === 0 ? 'none' : mkShadow(),
+                      }} />
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isFuture ? C.divider : C.muted, letterSpacing: 0.5 }}>{d.day}</span>
                     </div>
                   )
                 })}
@@ -313,20 +346,32 @@ export function ProfessorAnalytics() {
 
           {/* Avg quiz score by day */}
           <Panel title="AVG QUIZ SCORE BY DAY" accent={C.green}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label="THIS WEEK" bg={C.greenLt} /></div>}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}>
+              {loadingWeekly && <Tag label="..." bg={C.mutedLt} />}
+              <Tag label="THIS WEEK" bg={C.greenLt} />
+            </div>}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: 0 }}>
-              {WEEKLY_ACTIVITY.map(d => (
-                <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: S[3] }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.5, width: 28, flexShrink: 0 }}>{d.day}</span>
-                  <div style={{ flex: 1 }}>
-                    <Bar value={d.avgScore} color={d.avgScore >= 80 ? C.green : d.avgScore >= 70 ? C.yellow : C.red} height={12} shadow />
+              {weeklyData.map(d => {
+                const dayIdx   = DAY_ORDER.indexOf(d.day)
+                const isFuture = dayIdx > today
+                return (
+                  <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: S[3], opacity: isFuture ? 0.35 : 1 }}>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isFuture ? C.divider : C.muted, letterSpacing: 0.5, width: 28, flexShrink: 0 }}>{d.day}</span>
+                    <div style={{ flex: 1 }}>
+                      <Bar
+                        value={isFuture ? 0 : d.avgScore}
+                        color={isFuture ? C.divider : d.avgScore === 0 ? C.divider : d.avgScore >= 80 ? C.green : d.avgScore >= 70 ? C.yellow : C.red}
+                        height={12}
+                        shadow={!isFuture && d.avgScore > 0}
+                      />
+                    </div>
+                    <Tag
+                      label={isFuture ? '·' : d.avgScore === 0 ? '—' : `${d.avgScore}%`}
+                      bg={isFuture ? C.mutedLt : d.avgScore === 0 ? C.mutedLt : d.avgScore >= 80 ? C.greenLt : d.avgScore >= 70 ? C.yellowLt : C.redLt}
+                    />
                   </div>
-                  <Tag
-                    label={`${d.avgScore}%`}
-                    bg={d.avgScore >= 80 ? C.greenLt : d.avgScore >= 70 ? C.yellowLt : C.redLt}
-                  />
-                </div>
-              ))}
+                )
+              })}
             </div>
           </Panel>
 

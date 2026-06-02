@@ -201,4 +201,23 @@ public class QuizController {
         if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(quizService.getTopStudentsZaUcitelja(uciteljId));
     }
+    @GetMapping("/progress-stats")
+    public ResponseEntity<ProgressStatsDTO> getProgressStats(@AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.getProgressStatsZaUcenca(ucenecId));
+    }
+    @GetMapping("/profesor/weekly-stats")
+    public ResponseEntity<WeeklyStatsDTO> getWeeklyStats(
+            @RequestParam(required = false) UUID predmetId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getWeeklyStatsZaProfesoria(uciteljId, predmetId));
+    }
+    @GetMapping("/profesor/activity")
+    public ResponseEntity<List<ActivityItemDTO>> getProfActivity(@AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getActivityZaProfesoria(uciteljId));
+    }
 }

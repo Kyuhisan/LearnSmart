@@ -14,6 +14,10 @@ import java.util.*;
 import java.util.Comparator;
 import java.util.stream.Collectors;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Locale;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -530,6 +534,177 @@ public class QuizService {
                     String ucniTip = p != null ? p.getUcniTip() : null;
                     return new TopStudentDTO(e.getKey(), ime, ucniTip, (int) Math.round(e.getValue()));
                 })
+                .toList();
+    }
+    @Transactional(readOnly = true)
+    public ProgressStatsDTO getProgressStatsZaUcenca(UUID ucenecId) {
+        List<QuizResult> vsiRezultati = quizResultRepository.findByUporabnikId(ucenecId);
+
+        LocalDate danes = LocalDate.now(ZoneOffset.UTC);
+
+        // ── BIWEEKLY XP (14 dni nazaj) ──
+        LocalDate start14 = danes.minusDays(13);
+        Map<LocalDate, Integer> xpPoDateumu = vsiRezultati.stream()
+                .filter(r -> r.getOddanoOb() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getOddanoOb().atZoneSameInstant(ZoneOffset.UTC).toLocalDate(),
+                        Collectors.summingInt(r -> r.getXpZasluzen() != null ? r.getXpZasluzen() : 0)
+                ));
+
+        List<ProgressStatsDTO.DailyXpDTO> biweekly = new ArrayList<>();
+        for (int i = 0; i < 14; i++) {
+            LocalDate dan = start14.plusDays(i);
+            int xp = xpPoDateumu.getOrDefault(dan, 0);
+            String label = dan.getMonth().getDisplayName(java.time.format.TextStyle.SHORT, Locale.ENGLISH)
+                    + " " + dan.getDayOfMonth();
+            biweekly.add(new ProgressStatsDTO.DailyXpDTO(label, xp));
+        }
+
+        // ── CALENDAR DAYS (35 dni — 5 tednov, začne prejšnji ponedeljek) ──
+        LocalDate ponedeljek = danes.with(java.time.DayOfWeek.MONDAY).minusWeeks(4);
+        List<ProgressStatsDTO.CalendarDayDTO> calendar = new ArrayList<>();
+        for (int i = 0; i < 35; i++) {
+            LocalDate dan = ponedeljek.plusDays(i);
+            boolean future = dan.isAfter(danes);
+            int xp = future ? 0 : xpPoDateumu.getOrDefault(dan, 0);
+            calendar.add(new ProgressStatsDTO.CalendarDayDTO(dan.toString(), xp, future));
+        }
+
+        // ── STREAK ──
+        int streak = 0;
+        LocalDate check = danes;
+        while (true) {
+            int xp = xpPoDateumu.getOrDefault(check, 0);
+            if (xp > 0) { streak++; check = check.minusDays(1); }
+            else break;
+        }
+
+        int streakBest = 0, current = 0;
+        LocalDate oldest = vsiRezultati.stream()
+                .filter(r -> r.getOddanoOb() != null)
+                .map(r -> r.getOddanoOb().atZoneSameInstant(ZoneOffset.UTC).toLocalDate())
+                .min(Comparator.naturalOrder()).orElse(danes);
+        for (LocalDate d = oldest; !d.isAfter(danes); d = d.plusDays(1)) {
+            if (xpPoDateumu.getOrDefault(d, 0) > 0) {
+                current++;
+                streakBest = Math.max(streakBest, current);
+            } else {
+                current = 0;
+            }
+        }
+
+        return new ProgressStatsDTO(biweekly, calendar, streak, streakBest);
+    }
+    @Transactional(readOnly = true)
+    public WeeklyStatsDTO getWeeklyStatsZaProfesoria(UUID uciteljId, UUID predmetId) {
+        // Pridobi predmete profesorja
+        List<UUID> predmetIds;
+        if (predmetId != null) {
+            predmetIds = List.of(predmetId);
+        } else {
+            predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                    .stream().map(Predmet::getId).toList();
+        }
+        if (predmetIds.isEmpty()) return new WeeklyStatsDTO(buildEmptyWeek());
+
+        // Pridobi vse kvize za te predmete
+        List<UUID> kvizIds = quizRepository.findByPredmetIdIn(predmetIds)
+                .stream().map(Quiz::getId).toList();
+        if (kvizIds.isEmpty()) return new WeeklyStatsDTO(buildEmptyWeek());
+
+        // Zadnjih 7 dni (pon–ned tega tedna)
+        LocalDate danes = LocalDate.now(ZoneOffset.UTC);
+        LocalDate ponedeljek = danes.with(java.time.DayOfWeek.MONDAY);
+
+        // Pridobi rezultate tega tedna
+        OffsetDateTime odKdaj = ponedeljek.atStartOfDay().atOffset(ZoneOffset.UTC);
+        List<QuizResult> rezultati = quizResultRepository.findByQuizIdIn(kvizIds).stream()
+                .filter(r -> r.getOddanoOb() != null && !r.getOddanoOb().isBefore(odKdaj))
+                .toList();
+
+        // Grupiraj po dnevu
+        String[] dayNames = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+        List<WeeklyStatsDTO.DayStatsDTO> days = new ArrayList<>();
+
+        for (int i = 0; i < 7; i++) {
+            LocalDate dan = ponedeljek.plusDays(i);
+            final LocalDate finalDan = dan;
+            List<QuizResult> danResults = rezultati.stream()
+                    .filter(r -> r.getOddanoOb().atZoneSameInstant(ZoneOffset.UTC)
+                            .toLocalDate().equals(finalDan))
+                    .toList();
+
+            int xpSum = danResults.stream()
+                    .mapToInt(r -> r.getXpZasluzen() != null ? r.getXpZasluzen() : 0)
+                    .sum();
+
+            int avgScore = danResults.isEmpty() ? 0
+                    : (int) Math.round(danResults.stream()
+                    .mapToDouble(r -> r.getSkupajVprasanj() != null && r.getSkupajVprasanj() > 0
+                            ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                    .average().orElse(0));
+
+            days.add(new WeeklyStatsDTO.DayStatsDTO(dayNames[i], xpSum, avgScore));
+        }
+
+        return new WeeklyStatsDTO(days);
+    }
+
+    private List<WeeklyStatsDTO.DayStatsDTO> buildEmptyWeek() {
+        String[] dayNames = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+        List<WeeklyStatsDTO.DayStatsDTO> days = new ArrayList<>();
+        for (String d : dayNames) days.add(new WeeklyStatsDTO.DayStatsDTO(d, 0, 0));
+        return days;
+    }
+    @Transactional(readOnly = true)
+    public List<ActivityItemDTO> getActivityZaProfesoria(UUID uciteljId) {
+        List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                .stream().map(Predmet::getId).toList();
+        if (predmetIds.isEmpty()) return List.of();
+
+        List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds);
+        List<UUID> kvizIds = kvizi.stream().map(Quiz::getId).toList();
+
+        List<ActivityItemDTO> items = new ArrayList<>();
+
+        // Objavljeni kvizi
+        kvizi.stream()
+                .filter(q -> "PUBLISHED".equals(q.getStatus()) && q.getUstvarjenOb() != null)
+                .forEach(q -> items.add(new ActivityItemDTO(
+                        "QUIZ_PUBLISHED",
+                        "Published quiz: " + q.getNaziv(),
+                        "PUBLISHED",
+                        q.getUstvarjenOb()
+                )));
+
+        // Rezultati učencev
+        if (!kvizIds.isEmpty()) {
+            Map<UUID, String> kvizNazivi = kvizi.stream()
+                    .collect(Collectors.toMap(Quiz::getId, Quiz::getNaziv));
+            Map<UUID, String> profilImena = new HashMap<>();
+
+            quizResultRepository.findByQuizIdIn(kvizIds).forEach(r -> {
+                if (r.getOddanoOb() == null) return;
+                String ime = profilImena.computeIfAbsent(r.getUporabnikId(), id ->
+                        profilRepository.findById(id)
+                                .map(p -> p.getImePriimek() != null ? p.getImePriimek() : p.getUsername())
+                                .orElse("Student")
+                );
+                int odstotek = r.getSkupajVprasanj() != null && r.getSkupajVprasanj() > 0
+                        ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
+                String naziv = kvizNazivi.getOrDefault(r.getQuiz().getId(), "Quiz");
+                items.add(new ActivityItemDTO(
+                        "QUIZ_RESULT",
+                        ime + " completed: " + naziv,
+                        odstotek + "%",
+                        r.getOddanoOb()
+                ));
+            });
+        }
+
+        return items.stream()
+                .sorted(Comparator.comparing(ActivityItemDTO::getDate).reversed())
+                .limit(10)
                 .toList();
     }
 }
