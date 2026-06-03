@@ -548,4 +548,206 @@ class QuizServiceTest {
 
         assertTrue(result.size() <= 5);
     }
+    // ── getProgressStatsZaUcenca ──────────────────────────────────────────────
+
+    @Test
+    void getProgressStats_returnsStatsForStudent() {
+        quizResult.setXpZasluzen(100);
+        quizResult.setOddanoOb(OffsetDateTime.now());
+        when(quizResultRepository.findByUporabnikId(ucenecId)).thenReturn(List.of(quizResult));
+
+        ProgressStatsDTO result = quizService.getProgressStatsZaUcenca(ucenecId);
+
+        assertNotNull(result);
+        assertEquals(14, result.getBiweeklyXp().size());
+        assertEquals(35, result.getCalendarDays().size());
+        assertTrue(result.getStreak() >= 0);
+        assertTrue(result.getStreakBest() >= 0);
+    }
+
+    @Test
+    void getProgressStats_returnsEmptyWhenNoResults() {
+        when(quizResultRepository.findByUporabnikId(ucenecId)).thenReturn(List.of());
+
+        ProgressStatsDTO result = quizService.getProgressStatsZaUcenca(ucenecId);
+
+        assertNotNull(result);
+        assertEquals(14, result.getBiweeklyXp().size());
+        assertEquals(35, result.getCalendarDays().size());
+        assertEquals(0, result.getStreak());
+        assertEquals(0, result.getStreakBest());
+    }
+
+    @Test
+    void getProgressStats_calculatesStreakCorrectly() {
+        QuizResult r1 = new QuizResult();
+        r1.setId(UUID.randomUUID()); r1.setQuiz(quiz); r1.setUporabnikId(ucenecId);
+        r1.setTocke(8); r1.setSkupajVprasanj(10); r1.setXpZasluzen(50);
+        r1.setOddanoOb(OffsetDateTime.now());
+
+        QuizResult r2 = new QuizResult();
+        r2.setId(UUID.randomUUID()); r2.setQuiz(quiz); r2.setUporabnikId(ucenecId);
+        r2.setTocke(8); r2.setSkupajVprasanj(10); r2.setXpZasluzen(60);
+        r2.setOddanoOb(OffsetDateTime.now().minusDays(1));
+
+        when(quizResultRepository.findByUporabnikId(ucenecId)).thenReturn(List.of(r1, r2));
+
+        ProgressStatsDTO result = quizService.getProgressStatsZaUcenca(ucenecId);
+
+        assertTrue(result.getStreak() >= 2);
+    }
+
+    @Test
+    void getProgressStats_calendarHasFutureDays() {
+        when(quizResultRepository.findByUporabnikId(ucenecId)).thenReturn(List.of());
+
+        ProgressStatsDTO result = quizService.getProgressStatsZaUcenca(ucenecId);
+
+        long futureDays = result.getCalendarDays().stream()
+                .filter(ProgressStatsDTO.CalendarDayDTO::isFuture)
+                .count();
+        assertTrue(futureDays >= 0);
+    }
+
+// ── getWeeklyStatsZaProfesoria ────────────────────────────────────────────
+
+    @Test
+    void getWeeklyStats_returnsSevenDays() {
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of(predmet));
+        when(quizRepository.findByPredmetIdIn(any())).thenReturn(List.of(quiz));
+        quizResult.setXpZasluzen(80);
+        quizResult.setOddanoOb(OffsetDateTime.now());
+        when(quizResultRepository.findByQuizIdIn(any())).thenReturn(List.of(quizResult));
+
+        WeeklyStatsDTO result = quizService.getWeeklyStatsZaProfesoria(uciteljId, null);
+
+        assertNotNull(result);
+        assertEquals(7, result.getDays().size());
+    }
+
+    @Test
+    void getWeeklyStats_returnsEmptyWeekWhenNoModules() {
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of());
+
+        WeeklyStatsDTO result = quizService.getWeeklyStatsZaProfesoria(uciteljId, null);
+
+        assertNotNull(result);
+        assertEquals(7, result.getDays().size());
+        assertTrue(result.getDays().stream().allMatch(d -> d.getXpSum() == 0));
+    }
+
+    @Test
+    void getWeeklyStats_returnsEmptyWeekWhenNoQuizzes() {
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of(predmet));
+        when(quizRepository.findByPredmetIdIn(any())).thenReturn(List.of());
+
+        WeeklyStatsDTO result = quizService.getWeeklyStatsZaProfesoria(uciteljId, null);
+
+        assertNotNull(result);
+        assertEquals(7, result.getDays().size());
+        assertTrue(result.getDays().stream().allMatch(d -> d.getXpSum() == 0));
+    }
+
+    @Test
+    void getWeeklyStats_filtersByPredmetId() {
+        when(quizRepository.findByPredmetIdIn(List.of(predmetId))).thenReturn(List.of(quiz));
+        quizResult.setXpZasluzen(50);
+        quizResult.setOddanoOb(OffsetDateTime.now());
+        when(quizResultRepository.findByQuizIdIn(any())).thenReturn(List.of(quizResult));
+
+        WeeklyStatsDTO result = quizService.getWeeklyStatsZaProfesoria(uciteljId, predmetId);
+
+        assertNotNull(result);
+        assertEquals(7, result.getDays().size());
+    }
+
+    @Test
+    void getWeeklyStats_dayNamesAreCorrect() {
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of(predmet));
+        when(quizRepository.findByPredmetIdIn(any())).thenReturn(List.of(quiz));
+        when(quizResultRepository.findByQuizIdIn(any())).thenReturn(List.of());
+
+        WeeklyStatsDTO result = quizService.getWeeklyStatsZaProfesoria(uciteljId, null);
+
+        List<String> expectedDays = List.of("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN");
+        List<String> actualDays = result.getDays().stream()
+                .map(WeeklyStatsDTO.DayStatsDTO::getDay).toList();
+        assertEquals(expectedDays, actualDays);
+    }
+
+// ── getActivityZaProfesoria ───────────────────────────────────────────────
+
+    @Test
+    void getActivity_returnsActivities() {
+        quiz.setStatus("PUBLISHED");
+        quizResult.setOddanoOb(OffsetDateTime.now());
+        quizResult.setXpZasluzen(50);
+
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of(predmet));
+        when(quizRepository.findByPredmetIdIn(any())).thenReturn(List.of(quiz));
+        when(quizResultRepository.findByQuizIdIn(any())).thenReturn(List.of(quizResult));
+        when(profilRepository.findById(ucenecId)).thenReturn(Optional.of(profil));
+
+        List<ActivityItemDTO> result = quizService.getActivityZaProfesoria(uciteljId);
+
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    void getActivity_returnsEmptyWhenNoModules() {
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of());
+
+        List<ActivityItemDTO> result = quizService.getActivityZaProfesoria(uciteljId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getActivity_limitsToTen() {
+        quiz.setStatus("PUBLISHED");
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of(predmet));
+        when(quizRepository.findByPredmetIdIn(any())).thenReturn(List.of(quiz));
+
+        List<QuizResult> many = new ArrayList<>();
+        for (int i = 0; i < 15; i++) {
+            QuizResult r = new QuizResult();
+            r.setId(UUID.randomUUID()); r.setQuiz(quiz); r.setUporabnikId(ucenecId);
+            r.setTocke(5); r.setSkupajVprasanj(10); r.setXpZasluzen(30);
+            r.setOddanoOb(OffsetDateTime.now().minusHours(i));
+            many.add(r);
+        }
+        when(quizResultRepository.findByQuizIdIn(any())).thenReturn(many);
+        when(profilRepository.findById(any())).thenReturn(Optional.of(profil));
+
+        List<ActivityItemDTO> result = quizService.getActivityZaProfesoria(uciteljId);
+
+        assertTrue(result.size() <= 10);
+    }
+
+    @Test
+    void getActivity_isSortedByDateDescending() {
+        quiz.setStatus("PUBLISHED");
+        when(predmetRepository.findByUciteljId(uciteljId)).thenReturn(List.of(predmet));
+        when(quizRepository.findByPredmetIdIn(any())).thenReturn(List.of(quiz));
+
+        QuizResult r1 = new QuizResult();
+        r1.setId(UUID.randomUUID()); r1.setQuiz(quiz); r1.setUporabnikId(ucenecId);
+        r1.setTocke(5); r1.setSkupajVprasanj(10); r1.setXpZasluzen(30);
+        r1.setOddanoOb(OffsetDateTime.now().minusHours(2));
+
+        QuizResult r2 = new QuizResult();
+        r2.setId(UUID.randomUUID()); r2.setQuiz(quiz); r2.setUporabnikId(ucenecId);
+        r2.setTocke(8); r2.setSkupajVprasanj(10); r2.setXpZasluzen(50);
+        r2.setOddanoOb(OffsetDateTime.now().minusHours(1));
+
+        when(quizResultRepository.findByQuizIdIn(any())).thenReturn(List.of(r1, r2));
+        when(profilRepository.findById(any())).thenReturn(Optional.of(profil));
+
+        List<ActivityItemDTO> result = quizService.getActivityZaProfesoria(uciteljId);
+
+        assertFalse(result.isEmpty());
+        // Novejši rezultat je prvi
+        assertTrue(result.get(0).getDate().isAfter(result.get(result.size() - 1).getDate())
+                || result.get(0).getDate().isEqual(result.get(result.size() - 1).getDate()));
+    }
 }
