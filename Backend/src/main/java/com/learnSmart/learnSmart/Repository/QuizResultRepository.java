@@ -13,5 +13,6 @@ public interface QuizResultRepository extends JpaRepository<QuizResult, UUID> {
     Optional<QuizResult> findByQuizIdAndUporabnikId(UUID quizId, UUID uporabnikId);
     List<QuizResult> findByQuizIdIn(Collection<UUID> quizIds);
     long countByQuiz_IdAndUporabnikId(UUID quizId, UUID uporabnikId);
+    long countByUporabnikId(UUID uporabnikId);
     List<QuizResult> findByUporabnikIdIn(Collection<UUID> uporabnikIds);
 }
