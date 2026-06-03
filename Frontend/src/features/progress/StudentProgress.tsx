@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { StatCard } from '../../components/ui/StatCard'
@@ -11,6 +11,7 @@ import { BADGES, BIWEEKLY_XP, CALENDAR_DAYS, PROGRESS_STATS, type ProgressModule
 import { useAuth } from '../../context/AuthContext'
 import { getMojiVpisi, getModuliJavni } from '../modules/moduleApi'
 import { getModuleCompletion, getMojiRezultati, type ModuleCompletion } from '../quiz/quizStudentApi'
+import { getProgressStats, type ProgressStats } from './progressStatsApi'
 
 const DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 
@@ -22,15 +23,6 @@ const MODULE_COLORS = [
   { color: C.pink,   colorLt: C.pinkLt   },
   { color: C.orange, colorLt: C.orangeLt },
   { color: C.red,    colorLt: C.redLt    },
-]
-
-// 5 rows × 7 cols
-const WEEKS = [
-  CALENDAR_DAYS.slice(0,  7),
-  CALENDAR_DAYS.slice(7,  14),
-  CALENDAR_DAYS.slice(14, 21),
-  CALENDAR_DAYS.slice(21, 28),
-  CALENDAR_DAYS.slice(28, 35),
 ]
 
 function xpToColor(xp: number, future?: boolean): string {
@@ -45,10 +37,18 @@ function xpToBorder(xp: number, future?: boolean): string {
   return C.green
 }
 
-function StreakCalendarPanel() {
+function StreakCalendarPanel({ calendarDays, streak }: { calendarDays: typeof CALENDAR_DAYS; streak: number }) {
+  const weeks = useMemo(() => [
+    calendarDays.slice(0,  7),
+    calendarDays.slice(7,  14),
+    calendarDays.slice(14, 21),
+    calendarDays.slice(21, 28),
+    calendarDays.slice(28, 35),
+  ], [calendarDays])
+
   return (
     <Panel title="STREAK CALENDAR" accent={C.orange}
-      action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} /></div>}>
+      action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label={`${streak}D STREAK`} bg={C.orangeLt} /></div>}>
       <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: S[2] }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
           {DAY_HEADERS.map((d, i) => (
@@ -57,7 +57,7 @@ function StreakCalendarPanel() {
             </div>
           ))}
         </div>
-        {WEEKS.map((week, wi) => (
+        {weeks.map((week, wi) => (
           <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
             {week.map((day, di) => (
               <div key={di}
@@ -93,11 +93,20 @@ function StreakCalendarPanel() {
   )
 }
 
-function StreakCalendarPanelMobile() {
-  const thisWeek = WEEKS[WEEKS.length - 1]
+function StreakCalendarPanelMobile({ calendarDays, streak }: { calendarDays: typeof CALENDAR_DAYS; streak: number }) {
+  const weeks = useMemo(() => [
+    calendarDays.slice(0,  7),
+    calendarDays.slice(7,  14),
+    calendarDays.slice(14, 21),
+    calendarDays.slice(21, 28),
+    calendarDays.slice(28, 35),
+  ], [calendarDays])
+
+  const thisWeek = weeks[weeks.length - 1]
+
   return (
     <Panel title="STREAK CALENDAR" accent={C.orange}
-      action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${PROGRESS_STATS.streak}D STREAK`} bg={C.orangeLt} /></div>}>
+      action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label={`${streak}D STREAK`} bg={C.orangeLt} /></div>}>
       <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: S[3] }}>
 
         {/* This week — large day cards */}
@@ -227,6 +236,7 @@ export function StudentProgress() {
   const [modulesCompleted, setModulesCompleted] = useState<number | null>(null)
   const [progressModules, setProgressModules] = useState<ProgressModule[] | null>(null)
   const [weeklyXp, setWeeklyXp] = useState<number | null>(null)
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null)
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -241,6 +251,9 @@ export function StudentProgress() {
         .reduce((sum, r) => sum + (r.xpZasluzen ?? 0), 0)
       setWeeklyXp(xpThisWeek)
     }).catch(() => setWeeklyXp(0))
+
+    // Progress stats (XP activity + streak calendar)
+    getProgressStats(token).then(setProgressStats).catch(() => {})
 
     Promise.all([
       getMojiVpisi(token),
@@ -279,6 +292,18 @@ export function StudentProgress() {
   const nivo = profil?.nivo ?? 1
   const xpToNext = 200 - (xp % 200)
 
+  const biweeklyData = progressStats?.biweeklyXp ?? BIWEEKLY_XP
+  const calendarData = progressStats?.calendarDays ?? CALENDAR_DAYS
+  const streak       = progressStats?.streak      ?? PROGRESS_STATS.streak
+  const streakBest   = progressStats?.streakBest  ?? PROGRESS_STATS.streakBest
+
+  const biweeklyGain = useMemo(() => {
+    const prev = biweeklyData.slice(0, 7).reduce((s, d) => s + d.xp, 0)
+    const curr = biweeklyData.slice(7).reduce((s, d) => s + d.xp, 0)
+    if (prev === 0) return curr > 0 ? 100 : 0
+    return Math.round((curr - prev) / prev * 100)
+  }, [biweeklyData])
+
   return (
     <div className="dashboard-main">
       <Topbar
@@ -292,8 +317,8 @@ export function StudentProgress() {
 
         {/* Stat cards */}
         <div className="quiz-stat-grid">
-          <StatCard label="TOTAL XP"  value={xp.toLocaleString()}                                                                                                                  sub={`LVL ${nivo} · ${xpToNext} XP to next`}                                                                                         bg={C.yellowLt} />
-          <StatCard label="STREAK · WIP" value={`${PROGRESS_STATS.streak}d`}                                                                                                     sub={`best: ${PROGRESS_STATS.streakBest} days`}                                                                                       bg={C.redLt}    />
+          <StatCard label="TOTAL XP"    value={xp.toLocaleString()}                                                                                                               sub={`LVL ${nivo} · ${xpToNext} XP to next`}                                                                                         bg={C.yellowLt} />
+          <StatCard label="STREAK"      value={`${streak}d`}                                                                                                                      sub={`best: ${streakBest} days`}                                                                                                      bg={C.redLt}    />
           <StatCard label="MODULES"     value={modulesTotal === null ? '…' : `${modulesCompleted} / ${modulesTotal}`} sub={modulesTotal === null ? '' : `${(modulesTotal ?? 0) - (modulesCompleted ?? 0)} in progress`}  bg={C.cyanLt}   />
           <StatCard label="BADGES · WIP" value={`${PROGRESS_STATS.totalBadges} / ${PROGRESS_STATS.badgesTotal}`}     sub={`${PROGRESS_STATS.badgesTotal - PROGRESS_STATS.totalBadges} remaining`}                       bg={C.purpleLt} />
         </div>
@@ -301,11 +326,11 @@ export function StudentProgress() {
         {/* XP chart */}
         {isMobile ? (
           <Panel title="XP ACTIVITY" accent={C.yellow}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${PROGRESS_STATS.biweeklyGain}%`} bg={C.greenLt} /></div>}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label={`+${biweeklyGain}%`} bg={C.greenLt} /></div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
-                {BIWEEKLY_XP.slice(7).map((d) => {
-                  const maxXp = Math.max(...BIWEEKLY_XP.slice(7).map(d => d.xp), 1)
+                {biweeklyData.slice(7).map((d) => {
+                  const maxXp = Math.max(...biweeklyData.slice(7).map(d => d.xp), 1)
                   const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * 110)
                   return (
                     <div key={d.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1] }}>
@@ -324,11 +349,11 @@ export function StudentProgress() {
           </Panel>
         ) : (
           <Panel title="XP ACTIVITY" accent={C.yellow}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${PROGRESS_STATS.biweeklyGain}% VS PREV WEEK`} bg={C.greenLt} /></div>}>
+            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label={`${biweeklyGain >= 0 ? '+' : ''}${biweeklyGain}% VS PREV WEEK`} bg={biweeklyGain >= 0 ? C.greenLt : C.redLt} /></div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
-                {BIWEEKLY_XP.map((d, i) => {
-                  const maxXp = Math.max(...BIWEEKLY_XP.map(d => d.xp), 1)
+                {biweeklyData.map((d, i) => {
+                  const maxXp = Math.max(...biweeklyData.map(d => d.xp), 1)
                   const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * 110)
                   const isNewWeek = i === 7
                   return (
@@ -360,25 +385,22 @@ export function StudentProgress() {
 
         {isMobile ? (
           <>
-            {/* Mobile: calendar redesign + modules + badges stacked */}
-            <StreakCalendarPanelMobile />
+            <StreakCalendarPanelMobile calendarDays={calendarData} streak={streak} />
             <ModuleProgressPanel navigate={navigate} isMobile modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             <BadgesPanel cols={1} />
           </>
         ) : isTablet ? (
           <>
-            {/* Tablet: Module progress full width, then Streak + Badges 50:50 */}
             <ModuleProgressPanel navigate={navigate} modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[4], alignItems: 'stretch' }}>
-              <StreakCalendarPanel />
+              <StreakCalendarPanel calendarDays={calendarData} streak={streak} />
               <BadgesPanel limit={4} cols={2} />
             </div>
           </>
         ) : (
           <>
-            {/* Desktop: Streak calendar + Module progress 2fr 3fr, Badges full width */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: S[4], alignItems: 'stretch' }}>
-              <StreakCalendarPanel />
+              <StreakCalendarPanel calendarDays={calendarData} streak={streak} />
               <ModuleProgressPanel navigate={navigate} modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             </div>
             <BadgesPanel cols={4} />

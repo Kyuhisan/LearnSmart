@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getMojiRezultati } from '../quiz/quizStudentApi'
+import { getMojiVpisi } from '../modules/moduleApi'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
@@ -9,35 +10,74 @@ import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Topbar } from '../../components/ui/Topbar'
 import { LearningStylePanel } from './LearningStylePanel'
 import { C, STYLE_INFO, type LearningStyle } from '../../styles/tokens'
-import { Tag } from '../../components/ui/Tag'
 import { STUDENT_STATS } from './mockData'
 import '../../styles/profile.css'
 
-const ACTIVITY: ActivityItem[] = [
-  { iconBg: C.cyanLt,   title: 'Completed Quiz #12 — Binary Trees',       time: '2H AGO', badge: '84%'     },
-  { iconBg: C.yellowLt, title: 'Resumed: Machine Learning Fundamentals',   time: '4H AGO', badge: 'CH. 3'   },
-  { iconBg: C.greenLt,  title: 'Moved to rank #4 on leaderboard',          time: 'TODAY',  badge: '+150 XP' },
-  { iconBg: C.purpleLt, title: 'Completed module: Linear Algebra',         time: '2D AGO', badge: 'DONE'    },
-]
-
 const API = import.meta.env.VITE_API_URL
+
+function formatTime(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffH = Math.floor(diffMin / 60)
+  const diffD = Math.floor(diffH / 24)
+  if (diffMin < 60) return `${diffMin}M AGO`
+  if (diffH < 24) return `${diffH}H AGO`
+  if (diffD === 1) return 'YESTERDAY'
+  if (diffD < 7) return `${diffD}D AGO`
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).toUpperCase()
+}
 
 export function StudentProfile() {
   const { profil, session, signOut } = useAuth()
   const navigate = useNavigate()
   const [quizCount, setQuizCount] = useState<number | null>(null)
   const [quizAvg, setQuizAvg] = useState<number | null>(null)
+  const [activity, setActivity] = useState<ActivityItem[]>([])
 
   useEffect(() => {
     if (!session?.access_token) return
-    getMojiRezultati(session.access_token).then((data: { odstotek: number }[]) => {
-      if (!Array.isArray(data) || data.length === 0) {
-        setQuizCount(0)
-        setQuizAvg(null)
-      } else {
-        setQuizCount(data.length)
-        setQuizAvg(Math.round(data.reduce((sum, r) => sum + r.odstotek, 0) / data.length))
-      }
+    const token = session.access_token
+
+    Promise.all([
+      getMojiRezultati(token),
+      getMojiVpisi(token),
+    ]).then(([rezultati, vpisi]) => {
+      const rArr = Array.isArray(rezultati) ? rezultati : []
+      setQuizCount(rArr.length)
+      setQuizAvg(rArr.length > 0
+        ? Math.round(rArr.reduce((s: number, r: { odstotek: number }) => s + r.odstotek, 0) / rArr.length)
+        : null)
+
+      const quizItems: (ActivityItem & { _date: string })[] = rArr
+        .filter((r: { oddanoOb?: string }) => r.oddanoOb)
+        .map((r: { kvizNaziv: string; odstotek: number; xpZasluzen: number; oddanoOb: string; predmetNaziv?: string }) => ({
+          iconBg: r.odstotek >= 80 ? C.greenLt : r.odstotek >= 60 ? C.yellowLt : C.redLt,
+          title: `Completed: ${r.kvizNaziv}${r.predmetNaziv ? ` · ${r.predmetNaziv}` : ''}`,
+          time: formatTime(r.oddanoOb),
+          badge: `${r.odstotek}%`,
+          _date: r.oddanoOb,
+        }))
+
+      const vArr = Array.isArray(vpisi) ? vpisi : []
+      const vpisItems: (ActivityItem & { _date: string })[] = vArr
+        .filter((v: { vpisanOb?: string }) => v.vpisanOb)
+        .map((v: { predmetNaziv: string; vpisanOb: string }) => ({
+          iconBg: C.cyanLt,
+          title: `Enrolled in: ${v.predmetNaziv}`,
+          time: formatTime(v.vpisanOb),
+          badge: 'ENROLLED',
+          _date: v.vpisanOb,
+        }))
+
+      const merged = [...quizItems, ...vpisItems]
+        .sort((a, b) => new Date(b._date).getTime() - new Date(a._date).getTime())
+        .slice(0, 10)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .map(({ _date: _unused, ...item }) => item)
+
+      setActivity(merged)
     })
   }, [session])
 
@@ -76,39 +116,19 @@ export function StudentProfile() {
         />
 
         <div className="quiz-stat-grid">
-          <StatCard
-            label="XP TOTAL"
-            value={(profil.xp).toLocaleString()}
-            sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`}
-            bg={C.yellowLt}
-          />
-          <StatCard
-            label="QUIZZES"
-            value={quizCount === null ? '…' : String(quizCount)}
-            sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''}
-            bg={C.cyanLt}
-          />
-          <StatCard
-            label="STREAK · WIP"
-            value={`${STUDENT_STATS.streak}d`}
-            sub={`best: ${STUDENT_STATS.bestStreak} days`}
-            bg={C.redLt}
-          />
-          <StatCard
-            label="ACHIEVEMENTS · WIP"
-            value={STUDENT_STATS.badges}
-            sub={`${STUDENT_STATS.badgesInProgress} in progress`}
-            bg={C.purpleLt}
-          />
+          <StatCard label="XP TOTAL" value={(profil.xp).toLocaleString()} sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`} bg={C.yellowLt} />
+          <StatCard label="QUIZZES" value={quizCount === null ? '…' : String(quizCount)} sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''} bg={C.cyanLt} />
+          <StatCard label="STREAK · WIP" value={`${STUDENT_STATS.streak}d`} sub={`best: ${STUDENT_STATS.bestStreak} days`} bg={C.redLt} />
+          <StatCard label="ACHIEVEMENTS · WIP" value={STUDENT_STATS.badges} sub={`${STUDENT_STATS.badgesInProgress} in progress`} bg={C.purpleLt} />
         </div>
 
-<LearningStylePanel
+        <LearningStylePanel
           learningStyle={styleKey}
           varkScores={varkScores}
           onRetakeVark={() => navigate('/questionnaire')}
         />
 
-        <ActivityPanel items={ACTIVITY} title="RECENT ACTIVITY" showBadge={false} action={<Tag label="WIP" bg={C.mutedLt} />} />
+        <ActivityPanel items={activity} title="RECENT ACTIVITY" showBadge />
       </div>
     </div>
   )
