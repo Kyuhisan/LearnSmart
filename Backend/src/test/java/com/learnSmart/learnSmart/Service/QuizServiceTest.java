@@ -27,6 +27,7 @@ class QuizServiceTest {
     @Mock private QuizResultRepository quizResultRepository;
     @Mock private ProfilRepository profilRepository;
     @Mock private ObvestiloService obvestiloService;
+    @Mock private ZnackaService znackaService;
 
     @InjectMocks
     private QuizService quizService;

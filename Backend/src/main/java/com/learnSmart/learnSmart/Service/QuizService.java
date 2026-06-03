@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.Quiz.*;
+import com.learnSmart.learnSmart.Enum.BadgeType;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -32,8 +33,35 @@ public class QuizService {
     private final QuizResultRepository quizResultRepository;
     private final ProfilRepository profilRepository;
     private final ObvestiloService obvestiloService;
+    private final ZnackaService znackaService;
 
     private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
+
+    private void checkBadges (UUID ucenecId, long totalAttempts, int odstotek) {
+        if (totalAttempts == 0) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.FIRST_QUIZ,
+                    "Completed first quiz."
+            );
+        }
+
+        if (odstotek == 100) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.PERFECT_SCORE,
+                    "Achieved a perfect quiz score."
+            );
+        }
+
+        if (totalAttempts == 9) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.QUIZ_MASTER,
+                    "Completed 10 quizzes."
+            );
+        }
+    }
 
     public List<QuizGeminiService.GeneratedQuestion> generirajVprasanja(
             UUID predmetId, int steviloVprasanj, String tezavnost) {
@@ -217,6 +245,7 @@ public class QuizService {
 
         // Count prior attempts BEFORE saving this result
         long priorAttempts = quizResultRepository.countByQuiz_IdAndUporabnikId(kvizId, ucenecId);
+        long totalAttempts = quizResultRepository.countByUporabnikId(ucenecId);
 
         // Weighted accuracy
         int weightedCorrect = 0, weightedTotal = 0;
@@ -250,6 +279,9 @@ public class QuizService {
         rezultat.setCasResevanjaS(dto.getCasResevanjaS());
         rezultat.setXpZasluzen(xpZasluzen);
         QuizResult shranjen = quizResultRepository.save(rezultat);
+
+        checkBadges(ucenecId, totalAttempts, odstotek);
+
 
         // Update profil XP and nivo
         Profil profil = profilRepository.findById(ucenecId)
@@ -577,6 +609,14 @@ public class QuizService {
             int xp = xpPoDateumu.getOrDefault(check, 0);
             if (xp > 0) { streak++; check = check.minusDays(1); }
             else break;
+        }
+
+        if (streak >= 3) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.STREAK_3,
+                    "Maintained a 3-day learning streak."
+            );
         }
 
         int streakBest = 0, current = 0;

@@ -29,7 +29,7 @@ public class Znacka {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tip", nullable = false)
-    private BadgeType tip;
+    private BadgeType type;
 
     @Column(name = "pridobljen_ob", nullable = false)
     private OffsetDateTime pridobljenOb;
