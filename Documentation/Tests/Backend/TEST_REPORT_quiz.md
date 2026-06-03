@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Issue** | S5-01 |
-| **Datum** | 29. 5. 2026 |
+| **Datum** | 3. 6. 2026 |
 | **Framework** | JUnit 5 + Mockito |
 | **Avtor** | Tilen Brunec |
 
@@ -13,8 +13,8 @@
 
 | Razred | Vloga |
 |---|---|
-| `QuizService` | Poslovna logika za generiranje, upravljanje in reševanje kvizov |
-| `QuizController` | REST endpointi za CRUD operacije nad kvizi in vprašanji |
+| `QuizService` | Poslovna logika za generiranje, upravljanje, reševanje kvizov ter statistike napredka |
+| `QuizController` | REST endpointi za CRUD operacije nad kvizi, vprašanji ter dashboard statistike |
 
 ---
 
@@ -22,9 +22,9 @@
 
 | Razred | Skupaj | ✅ Pravilen | ⚠️ Robni | ❌ Napačen |
 |---|:---:|:---:|:---:|:---:|
-| `QuizServiceTest` | 32 | 16 | 4 | 12 |
-| `QuizControllerTest` | 24 | 12 | 0 | 12 |
-| **Skupaj** | **56** | **28** | **4** | **24** |
+| `QuizServiceTest` | 45 | 24 | 8 | 13 |
+| `QuizControllerTest` | 31 | 17 | 0 | 14 |
+| **Skupaj** | **76** | **41** | **8** | **27** |
 
 ### Legenda
 
@@ -38,7 +38,7 @@
 
 ## QuizServiceTest
 
-> Testi pokrivajo vso poslovno logiko v `QuizService` — generiranje vprašanj z AI, upravljanje banke vprašanj, ustvarjanje in objavo kvizov, shranjevanje rezultatov ter lestvico najboljših učencev.
+> Testi pokrivajo vso poslovno logiko v `QuizService` — generiranje vprašanj z AI, upravljanje banke vprašanj, ustvarjanje in objavo kvizov, shranjevanje rezultatov, lestvico najboljših učencev ter statistike napredka in tedenske aktivnosti.
 
 ---
 
@@ -229,6 +229,16 @@
 |---|---|
 | **Vhod** | Neobstoječi `kvizId` |
 | **Pričakovan rezultat** | `RuntimeException` |
+
+---
+
+### `objavi_sendsNotificationsToStudents` — ✅ Pravilen primer
+> **Cilj:** Preveriti da se ob objavi kviza pošljejo obvestila vsem vpisanim učencem.
+
+| | |
+|---|---|
+| **Vhod** | Veljavni `kvizId`, en vpisani učenec |
+| **Pričakovan rezultat** | `ustvari()` klican enkrat z vlogo `"QUIZ"` |
 
 ---
 
@@ -429,6 +439,136 @@
 |---|---|
 | **Vhod** | 7 različnih učencev z rezultati |
 | **Pričakovan rezultat** | Seznam z največ 5 elementi |
+
+---
+
+### `getProgressStats_returnsStatsForStudent` — ✅ Pravilen primer
+> **Cilj:** Preveriti da metoda vrne pravilno strukturo napredka za učenca z rezultati.
+
+| | |
+|---|---|
+| **Vhod** | Učenec z enim rezultatom danes, `xpZasluzen = 100` |
+| **Pričakovan rezultat** | 14 dni biweekly XP, 35 dni calendar, streak ≥ 0 |
+
+---
+
+### `getProgressStats_returnsEmptyWhenNoResults` — ⚠️ Robni primer
+> **Cilj:** Preveriti da metoda vrne pravilno strukturo tudi brez rezultatov.
+
+| | |
+|---|---|
+| **Vhod** | Učenec brez rezultatov |
+| **Pričakovan rezultat** | 14 dni XP, 35 dni calendar, streak = 0, streakBest = 0 |
+
+---
+
+### `getProgressStats_calculatesStreakCorrectly` — ✅ Pravilen primer
+> **Cilj:** Preveriti da se streak pravilno izračuna pri zaporednih dnevih aktivnosti.
+
+| | |
+|---|---|
+| **Vhod** | Dva rezultata — danes in včeraj |
+| **Pričakovan rezultat** | streak ≥ 2 |
+
+---
+
+### `getProgressStats_calendarHasFutureDays` — ⚠️ Robni primer
+> **Cilj:** Preveriti da calendar pravilno označuje prihodnje dni.
+
+| | |
+|---|---|
+| **Vhod** | Učenec brez rezultatov |
+| **Pričakovan rezultat** | Število prihodnjih dni ≥ 0 |
+
+---
+
+### `getWeeklyStats_returnsSevenDays` — ✅ Pravilen primer
+> **Cilj:** Preveriti da metoda vrne statistiko za točno 7 dni za učitelja.
+
+| | |
+|---|---|
+| **Vhod** | Učitelj z modulom, kvizom in rezultatom danes |
+| **Pričakovan rezultat** | Seznam z 7 elementi |
+
+---
+
+### `getWeeklyStats_returnsEmptyWeekWhenNoModules` — ⚠️ Robni primer
+> **Cilj:** Preveriti da metoda vrne prazen teden (vse 0), ko učitelj nima modulov.
+
+| | |
+|---|---|
+| **Vhod** | `uciteljId` brez modulov |
+| **Pričakovan rezultat** | 7 dni, vsi `xpSum = 0` |
+
+---
+
+### `getWeeklyStats_returnsEmptyWeekWhenNoQuizzes` — ⚠️ Robni primer
+> **Cilj:** Preveriti da metoda vrne prazen teden, ko moduli nimajo kvizov.
+
+| | |
+|---|---|
+| **Vhod** | Modul brez kvizov |
+| **Pričakovan rezultat** | 7 dni, vsi `xpSum = 0` |
+
+---
+
+### `getWeeklyStats_filtersByPredmetId` — ✅ Pravilen primer
+> **Cilj:** Preveriti da metoda pravilno filtrira po izbranem predmetu.
+
+| | |
+|---|---|
+| **Vhod** | Specifični `predmetId`, rezultat danes |
+| **Pričakovan rezultat** | 7 dni statistike za izbrani predmet |
+
+---
+
+### `getWeeklyStats_dayNamesAreCorrect` — ✅ Pravilen primer
+> **Cilj:** Preveriti da so imena dni pravilna in v pravem vrstnem redu (MON–SUN).
+
+| | |
+|---|---|
+| **Vhod** | Učitelj z modulom brez rezultatov |
+| **Pričakovan rezultat** | `["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]` |
+
+---
+
+### `getActivity_returnsActivities` — ✅ Pravilen primer
+> **Cilj:** Preveriti da metoda vrne aktivnosti profesorja (objavljeni kvizi + rezultati učencev).
+
+| | |
+|---|---|
+| **Vhod** | Objavljeni kviz, en rezultat učenca |
+| **Pričakovan rezultat** | Neprazen seznam aktivnosti |
+
+---
+
+### `getActivity_returnsEmptyWhenNoModules` — ❌ Napačen primer
+> **Cilj:** Preveriti da metoda vrne prazen seznam, ko učitelj nima modulov.
+
+| | |
+|---|---|
+| **Vhod** | `uciteljId` brez modulov |
+| **Pričakovan rezultat** | Prazen seznam |
+
+---
+
+### `getActivity_limitsToTen` — ⚠️ Robni primer
+> **Cilj:** Preveriti da metoda vrne največ 10 aktivnosti, tudi če je rezultatov več.
+
+| | |
+|---|---|
+| **Vhod** | 15 rezultatov učencev |
+| **Pričakovan rezultat** | Seznam z največ 10 elementi |
+
+---
+
+### `getActivity_isSortedByDateDescending` — ✅ Pravilen primer
+> **Cilj:** Preveriti da so aktivnosti razvrščene od najnovejše do najstarejše.
+
+| | |
+|---|---|
+| **Vhod** | 2 rezultata — pred 1h in pred 2h |
+| **Pričakovan rezultat** | Novejši rezultat je prvi v seznamu |
 
 ---
 
@@ -680,6 +820,66 @@
 
 ### `getTopStudents_studentGets403` — ❌ Napačen primer
 > **Cilj:** Preveriti da učenec ne more dostopati do lestvice.
+
+| | |
+|---|---|
+| **Vhod** | JWT z vlogo `ucenec` |
+| **Pričakovan rezultat** | HTTP 403 |
+
+---
+
+### `getProgressStats_studentGets200` — ✅ Pravilen primer
+> **Cilj:** Preveriti da učenec uspešno pridobi statistiko svojega napredka.
+
+| | |
+|---|---|
+| **Vhod** | JWT učenca |
+| **Pričakovan rezultat** | HTTP 200, `ProgressStatsDTO` |
+
+---
+
+### `getWeeklyStats_teacherGets200` — ✅ Pravilen primer
+> **Cilj:** Preveriti da učitelj uspešno pridobi tedensko statistiko za vse module.
+
+| | |
+|---|---|
+| **Vhod** | JWT z vlogo `ucitelj`, brez filtra |
+| **Pričakovan rezultat** | HTTP 200, `WeeklyStatsDTO` |
+
+---
+
+### `getWeeklyStats_studentGets403` — ❌ Napačen primer
+> **Cilj:** Preveriti da učenec ne more dostopati do tedenske statistike.
+
+| | |
+|---|---|
+| **Vhod** | JWT z vlogo `ucenec` |
+| **Pričakovan rezultat** | HTTP 403 |
+
+---
+
+### `getWeeklyStats_teacherFiltersByModule` — ✅ Pravilen primer
+> **Cilj:** Preveriti da učitelj uspešno filtrira tedensko statistiko po izbranem modulu.
+
+| | |
+|---|---|
+| **Vhod** | JWT z vlogo `ucitelj`, specifični `predmetId` |
+| **Pričakovan rezultat** | HTTP 200, `getWeeklyStatsZaProfesoria` klican z `predmetId` |
+
+---
+
+### `getProfActivity_teacherGets200` — ✅ Pravilen primer
+> **Cilj:** Preveriti da učitelj uspešno pridobi seznam svojih nedavnih aktivnosti.
+
+| | |
+|---|---|
+| **Vhod** | JWT z vlogo `ucitelj` |
+| **Pričakovan rezultat** | HTTP 200, seznam `ActivityItemDTO` |
+
+---
+
+### `getProfActivity_studentGets403` — ❌ Napačen primer
+> **Cilj:** Preveriti da učenec ne more dostopati do aktivnosti profesorja.
 
 | | |
 |---|---|
