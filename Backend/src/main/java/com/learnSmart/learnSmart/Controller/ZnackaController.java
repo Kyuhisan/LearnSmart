@@ -1,8 +1,7 @@
 package com.learnSmart.learnSmart.Controller;
 
 import com.learnSmart.learnSmart.DTO.Znacka.ZnackaResponseDTO;
-import com.learnSmart.learnSmart.Model.Znacka;
-import com.learnSmart.learnSmart.Repository.ZnackaRepository;
+
 import com.learnSmart.learnSmart.Service.ZnackaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
