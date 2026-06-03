@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getMojiRezultati } from '../quiz/quizStudentApi'
-import {  getMojiVpisi } from '../modules/moduleApi'
+import { getMojiVpisi } from '../modules/moduleApi'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
@@ -44,25 +44,22 @@ export function StudentProfile() {
       getMojiRezultati(token),
       getMojiVpisi(token),
     ]).then(([rezultati, vpisi]) => {
-      // Quiz stats
       const rArr = Array.isArray(rezultati) ? rezultati : []
       setQuizCount(rArr.length)
       setQuizAvg(rArr.length > 0
         ? Math.round(rArr.reduce((s: number, r: { odstotek: number }) => s + r.odstotek, 0) / rArr.length)
         : null)
 
-      
       const quizItems: (ActivityItem & { _date: string })[] = rArr
         .filter((r: { oddanoOb?: string }) => r.oddanoOb)
-        .map((r: { kvizNaziv: string; odstotek: number; xpZasluzen: number; oddanoOb: string }) => ({
+        .map((r: { kvizNaziv: string; odstotek: number; xpZasluzen: number; oddanoOb: string; predmetNaziv?: string }) => ({
           iconBg: r.odstotek >= 80 ? C.greenLt : r.odstotek >= 60 ? C.yellowLt : C.redLt,
-          title: `Completed: ${r.kvizNaziv}`,
+          title: `Completed: ${r.kvizNaziv}${r.predmetNaziv ? ` · ${r.predmetNaziv}` : ''}`,
           time: formatTime(r.oddanoOb),
           badge: `${r.odstotek}%`,
           _date: r.oddanoOb,
         }))
 
-  
       const vArr = Array.isArray(vpisi) ? vpisi : []
       const vpisItems: (ActivityItem & { _date: string })[] = vArr
         .filter((v: { vpisanOb?: string }) => v.vpisanOb)
@@ -77,7 +74,8 @@ export function StudentProfile() {
       const merged = [...quizItems, ...vpisItems]
         .sort((a, b) => new Date(b._date).getTime() - new Date(a._date).getTime())
         .slice(0, 10)
-        .map(({ _date: _, ...item }) => item)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .map(({ _date: _unused, ...item }) => item)
 
       setActivity(merged)
     })
@@ -118,30 +116,10 @@ export function StudentProfile() {
         />
 
         <div className="quiz-stat-grid">
-          <StatCard
-            label="XP TOTAL"
-            value={(profil.xp).toLocaleString()}
-            sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`}
-            bg={C.yellowLt}
-          />
-          <StatCard
-            label="QUIZZES"
-            value={quizCount === null ? '…' : String(quizCount)}
-            sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''}
-            bg={C.cyanLt}
-          />
-          <StatCard
-            label="STREAK · WIP"
-            value={`${STUDENT_STATS.streak}d`}
-            sub={`best: ${STUDENT_STATS.bestStreak} days`}
-            bg={C.redLt}
-          />
-          <StatCard
-            label="ACHIEVEMENTS · WIP"
-            value={STUDENT_STATS.badges}
-            sub={`${STUDENT_STATS.badgesInProgress} in progress`}
-            bg={C.purpleLt}
-          />
+          <StatCard label="XP TOTAL" value={(profil.xp).toLocaleString()} sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`} bg={C.yellowLt} />
+          <StatCard label="QUIZZES" value={quizCount === null ? '…' : String(quizCount)} sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''} bg={C.cyanLt} />
+          <StatCard label="STREAK · WIP" value={`${STUDENT_STATS.streak}d`} sub={`best: ${STUDENT_STATS.bestStreak} days`} bg={C.redLt} />
+          <StatCard label="ACHIEVEMENTS · WIP" value={STUDENT_STATS.badges} sub={`${STUDENT_STATS.badgesInProgress} in progress`} bg={C.purpleLt} />
         </div>
 
         <LearningStylePanel
@@ -150,11 +128,7 @@ export function StudentProfile() {
           onRetakeVark={() => navigate('/questionnaire')}
         />
 
-        <ActivityPanel
-          items={activity.length > 0 ? activity : []}
-          title="RECENT ACTIVITY"
-          showBadge
-        />
+        <ActivityPanel items={activity} title="RECENT ACTIVITY" showBadge />
       </div>
     </div>
   )

@@ -18,7 +18,7 @@ const DAY_ORDER      = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 interface BackendModul { id: string; naziv: string }
 
 function todayIndex(): number {
-  return (new Date().getDay() + 6) % 7 // 0=MON ... 6=SUN
+  return (new Date().getDay() + 6) % 7
 }
 
 function ModuleOverviewRow({ m, color, colorLt, onDetails }: { m: ModulePerformance; color: string; colorLt: string; onDetails: () => void }) {
@@ -194,17 +194,21 @@ export function ProfessorAnalytics() {
 
   useEffect(() => {
     if (!session?.access_token) return
-    setLoadingWeekly(true)
     getWeeklyStats(session.access_token, selectedModule)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       .then(data => { setWeeklyStats(data); setLoadingWeekly(false) })
       .catch(() => setLoadingWeekly(false))
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadingWeekly(true)
   }, [selectedModule, session])
 
   useEffect(() => {
     if (!selectedModule || !session?.access_token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModuleStats(null)
       return
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingModuleStats(true)
     getAnalyticsStatsByModule(session.access_token, selectedModule)
       .then(data => { setModuleStats(data); setLoadingModuleStats(false) })
@@ -227,7 +231,6 @@ export function ProfessorAnalytics() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
 
-        {/* Module selector */}
         <Panel title="VIEW" accent={C.yellow} overflow="visible"
           action={!isMobile ? (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />) : undefined}>
           <div style={{ padding: 0 }}>
@@ -235,60 +238,34 @@ export function ProfessorAnalytics() {
           </div>
         </Panel>
 
-        {/* Stats row */}
         {(() => {
           const stats = selectedModule ? moduleStats : analyticsStats
           const loading = selectedModule ? loadingModuleStats : stats === null
           const moduleName = selectedModuleName ?? ''
           return (
             <div className="quiz-stat-grid">
-              <StatCard
-                label="TOTAL STUDENTS"
-                value={loading ? '…' : String(stats?.totalStudents ?? 0)}
-                sub={loading ? '' : selectedModule
-                  ? `enrolled in ${moduleName}`
-                  : stats?.totalStudents === 0 ? 'no enrollments yet' : 'enrolled across all modules'}
-                bg={C.purpleLt}
-              />
-              <StatCard
-                label="AVG SCORE"
-                value={loading ? '…' : stats?.avgScore === 0 && stats?.totalStudents === 0 ? '—' : `${stats?.avgScore ?? 0}%`}
-                sub={loading ? '' : stats?.avgScore === 0 && stats?.totalStudents === 0 ? 'no quiz results yet' : 'across all quiz attempts'}
-                bg={C.greenLt}
-              />
-              <StatCard
-                label="AVG COMPLETION"
-                value={loading ? '…' : stats?.avgCompletion === 0 && stats?.totalStudents === 0 ? '—' : `${stats?.avgCompletion ?? 0}%`}
-                sub={loading ? '' : 'students with 50%+ quiz score'}
-                bg={C.yellowLt}
-              />
-              <StatCard
-                label="PASS RATE"
-                value={loading ? '…' : stats?.passRate === 0 && stats?.totalStudents === 0 ? '—' : `${stats?.passRate ?? 0}%`}
-                sub={loading ? '' : stats?.passRate === 0 && stats?.totalStudents === 0 ? 'no quiz attempts yet' : 'of attempts scored 50%+'}
-                bg={C.cyanLt}
-              />
+              <StatCard label="TOTAL STUDENTS" value={loading ? '…' : String(stats?.totalStudents ?? 0)} sub={loading ? '' : selectedModule ? `enrolled in ${moduleName}` : stats?.totalStudents === 0 ? 'no enrollments yet' : 'enrolled across all modules'} bg={C.purpleLt} />
+              <StatCard label="AVG SCORE" value={loading ? '…' : stats?.avgScore === 0 && stats?.totalStudents === 0 ? '—' : `${stats?.avgScore ?? 0}%`} sub={loading ? '' : stats?.avgScore === 0 && stats?.totalStudents === 0 ? 'no quiz results yet' : 'across all quiz attempts'} bg={C.greenLt} />
+              <StatCard label="AVG COMPLETION" value={loading ? '…' : stats?.avgCompletion === 0 && stats?.totalStudents === 0 ? '—' : `${stats?.avgCompletion ?? 0}%`} sub={loading ? '' : 'students with 50%+ quiz score'} bg={C.yellowLt} />
+              <StatCard label="PASS RATE" value={loading ? '…' : stats?.passRate === 0 && stats?.totalStudents === 0 ? '—' : `${stats?.passRate ?? 0}%`} sub={loading ? '' : stats?.passRate === 0 && stats?.totalStudents === 0 ? 'no quiz attempts yet' : 'of attempts scored 50%+'} bg={C.cyanLt} />
             </div>
           )
         })()}
 
-        {/* Weekly activity + Style breakdown */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: S[4], alignItems: 'stretch' }}>
 
-          {/* Weekly activity chart */}
           <Panel title="WEEKLY ACTIVITY" accent={C.yellow}
             action={<div style={{ display: 'flex', gap: S[1.5] }}>
               {loadingWeekly && <Tag label="..." bg={C.mutedLt} />}
-              {!isMobile && (selectedModuleName
-                ? <Tag label={selectedModuleName} bg={C.yellowLt} />
-                : <Tag label="ALL MODULES" bg={C.yellowLt} />)}
+              {!isMobile && (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />)}
             </div>}>
             <div style={{ padding: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
                 {weeklyData.map(d => {
-                  const dayIdx  = DAY_ORDER.indexOf(d.day)
+                  const dayIdx   = DAY_ORDER.indexOf(d.day)
                   const isFuture = dayIdx > today
-                  const barH    = isFuture || d.xpSum === 0 ? 4 : Math.round((d.xpSum / maxXp) * 130)
+                  const isToday  = dayIdx === today
+                  const barH     = isFuture || d.xpSum === 0 ? 4 : Math.round((d.xpSum / maxXp) * 130)
                   return (
                     <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1], opacity: isFuture ? 0.35 : 1 }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>
@@ -301,7 +278,17 @@ export function ProfessorAnalytics() {
                         borderRadius: `${R.sm} ${R.sm} 0 0`,
                         boxShadow: isFuture || d.xpSum === 0 ? 'none' : mkShadow(),
                       }} />
-                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isFuture ? C.divider : C.muted, letterSpacing: 0.5 }}>{d.day}</span>
+                      <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        {isToday && (
+                          <div style={{ position: 'absolute', top: -2, left: '50%', transform: 'translateX(-50%)', width: 6, height: 6, borderRadius: '50%', background: C.orange, border: `${BW.base} solid ${C.ink}` }} />
+                        )}
+                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isToday ? C.orange : isFuture ? C.divider : C.muted, letterSpacing: 0.5, marginTop: isToday ? S[2] : 0 }}>
+                          {d.day}
+                        </span>
+                        {isToday && (
+                          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.orange, letterSpacing: 0.3 }}>TODAY</span>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
@@ -309,7 +296,6 @@ export function ProfessorAnalytics() {
             </div>
           </Panel>
 
-          {/* Student style mix */}
           {(() => {
             const styles = ['visual', 'reading', 'auditory', 'kinesthetic'] as const
             const totalStudents = (stilMixData?.['_total'] as number) ?? 0
@@ -341,10 +327,8 @@ export function ProfessorAnalytics() {
           })()}
         </div>
 
-        {/* Avg quiz score by day + Module performance */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'stretch' }}>
 
-          {/* Avg quiz score by day */}
           <Panel title="AVG QUIZ SCORE BY DAY" accent={C.green}
             action={<div style={{ display: 'flex', gap: S[1.5] }}>
               {loadingWeekly && <Tag label="..." bg={C.mutedLt} />}
@@ -354,53 +338,32 @@ export function ProfessorAnalytics() {
               {weeklyData.map(d => {
                 const dayIdx   = DAY_ORDER.indexOf(d.day)
                 const isFuture = dayIdx > today
+                const isToday  = dayIdx === today
                 return (
                   <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: S[3], opacity: isFuture ? 0.35 : 1 }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isFuture ? C.divider : C.muted, letterSpacing: 0.5, width: 28, flexShrink: 0 }}>{d.day}</span>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isToday ? C.orange : isFuture ? C.divider : C.muted, letterSpacing: 0.5, width: 28, flexShrink: 0, textDecoration: isToday ? 'underline' : 'none' }}>{d.day}</span>
                     <div style={{ flex: 1 }}>
-                      <Bar
-                        value={isFuture ? 0 : d.avgScore}
-                        color={isFuture ? C.divider : d.avgScore === 0 ? C.divider : d.avgScore >= 80 ? C.green : d.avgScore >= 70 ? C.yellow : C.red}
-                        height={12}
-                        shadow={!isFuture && d.avgScore > 0}
-                      />
+                      <Bar value={isFuture ? 0 : d.avgScore} color={isFuture ? C.divider : d.avgScore === 0 ? C.divider : d.avgScore >= 80 ? C.green : d.avgScore >= 70 ? C.yellow : C.red} height={12} shadow={!isFuture && d.avgScore > 0} />
                     </div>
-                    <Tag
-                      label={isFuture ? '·' : d.avgScore === 0 ? '—' : `${d.avgScore}%`}
-                      bg={isFuture ? C.mutedLt : d.avgScore === 0 ? C.mutedLt : d.avgScore >= 80 ? C.greenLt : d.avgScore >= 70 ? C.yellowLt : C.redLt}
-                    />
+                    <Tag label={isFuture ? '·' : d.avgScore === 0 ? '—' : `${d.avgScore}%`} bg={isToday && d.avgScore > 0 ? C.orangeLt : isFuture ? C.mutedLt : d.avgScore === 0 ? C.mutedLt : d.avgScore >= 80 ? C.greenLt : d.avgScore >= 70 ? C.yellowLt : C.redLt} />
                   </div>
                 )
               })}
             </div>
           </Panel>
 
-          {/* Module performance */}
           <Panel title="MODULE PERFORMANCE" accent={C.cyan}
             action={activePerf
               ? <ComicBtn sm color={C.yellow} onClick={() => setSelectedModule(null)}>← BACK</ComicBtn>
               : <Tag label={loadingPerformance ? '…' : `${modulePerformance.length} MODULES`} bg={C.cyanLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[3], padding: 0 }}>
-
-              {loadingPerformance && (
-                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>LOADING...</span>
-              )}
-
+              {loadingPerformance && <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>LOADING...</span>}
               {!loadingPerformance && !activePerf && perfToShow.map((m, i) => (
-                <ModuleOverviewRow key={m.predmetId} m={m}
-                  color={PERF_COLORS[i % PERF_COLORS.length]}
-                  colorLt={PERF_COLORS_LT[i % PERF_COLORS_LT.length]}
-                  onDetails={() => setSelectedModule(m.predmetId)} />
+                <ModuleOverviewRow key={m.predmetId} m={m} color={PERF_COLORS[i % PERF_COLORS.length]} colorLt={PERF_COLORS_LT[i % PERF_COLORS_LT.length]} onDetails={() => setSelectedModule(m.predmetId)} />
               ))}
-
               {!loadingPerformance && activePerf && (() => {
                 const idx = modulePerformance.indexOf(activePerf)
-                return (
-                  <ModuleDetailView m={activePerf}
-                    color={PERF_COLORS[idx % PERF_COLORS.length]}
-                    colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]}
-                    isMobile={isMobile} />
-                )
+                return <ModuleDetailView m={activePerf} color={PERF_COLORS[idx % PERF_COLORS.length]} colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]} isMobile={isMobile} />
               })()}
             </div>
           </Panel>
