@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getMojiRezultati } from '../quiz/quizStudentApi'
 import { getMojiVpisi } from '../modules/moduleApi'
+import { getProgressStats, type ProgressStats } from '../progress/progressStatsApi'
 import { StatCard } from '../../components/ui/StatCard'
 import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
@@ -35,6 +36,7 @@ export function StudentProfile() {
   const [quizCount, setQuizCount] = useState<number | null>(null)
   const [quizAvg, setQuizAvg] = useState<number | null>(null)
   const [activity, setActivity] = useState<ActivityItem[]>([])
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null)
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -79,6 +81,7 @@ export function StudentProfile() {
 
       setActivity(merged)
     })
+    getProgressStats(token).then(setProgressStats).catch(() => {})
   }, [session])
 
   if (!profil) return null
@@ -118,7 +121,7 @@ export function StudentProfile() {
         <div className="quiz-stat-grid">
           <StatCard label="XP TOTAL" value={(profil.xp).toLocaleString()} sub={`${200 - (profil.xp % 200)} XP to Level ${profil.nivo + 1}`} bg={C.yellowLt} />
           <StatCard label="QUIZZES" value={quizCount === null ? '…' : String(quizCount)} sub={quizCount === 0 ? 'no quizzes completed yet' : quizAvg !== null ? `avg. ${quizAvg}% score` : ''} bg={C.cyanLt} />
-          <StatCard label="STREAK · WIP" value={`${STUDENT_STATS.streak}d`} sub={`best: ${STUDENT_STATS.bestStreak} days`} bg={C.redLt} />
+          <StatCard label="STREAK" value={`${progressStats?.streak ?? 0}d`} sub={`best: ${progressStats?.streakBest ?? 0} days`} bg={C.redLt} />
           <StatCard label="ACHIEVEMENTS · WIP" value={STUDENT_STATS.badges} sub={`${STUDENT_STATS.badgesInProgress} in progress`} bg={C.purpleLt} />
         </div>
 

@@ -12,9 +12,9 @@ import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { getMojiRezultati, getMojiKvizi } from '../quiz/quizStudentApi'
 import { getLeaderboard, type LeaderboardEntry } from '../leaderboard/leaderboardApi'
 import { getModuliJavni, getMojiVpisi } from '../modules/moduleApi'
+import { getProgressStats, type ProgressStats } from '../progress/progressStatsApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
-  STUDENT_STATS,
   STUDENT_DAILY_QUESTS,
   STUDENT_BADGES,
   VARK_PROFILES,
@@ -153,6 +153,7 @@ export function StudentDashboard() {
   const [moduleMap, setModuleMap] = useState<Record<string, string>>({})
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null)
   const [bitPicks, setBitPicks] = useState<DashboardModule[]>([])
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null)
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -169,6 +170,7 @@ export function StudentDashboard() {
     })
     getMojiKvizi(session.access_token).then(setAllQuizzes).catch(() => setAllQuizzes([]))
     getLeaderboard(session.access_token).then(setLeaderboard).catch(() => setLeaderboard([]))
+    getProgressStats(session.access_token).then(setProgressStats).catch(() => {})
     Promise.all([getModuliJavni(), getMojiVpisi(session.access_token)]).then(
       ([allMods, vpisi]: [{ id: string; naziv: string; opis: string; tezavnost: number; uciteljImePriimek: string }[], { predmetId: string; casNaModulu: number }[]]) => {
         const casMap = Object.fromEntries(vpisi.map(v => [v.predmetId, v.casNaModulu ?? 0]))
@@ -195,9 +197,12 @@ export function StudentDashboard() {
   const myRank = leaderboard?.find(e => e.isMe)?.rank ?? null
   const rankValue = leaderboard === null ? '…' : myRank === null ? '—' : `#${myRank}`
 
+  const streak = progressStats?.streak ?? 0
+  const streakBest = progressStats?.streakBest ?? 0
+
   const STAT_COLS = [
     { label: 'XP POINTS',       value: (profil?.xp ?? 0).toLocaleString(), accent: C.yellow },
-    { label: 'DAY STREAK · WIP', value: `${STUDENT_STATS.streak}`,           accent: C.orange },
+    { label: 'DAY STREAK',      value: `${streak}d`,                        accent: C.orange, sub: `best: ${streakBest} days` },
     { label: 'QUIZ AVG',        value: quizAvgValue, accent: quizCount === 0 ? C.mutedLt : C.cyan, noData: quizCount === 0 },
     { label: 'LEADERBOARD RANK', value: rankValue,                          accent: C.purple },
   ]
@@ -227,6 +232,9 @@ export function StudentDashboard() {
               <div key={s.label} className="stat-grid-cell" style={{ borderRight: i < STAT_COLS.length - 1 ? `${BW.base} solid ${C.divider}` : 'none', display: 'flex', flexDirection: 'column', gap: S[1], background: s.noData ? C.cream : undefined }}>
                 <div className="stat-grid-value" style={{ color: s.noData ? C.muted : undefined }}>{s.value}</div>
                 <div className="stat-grid-label" style={{ color: s.noData ? C.muted : undefined }}>{s.label}</div>
+                {'sub' in s && s.sub && (
+                  <div style={{ fontSize: FS['2xs'], color: C.muted, fontFamily: "'Space Mono', monospace" }}>{s.sub}</div>
+                )}
                 {s.noData && (
                   <div style={{ fontSize: FS['2xs'], color: C.muted, fontFamily: "'Space Mono', monospace" }}>NO QUIZZES COMPLETED YET</div>
                 )}
