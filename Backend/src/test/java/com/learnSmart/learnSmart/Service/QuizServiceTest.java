@@ -27,6 +27,7 @@ class QuizServiceTest {
     @Mock private QuizResultRepository quizResultRepository;
     @Mock private ProfilRepository profilRepository;
     @Mock private ObvestiloService obvestiloService;
+    @Mock private ZnackaService znackaService;
 
     @InjectMocks
     private QuizService quizService;
@@ -86,6 +87,9 @@ class QuizServiceTest {
         profil.setId(ucenecId);
         profil.setImePriimek("Test Student");
         profil.setUcniTip("visual");
+
+        doNothing().when(znackaService)
+                .awardBadge(any(), any(), anyString());
     }
 
     // ── generirajVprasanja ────────────────────────────────────────────────────
