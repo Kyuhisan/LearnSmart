@@ -87,9 +87,6 @@ class QuizServiceTest {
         profil.setId(ucenecId);
         profil.setImePriimek("Test Student");
         profil.setUcniTip("visual");
-
-        doNothing().when(znackaService)
-                .awardBadge(any(), any(), anyString());
     }
 
     // ── generirajVprasanja ────────────────────────────────────────────────────
