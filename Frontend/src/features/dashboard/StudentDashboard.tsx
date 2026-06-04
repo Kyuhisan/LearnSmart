@@ -393,14 +393,12 @@ export function StudentDashboard() {
                       return (
                         <div key={q.id} style={{ display: 'flex', alignItems: 'stretch', border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
                           <div style={{ width: 4, background: stripeColor, flexShrink: 0 }} />
-                          <div style={{ flex: 1, padding: `${S[1.5]} ${S[2]}`, background: C.paper, display: 'flex', flexDirection: 'column', gap: S[1] }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: S[1] }}>
-                              <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.naziv}</span>
+                          <div style={{ flex: 1, minWidth: 0, padding: `${S[1.5]} ${S[2]}`, background: C.paper, display: 'flex', flexDirection: 'column', gap: S[1] }}>
+                            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.naziv}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: S[1], flexWrap: 'wrap' }}>
+                              <Tag label={moduleMap[q.predmetId] ?? '—'} bg={C.yellowLt} />
                               {q.casIzvajanja && <Tag label={`⏱ ${q.casIzvajanja} MIN`} bg={C.mutedLt} />}
                               {isPublished ? <Tag label="● LIVE" bg={C.greenLt} /> : <Tag label="○ DRAFT" bg={C.mutedLt} />}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: S[1] }}>
-                              <Tag label={moduleMap[q.predmetId] ?? '—'} bg={C.yellowLt} />
                               {isDone && <Tag label={`LAST SCORE ${score}%`} bg={score >= 50 ? C.greenLt : C.redLt} />}
                               {isPublished && (
                                 <div style={{ marginLeft: 'auto' }}>
