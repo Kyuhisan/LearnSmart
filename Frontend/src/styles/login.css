@@ -152,15 +152,33 @@
 }
 
 @media (max-width: 1023px) {
+  .login-page {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
   .login-left {
     align-items: center;
     text-align: center;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 480px;
   }
+
   .login-headline {
     text-align: center;
   }
+
   .login-subtitle {
     text-align: center;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    flex: 0 0 auto;
   }
 }
 

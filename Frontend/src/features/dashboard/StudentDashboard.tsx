@@ -364,7 +364,9 @@ export function StudentDashboard() {
                 action={(() => {
                   const passed = done.filter(q => (completedScores[q.id] ?? 0) >= 50).length
                   const failed = done.length - passed
-                  return loading ? <Tag label="…" bg={C.redLt} /> : (
+                  return loading ? <Tag label="…" bg={C.redLt} /> : bp !== 'desktop' ? (
+                    <Tag label={`${due.length} DUE · ${passed} PASSED`} bg={C.redLt} />
+                  ) : (
                     <div style={{ display: 'flex', gap: S[1] }}>
                       <Tag label={`${due.length} DUE`} bg={C.yellowLt} />
                       <Tag label={`${passed} PASSED`} bg={C.greenLt} />
@@ -448,20 +450,31 @@ export function StudentDashboard() {
                   const barColor = entry.isMe ? C.yellow : medalColor ?? C.purple
                   return (
                     <div key={entry.rank} style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), background: entry.isMe ? C.yellowLt : C.paper, overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[2]}` }}>
-                        <div style={{ width: 32, height: 32, borderRadius: R.sm, background: medalColor ?? C.cream, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>
-                          #{entry.rank}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
-                            <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username}</span>
-                            {entry.isMe && <Tag label="YOU" bg={C.yellow} />}
+                      <div style={{ display: 'flex', flexDirection: 'column', padding: `${S[2]} ${S[2]}`, gap: S[1] }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                          <div style={{ width: 32, height: 32, borderRadius: R.sm, background: medalColor ?? C.cream, border: `${BW.base} solid ${C.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>
+                            #{entry.rank}
                           </div>
-                          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{entry.xp.toLocaleString()} XP</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: S[1.5] }}>
+                              <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.username}</span>
+                              {entry.isMe && <Tag label="YOU" bg={C.yellow} />}
+                            </div>
+                            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{entry.xp.toLocaleString()} XP</div>
+                          </div>
+                          {!isMobile && <>
+                            <Tag label={`LVL ${nivo}`} bg={medalColor ?? C.purpleLt} />
+                            <Tag label={`${entry.quizzesTaken} QUIZ${entry.quizzesTaken !== 1 ? 'ZES' : ''}`} bg={C.cyanLt} />
+                            {entry.quizzesTaken > 0 && <Tag label={`AVG ${entry.avgScore}%`} bg={entry.avgScore >= 50 ? C.greenLt : C.redLt} />}
+                          </>}
                         </div>
-                        <Tag label={`LVL ${nivo}`} bg={medalColor ?? C.purpleLt} />
-                        <Tag label={`${entry.quizzesTaken} QUIZ${entry.quizzesTaken !== 1 ? 'ZES' : ''}`} bg={C.cyanLt} />
-                        {entry.quizzesTaken > 0 && <Tag label={`AVG ${entry.avgScore}%`} bg={entry.avgScore >= 50 ? C.greenLt : C.redLt} />}
+                        {isMobile && (
+                          <div style={{ display: 'flex', gap: S[1], flexWrap: 'wrap' }}>
+                            <Tag label={`LVL ${nivo}`} bg={medalColor ?? C.purpleLt} />
+                            <Tag label={`${entry.quizzesTaken} QUIZ${entry.quizzesTaken !== 1 ? 'ZES' : ''}`} bg={C.cyanLt} />
+                            {entry.quizzesTaken > 0 && <Tag label={`AVG ${entry.avgScore}%`} bg={entry.avgScore >= 50 ? C.greenLt : C.redLt} />}
+                          </div>
+                        )}
                       </div>
                       <div style={{ height: 3, background: C.divider }}>
                         <div style={{ height: '100%', width: `${barPct}%`, background: barColor, transition: 'width 0.4s ease' }} />
