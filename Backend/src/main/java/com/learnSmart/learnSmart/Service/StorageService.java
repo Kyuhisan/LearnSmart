@@ -21,6 +21,7 @@ public class StorageService {
     private String supabaseServiceKey;
 
     private static final String API_KEY_HEADER = "apikey";
+    private static final String STORAGE_PATH = "/storage/v1/object/";
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -31,7 +32,6 @@ public class StorageService {
 
         return headers;
     }
-
 
     private void validateFile(MultipartFile file) {
         String mimeType = file.getContentType();
@@ -56,20 +56,22 @@ public class StorageService {
         }
     }
 
+    /** Strips all non-alphanumeric characters from a user-supplied file extension. */
+    private String sanitizeExtension(String originalFilename) {
+        if (originalFilename == null || !originalFilename.contains(".")) return "";
+        String raw = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
+        String safe = raw.replaceAll("[^a-zA-Z0-9]", "");
+        return safe.isEmpty() ? "" : "." + safe;
+    }
+
     private String buildPath(MultipartFile file, UUID predmetId) {
-        String originalFilename = file.getOriginalFilename();
-        String ext = "";
-
-        if (originalFilename != null && originalFilename.contains(".")) {
-            ext = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-
+        String ext = sanitizeExtension(file.getOriginalFilename());
         String fileName = UUID.randomUUID() + ext;
         return "modules/" + predmetId + "/" + fileName;
     }
 
     private void uploadToSupabase(MultipartFile file, String path, String bucket) throws IOException {
-        String uploadUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
+        String uploadUrl = supabaseUrl + STORAGE_PATH + bucket + "/" + path;
         String contentType = file.getContentType();
 
         if (contentType == null) {
@@ -95,9 +97,8 @@ public class StorageService {
             throw new IllegalArgumentException("Invalid file path.");
         }
 
-        String extension = fileNamePath.toString();
-        extension = extension.contains(".") ? extension.substring(extension.lastIndexOf(".")) : "";
-        String fileName = UUID.randomUUID() + extension; // <--- we can change the name if we want to
+        String ext = sanitizeExtension(fileNamePath.toString());
+        String fileName = UUID.randomUUID() + ext;
         String path = "modules/" + predmetId + "/" + fileName;
         String bucket = "learnsmart-media";
 
@@ -107,7 +108,7 @@ public class StorageService {
         byte[] bytes = Files.readAllBytes(filePath);
         HttpEntity<byte[]> request = new HttpEntity<>(bytes, headers);
         restTemplate.exchange(
-                supabaseUrl + "/storage/v1/object/" + bucket + "/" +path,
+                supabaseUrl + STORAGE_PATH + bucket + "/" + path,
                 HttpMethod.POST,
                 request,
                 byte[].class
@@ -116,7 +117,7 @@ public class StorageService {
     }
 
     private String buildPublicURL(String bucket, String path) {
-        return supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
+        return supabaseUrl + STORAGE_PATH + bucket + "/" + path;
     }
 
     public String upload(MultipartFile file, UUID predmetId) throws IOException {
@@ -128,7 +129,7 @@ public class StorageService {
     }
 
     public void deleteFile(String fileUrl) throws IOException {
-        String prefix = supabaseUrl + "/storage/v1/object/";
+        String prefix = supabaseUrl + STORAGE_PATH;
 
         if (!fileUrl.startsWith(prefix)) {
             throw new IllegalArgumentException("Invalid Supabase file url.");
@@ -144,7 +145,7 @@ public class StorageService {
         String bucket = bucketAndPath.substring(0, slashIndex);
         String path = bucketAndPath.substring(slashIndex + 1);
 
-        String deleteUrl = supabaseUrl + "/storage/v1/object/" + bucket + "/" + path;
+        String deleteUrl = supabaseUrl + STORAGE_PATH + bucket + "/" + path;
 
         HttpHeaders headers = createHeaders();
         HttpEntity<Void> request = new HttpEntity<>(headers);

@@ -114,11 +114,17 @@ public class TranscriptService {
             String base64Audio = (String) responseBody.get("audioContent");
             byte[] audioBytes = Base64.getDecoder().decode(base64Audio);
 
-            Path tmpAudio = Files.createTempFile("tts-", ".mp3");
+            Path tmpDir = Files.createTempDirectory("learnsmart-tts");
+            tmpDir.toFile().setReadable(false, false);
+            tmpDir.toFile().setReadable(true, true);
+            tmpDir.toFile().setWritable(false, false);
+            tmpDir.toFile().setWritable(true, true);
+            Path tmpAudio = Files.createTempFile(tmpDir, "tts-", ".mp3");
             Files.write(tmpAudio, audioBytes);
 
             String audioUrl = storageService.uploadFile(tmpAudio, "audio/mpeg", predmetId);
             Files.deleteIfExists(tmpAudio);
+            Files.deleteIfExists(tmpDir);
 
             Predmet predmet = predmetRepository.findById(predmetId).orElseThrow(() -> new IllegalArgumentException("Predmet does not exist"));
             VsebinaPredmet vsebinaPredmet = new VsebinaPredmet();
@@ -175,7 +181,6 @@ public class TranscriptService {
                         generateAndSaveAudio(predmetId, narrationScript);
                     } catch (Exception e) {
                         System.out.println("Audio generation failed: " + e.getMessage());
-                        e.printStackTrace();
                     }
                 }
             }
@@ -215,7 +220,6 @@ public class TranscriptService {
             }
         } catch(Exception e) {
             System.out.println("Transcript failed: " + e.getMessage());
-            e.printStackTrace();
 
             izvornaDatotekaRepository.findById(izvornaDatotekaId).ifPresent(d -> {
                 d.setProcessingStatus("failed");
