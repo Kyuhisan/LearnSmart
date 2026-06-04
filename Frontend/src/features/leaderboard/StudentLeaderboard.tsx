@@ -98,12 +98,14 @@ function PodiumCard({ entry, position }: { entry: UIEntry | null; position: 0 | 
 function LeaderboardRow({ entry, filter, isMobile }: { entry: UIEntry; filter: Filter; isMobile: boolean }) {
   const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
+  const { profil } = useAuth()
   const isTop3 = entry.rank <= 3
   const xp = filter === 'THIS WEEK' ? entry.weeklyXp : entry.xp
+  const isTeacher = profil?.vloga === 'ucitelj'
 
   const handleClick = () => {
     if (entry.isCurrentUser) navigate('/profile')
-    else navigate(`/students/${entry.id}`)
+    else if (isTeacher) navigate(`/students/${entry.id}`)
   }
 
   const sharedWrapStyle = {
@@ -114,7 +116,7 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: UIEntry; filter: F
     boxShadow: entry.isCurrentUser ? mkShadow('lg') : mkShadow(hovered ? 'lg' : 'base'),
     transform: hovered ? 'translate(-1px, -1px)' : 'none',
     transition: 'all 0.1s ease',
-    cursor: 'pointer',
+    cursor: entry.isCurrentUser || isTeacher ? 'pointer' : 'default',
   }
 
   const podiumBg = isTop3 ? PODIUM_COLOR_LT[entry.rank - 1] : null
@@ -157,29 +159,22 @@ function LeaderboardRow({ entry, filter, isMobile }: { entry: UIEntry; filter: F
       }}>
         {entry.style}
       </div>
-      {/* Right: content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: S[1.5], padding: `${S[2.5]} ${S[3]}`, justifyContent: 'center' }}>
-        {/* Row 1: avatar + username + XP */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-            background: C.cream, border: `${BW.base} solid ${C.ink}`, boxShadow: mkShadow(),
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs,
-          }}>
-            {entry.username[0].toUpperCase()}
-          </div>
-          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {entry.username}{entry.isCurrentUser && ' (you)'}
-          </span>
-          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>
-            {xp.toLocaleString()} <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>XP</span>
-          </span>
+      {/* Content */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2.5]} ${S[3]}` }}>
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+          background: C.cream, border: `${BW.base} solid ${C.ink}`, boxShadow: mkShadow(),
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs,
+        }}>
+          {entry.username[0].toUpperCase()}
         </div>
-        {/* Row 2: style tag */}
-        <div style={{ display: 'flex', gap: S[1] }}>
-          <Tag label={entry.style} bg={entry.styleColor} />
-        </div>
+        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {entry.username}{entry.isCurrentUser && ' (you)'}
+        </span>
+        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flexShrink: 0 }}>
+          {xp.toLocaleString()} <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>XP</span>
+        </span>
       </div>
     </div>
   )

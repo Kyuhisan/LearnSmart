@@ -61,23 +61,29 @@ export function BankaQuestionCard({ q, index, selected, onToggle, onDelete, dele
   q: BankaQuestion; index: number; selected?: boolean
   onToggle?: () => void; onDelete?: () => void; deleting?: boolean
 }) {
+  const isMobile = useBreakpoint() === 'mobile'
   return (
     <div style={{ background: selected ? C.greenLt : C.paper, border: `${BW.base} solid ${selected ? C.green : C.ink}`, borderRadius: R.sm, boxShadow: mkShadow('base', selected ? C.green : C.ink), overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${selected ? C.green : C.ink}`, background: selected ? C.green : C.cream }}>
-        <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
-        {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
-        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: selected ? C.paper : C.ink, lineHeight: 1.4, flex: 1 }}>
-          {q.besediloVprasanja}
-        </span>
-        {onToggle && (
-          <ComicBtn sm color={selected ? C.paper : C.green} onClick={onToggle}>
-            {selected ? '✓ SELECTED' : '+ SELECT'}
-          </ComicBtn>
-        )}
-        {onDelete && (
-          <ComicBtn sm color={C.red} onClick={onDelete} disabled={deleting}>
-            {deleting ? '...' : '✕'}
-          </ComicBtn>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${selected ? C.green : C.ink}`, background: selected ? C.green : C.cream }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+          <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
+          {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
+          {!isMobile && <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: selected ? C.paper : C.ink, lineHeight: 1.4, flex: 1 }}>{q.besediloVprasanja}</span>}
+          {onToggle && (
+            <ComicBtn sm color={selected ? C.paper : C.green} onClick={onToggle} style={{ marginLeft: isMobile ? 'auto' : undefined }}>
+              {selected ? '✓ SELECTED' : '+ SELECT'}
+            </ComicBtn>
+          )}
+          {onDelete && (
+            <ComicBtn sm color={C.red} onClick={onDelete} disabled={deleting} style={{ marginLeft: isMobile ? 'auto' : undefined }}>
+              {deleting ? '...' : '✕'}
+            </ComicBtn>
+          )}
+        </div>
+        {isMobile && (
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: selected ? C.paper : C.ink, lineHeight: 1.4 }}>
+            {q.besediloVprasanja}
+          </span>
         )}
       </div>
       <QuestionOptions moznosti={q.moznosti} correct={q.indeksPravilnegaOdgovora} />
@@ -88,17 +94,23 @@ export function BankaQuestionCard({ q, index, selected, onToggle, onDelete, dele
 export function KvizQuestionCard({ q, index, onRemove, removing }: {
   q: KvizQuestion; index: number; onRemove: () => void; removing: boolean
 }) {
+  const isMobile = useBreakpoint() === 'mobile'
   return (
     <div style={{ background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: C.cream }}>
-        <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
-        {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
-        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, lineHeight: 1.4, flex: 1 }}>
-          {q.besediloVprasanja}
-        </span>
-        <ComicBtn sm color={C.orange} onClick={onRemove} disabled={removing}>
-          {removing ? '...' : '↩ REMOVE'}
-        </ComicBtn>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: C.cream }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+          <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
+          {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
+          {!isMobile && <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, lineHeight: 1.4, flex: 1 }}>{q.besediloVprasanja}</span>}
+          <ComicBtn sm color={C.orange} onClick={onRemove} disabled={removing} style={{ marginLeft: isMobile ? 'auto' : undefined }}>
+            {removing ? '...' : '↩ REMOVE'}
+          </ComicBtn>
+        </div>
+        {isMobile && (
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, lineHeight: 1.4 }}>
+            {q.besediloVprasanja}
+          </span>
+        )}
       </div>
       <QuestionOptions moznosti={q.moznosti} correct={q.indeksPravilnegaOdgovora} />
     </div>

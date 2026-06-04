@@ -105,7 +105,7 @@ function StreakCalendarPanel({ calendarDays, streak }: { calendarDays: typeof CA
                   title={day.future ? 'Upcoming' : `${day.date}${day.xp > 0 ? ` · +${day.xp} XP` : ' · no activity'}`}
                   style={{ aspectRatio: '1', background: xpToColor(day.xp, day.future), border: `${BW.base} solid ${xpToBorder(day.xp, day.future)}`, borderRadius: R.sm, boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red), display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[0.5] }}
                 >
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: day.future ? C.divider : C.ink, lineHeight: 1 }}>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: day.future ? C.muted : C.ink, lineHeight: 1 }}>
                     {d.getDate()}
                   </span>
                   {!day.future && (
@@ -173,7 +173,7 @@ function StreakCalendarPanelMobile({ calendarDays, streak }: { calendarDays: typ
                   boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red),
                 }}>
                   <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: '0.05em' }}>{header}</span>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: day.future ? C.divider : C.ink, lineHeight: 1 }}>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: day.future ? C.muted : C.ink, lineHeight: 1 }}>
                     {d.getDate()}
                   </span>
                   <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.ink, lineHeight: 1 }}>
@@ -432,7 +432,7 @@ export function StudentProgress() {
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
                 {biweeklyData.slice(7).map((d) => {
                   const maxXp = Math.max(...biweeklyData.slice(7).map(d => d.xp), 1)
-                  const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * 110)
+                  const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * 80)
                   return (
                     <div key={d.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1] }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>
