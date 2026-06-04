@@ -62,8 +62,8 @@ export function BankaQuestionCard({ q, index, selected, onToggle, onDelete, dele
   onToggle?: () => void; onDelete?: () => void; deleting?: boolean
 }) {
   return (
-    <div style={{ background: selected ? C.greenLt : C.paper, border: `${BW.base} solid ${selected ? C.green : C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${C.ink}`, background: selected ? C.green : C.cream }}>
+    <div style={{ background: selected ? C.greenLt : C.paper, border: `${BW.base} solid ${selected ? C.green : C.ink}`, borderRadius: R.sm, boxShadow: mkShadow('base', selected ? C.green : C.ink), overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, borderBottom: `${BW.base} solid ${selected ? C.green : C.ink}`, background: selected ? C.green : C.cream }}>
         <Tag label={`Q${index + 1}`} bg={C.mutedLt} />
         {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
         <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: selected ? C.paper : C.ink, lineHeight: 1.4, flex: 1 }}>

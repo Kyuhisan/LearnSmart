@@ -15,6 +15,7 @@ import { getProgressStats, type ProgressStats } from './progressStatsApi'
 import { getMojeZnacke , type BadgeResponse } from './badgesApi'
 
 const DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
 const MODULE_COLORS = [
   { color: C.yellow, colorLt: C.yellowLt },
@@ -97,21 +98,27 @@ function StreakCalendarPanel({ calendarDays, streak }: { calendarDays: typeof CA
         </div>
         {weeks.map((week, wi) => (
           <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
-            {week.map((day, di) => (
-              <div key={di}
-                title={day.future ? 'Upcoming' : `${day.date}${day.xp > 0 ? ` · +${day.xp} XP` : ' · no activity'}`}
-                style={{ aspectRatio: '1', background: xpToColor(day.xp, day.future), border: `${BW.base} solid ${xpToBorder(day.xp, day.future)}`, borderRadius: R.sm, boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red), display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[0.5] }}
-              >
-                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: day.future ? C.divider : C.ink, lineHeight: 1 }}>
-                  {new Date(day.date).getDate()}
-                </span>
-                {!day.future && (
-                  <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.ink, lineHeight: 1 }}>
-                    {day.xp > 0 ? `+${day.xp} XP` : 'N/A'}
+            {week.map((day, di) => {
+              const d = new Date(day.date)
+              return (
+                <div key={di}
+                  title={day.future ? 'Upcoming' : `${day.date}${day.xp > 0 ? ` · +${day.xp} XP` : ' · no activity'}`}
+                  style={{ aspectRatio: '1', background: xpToColor(day.xp, day.future), border: `${BW.base} solid ${xpToBorder(day.xp, day.future)}`, borderRadius: R.sm, boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red), display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[0.5] }}
+                >
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: day.future ? C.divider : C.ink, lineHeight: 1 }}>
+                    {d.getDate()}
                   </span>
-                )}
-              </div>
-            ))}
+                  {!day.future && (
+                    <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.ink, lineHeight: 1 }}>
+                      {day.xp > 0 ? `+${day.xp} XP` : 'N/A'}
+                    </span>
+                  )}
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, lineHeight: 1, letterSpacing: 0.3 }}>
+                    {MONTHS[d.getMonth()]}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: S[3], marginTop: S[1] }}>
@@ -151,10 +158,11 @@ function StreakCalendarPanelMobile({ calendarDays, streak }: { calendarDays: typ
         <div>
           <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, letterSpacing: '0.07em', marginBottom: S[1.5] }}>THIS WEEK</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: S[1] }}>
-            {DAY_HEADERS.map((d, i) => {
+            {DAY_HEADERS.map((header, i) => {
               const day = thisWeek[i]
               const bg   = xpToColor(day.xp, day.future)
               const bdr  = xpToBorder(day.xp, day.future)
+              const d = new Date(day.date)
               return (
                 <div key={i} style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[0.5],
@@ -164,12 +172,15 @@ function StreakCalendarPanelMobile({ calendarDays, streak }: { calendarDays: typ
                   borderRadius: R.sm,
                   boxShadow: day.future ? 'none' : day.xp > 0 ? mkShadow('base', C.green) : mkShadow('base', C.red),
                 }}>
-                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: '0.05em' }}>{d}</span>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: '0.05em' }}>{header}</span>
                   <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: day.future ? C.divider : C.ink, lineHeight: 1 }}>
-                    {new Date(day.date).getDate()}
+                    {d.getDate()}
                   </span>
                   <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.ink, lineHeight: 1 }}>
                     {day.future ? '·' : day.xp > 0 ? `+${day.xp}` : '✗'}
+                  </span>
+                  <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, lineHeight: 1, letterSpacing: 0.3 }}>
+                    {MONTHS[d.getMonth()]}
                   </span>
                 </div>
               )
@@ -431,6 +442,9 @@ export function StudentProgress() {
                       <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
                         {d.label.split(' ')[1]}
                       </span>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.3, whiteSpace: 'nowrap', opacity: 0.6 }}>
+                        {d.label.split(' ')[0].toUpperCase().slice(0, 3)}
+                      </span>
                     </div>
                   )
                 })}
@@ -454,6 +468,9 @@ export function StudentProgress() {
                       <div style={{ width: '100%', height: barH, background: d.xp === 0 ? C.cream : i < 7 ? C.mutedLt : C.yellow, border: `${BW.base} solid ${C.ink}`, borderRadius: `${R.sm} ${R.sm} 0 0`, boxShadow: d.xp > 0 ? mkShadow() : 'none' }} />
                       <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
                         {d.label.split(' ')[1]}
+                      </span>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.muted, letterSpacing: 0.3, whiteSpace: 'nowrap', opacity: 0.6 }}>
+                        {d.label.split(' ')[0].toUpperCase().slice(0, 3)}
                       </span>
                     </div>
                   )

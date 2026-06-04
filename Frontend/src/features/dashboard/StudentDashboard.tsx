@@ -13,9 +13,9 @@ import { getMojiRezultati, getMojiKvizi } from '../quiz/quizStudentApi'
 import { getLeaderboard, type LeaderboardEntry } from '../leaderboard/leaderboardApi'
 import { getModuliJavni, getMojiVpisi } from '../modules/moduleApi'
 import { getMojeZnacke, type BadgeResponse } from '../progress/badgesApi'
+import { getProgressStats, type ProgressStats } from '../progress/progressStatsApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
-  STUDENT_STATS,
   STUDENT_DAILY_QUESTS,
   VARK_PROFILES,
 } from './mockData'
@@ -190,6 +190,7 @@ export function StudentDashboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null)
   const [bitPicks, setBitPicks] = useState<DashboardModule[]>([])
   const [earnedBadges, setEarnedBadges] = useState<BadgeResponse[]>([])
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null)
 
   useEffect(() => {
     if (!session?.access_token) return
@@ -209,6 +210,7 @@ export function StudentDashboard() {
     })
     getMojiKvizi(session.access_token).then(setAllQuizzes).catch(() => setAllQuizzes([]))
     getLeaderboard(session.access_token).then(setLeaderboard).catch(() => setLeaderboard([]))
+    getProgressStats(session.access_token).then(setProgressStats).catch(() => {})
     Promise.all([getModuliJavni(), getMojiVpisi(session.access_token)]).then(
       ([allMods, vpisi]: [{ id: string; naziv: string; opis: string; tezavnost: number; uciteljImePriimek: string }[], { predmetId: string; casNaModulu: number }[]]) => {
         const casMap = Object.fromEntries(vpisi.map(v => [v.predmetId, v.casNaModulu ?? 0]))
@@ -235,9 +237,12 @@ export function StudentDashboard() {
   const myRank = leaderboard?.find(e => e.isMe)?.rank ?? null
   const rankValue = leaderboard === null ? '…' : myRank === null ? '—' : `#${myRank}`
 
+  const streak = progressStats?.streak ?? 0
+  const streakBest = progressStats?.streakBest ?? 0
+
   const STAT_COLS = [
     { label: 'XP POINTS',       value: (profil?.xp ?? 0).toLocaleString(), accent: C.yellow },
-    { label: 'DAY STREAK · WIP', value: `${STUDENT_STATS.streak}`,           accent: C.orange },
+    { label: 'DAY STREAK',      value: `${streak}d`,                        accent: C.orange, sub: `best: ${streakBest} days` },
     { label: 'QUIZ AVG',        value: quizAvgValue, accent: quizCount === 0 ? C.mutedLt : C.cyan, noData: quizCount === 0 },
     { label: 'LEADERBOARD RANK', value: rankValue,                          accent: C.purple },
   ]
@@ -498,7 +503,7 @@ export function StudentDashboard() {
           </Panel>
 
           <Panel title="TODAY'S QUESTS" accent={C.green} p={S[4]}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${totalXpToday}XP`} bg={C.greenLt} /></div>}>
+            action={<Tag label={`+${totalXpToday}XP`} bg={C.greenLt} />}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {quests.map((q) => (
                 <QuestRow key={q.id} q={q} onToggle={() => toggleQuest(q.id)} />
@@ -514,23 +519,7 @@ export function StudentDashboard() {
         <Panel 
           title="BADGES" 
           accent={C.orange} p={S[4]}
-          action={
-            <div 
-              style={{ 
-                display: 'flex', 
-                gap: S[1.5] 
-              }}
-            >
-              <Tag 
-                label="WIP" 
-                bg={C.mutedLt} 
-              />
-              
-              <Tag 
-                label={`${earnedBadges.length} EARNED`} 
-                bg={C.orangeLt} 
-              />
-            </div>
+          action={<Tag label={`${earnedBadges.length} EARNED`} bg={C.orangeLt} />
           }
         >
           <div className="badge-grid">
