@@ -16,7 +16,6 @@ import { getMojeZnacke, type BadgeResponse } from '../progress/badgesApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
   STUDENT_STATS,
-  STUDENT_DAILY_QUESTS,
   VARK_PROFILES,
 } from './mockData'
 
@@ -152,23 +151,6 @@ function ModuleRow({ mod, onClick }: { mod: DashboardModule; onClick: () => void
   )
 }
 
-function QuestRow({ q, onToggle }: { q: { id: string; label: string; xp: number; done: boolean }; onToggle: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <div
-      onClick={onToggle}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: S[2], background: q.done ? C.greenLt : hovered ? C.yellowLt : C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(hovered ? 'lg' : 'base'), opacity: q.done ? 0.75 : 1, cursor: 'pointer', transform: hovered && !q.done ? 'translate(-1px,-1px)' : 'none', transition: 'background 0.1s, transform 0.1s, box-shadow 0.1s' }}
-    >
-      <div style={{ width: 20, height: 20, borderRadius: R.sm, border: `${BW.base} solid ${C.ink}`, background: q.done ? C.green : C.paper, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, flexShrink: 0 }}>
-        {q.done ? '✓' : ''}
-      </div>
-      <span style={{ flex: 1, fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, textDecoration: q.done ? 'line-through' : 'none', color: C.ink }}>{q.label}</span>
-      <Tag label={`+${q.xp} XP`} bg={q.done ? C.green : C.yellowLt} />
-    </div>
-  )
-}
 
 
 export function StudentDashboard() {
@@ -176,9 +158,6 @@ export function StudentDashboard() {
   const { profil, session } = useAuth()
   const bp = useBreakpoint()
   const isMobile = bp === 'mobile'
-  const [quests, setQuests] = useState(() => STUDENT_DAILY_QUESTS.map(q => ({ ...q })))
-  const doneCount = quests.filter(q => q.done).length
-  const totalXpToday = quests.filter(q => q.done).reduce((a, q) => a + q.xp, 0)
 
   const [quizAvg, setQuizAvg] = useState<number | null>(null)
   const [quizCount, setQuizCount] = useState<number | null>(null)
@@ -247,9 +226,6 @@ export function StudentDashboard() {
   const info = styleKey ? STYLE_INFO[styleKey as keyof typeof STYLE_INFO] : STYLE_INFO.visual
   const earnedTypes = new Set(earnedBadges.map(b => b.type))
 
-  function toggleQuest(id: string) {
-    setQuests(prev => prev.map(q => q.id === id ? { ...q, done: !q.done } : q))
-  }
 
   return (
     <div className="dashboard-main">
@@ -497,104 +473,28 @@ export function StudentDashboard() {
             </div>
           </Panel>
 
-          <Panel title="TODAY'S QUESTS" accent={C.green} p={S[4]}
-            action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`+${totalXpToday}XP`} bg={C.greenLt} /></div>}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
-              {quests.map((q) => (
-                <QuestRow key={q.id} q={q} onToggle={() => toggleQuest(q.id)} />
-              ))}
-              <div style={{ marginTop: S[1] }}>
-                <Bar value={(doneCount / quests.length) * 100} color={C.green} shadow />
-              </div>
+          <Panel title="BADGES" accent={C.orange} p={S[4]}
+            action={<Tag label={`${earnedBadges.length} EARNED`} bg={C.orangeLt} />}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: S[2] }}>
+              {Object.entries(BADGE_DEFINITIONS).map(([badgeType, def]) => {
+                const unlocked = earnedTypes.has(badgeType)
+                return (
+                  <div key={badgeType} style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: S[1], padding: S[2],
+                    background: unlocked ? def.colorLt : C.cream,
+                    opacity: unlocked ? 1 : 0.45,
+                    border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), textAlign: 'center',
+                  }}>
+                    <IconBox size={20} />
+                    <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.ink, lineHeight: 1.2 }}>{def.label}</div>
+                    {!unlocked && <Tag label="LOCKED" bg={C.mutedLt} />}
+                  </div>
+                )
+              })}
             </div>
           </Panel>
         </div>
-
-        {/* Badges — full width */}
-        <Panel 
-          title="BADGES" 
-          accent={C.orange} p={S[4]}
-          action={
-            <div 
-              style={{ 
-                display: 'flex', 
-                gap: S[1.5] 
-              }}
-            >
-              <Tag 
-                label="WIP" 
-                bg={C.mutedLt} 
-              />
-              
-              <Tag 
-                label={`${earnedBadges.length} EARNED`} 
-                bg={C.orangeLt} 
-              />
-            </div>
-          }
-        >
-          <div className="badge-grid">
-            {Object.entries(BADGE_DEFINITIONS).map(([badgeType, def]) => {
-              const unlocked = earnedTypes.has(badgeType)
-
-              return (
-                <div
-                  key={badgeType}
-                  className="badge-grid-item"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: S[1],
-                    padding: S[3],
-
-                    background: unlocked
-                      ? def.colorLt
-                      : C.cream,
-
-                    opacity: unlocked ? 1 : 0.45,
-
-                    border: `${BW.base} solid ${C.ink}`,
-                    borderRadius: R.sm,
-                    boxShadow: mkShadow(),
-                    textAlign: 'center',
-                  }}
-                >
-                  <IconBox size={24} />
-
-                  <div
-                    style={{
-                      fontFamily: "'Archivo Black', sans-serif",
-                      fontSize: FS['2xs'],
-                      color: C.ink,
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {def.label}
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: FS['2xs'],
-                      color: C.ink,
-                      opacity: 0.6,
-                    }}
-                  >
-                    {def.description}
-                  </div>
-
-                  {!unlocked && (
-                    <Tag
-                      label="LOCKED"
-                      bg={C.mutedLt}
-                    />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </Panel>
 
       </div>
     </div>
