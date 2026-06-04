@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.OffsetDateTime;
@@ -115,10 +116,11 @@ public class TranscriptService {
             byte[] audioBytes = Base64.getDecoder().decode(base64Audio);
 
             Path tmpDir = Files.createTempDirectory("learnsmart-tts");
-            tmpDir.toFile().setReadable(false, false);
-            tmpDir.toFile().setReadable(true, true);
-            tmpDir.toFile().setWritable(false, false);
-            tmpDir.toFile().setWritable(true, true);
+            File tmpDirFile = tmpDir.toFile();
+            if (!tmpDirFile.setReadable(false, false) || !tmpDirFile.setReadable(true, true)
+                    || !tmpDirFile.setWritable(false, false) || !tmpDirFile.setWritable(true, true)) {
+                throw new IOException("Failed to set permissions on temp directory");
+            }
             Path tmpAudio = Files.createTempFile(tmpDir, "tts-", ".mp3");
             Files.write(tmpAudio, audioBytes);
 
