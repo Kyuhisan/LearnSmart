@@ -861,12 +861,20 @@ function KinestheticContent({ data }: Readonly<{ data?: KinestheticData }>) {
 }
 
 
+const VARK_TO_TAB: Record<string, Tab> = {
+  reading:      'reading',
+  auditory:     'auditory',
+  kinesthetic:  'kinesthetic',
+  visual:       'visual',
+}
+
 export function StudentModuleDetail() {
   const navigate = useNavigate()
   const { id: modulId } = useParams<{ id: string }>()
-  const { session } = useAuth()
-  
-  const [activeTab, setActiveTab] = useState<Tab>('visual')
+  const { session, profil } = useAuth()
+
+  const defaultTab: Tab = VARK_TO_TAB[profil?.ucniTip?.toLowerCase() ?? ''] ?? 'visual'
+  const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
   const tab = tabConfig[activeTab]
   const casRef = useRef(0)
   

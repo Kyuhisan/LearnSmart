@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, S } from "../styles/tokens";
-import { IconBox } from "../components/ui/IconBox";
 import { ComicBox } from "../components/ui/ComicBox";
 import { ComicBtn } from "../components/ui/ComicBtn";
 import { Tag } from "../components/ui/Tag";
@@ -149,7 +148,15 @@ export function RegisterPage() {
                 borderColor={vloga === "ucenec" ? C.cyan : C.ink}
                 style={{ flex: 1, cursor: "pointer", textAlign: "center" }}
               >
-                <div className="register-role-emoji"><IconBox size={24} /></div>
+                <div className="register-role-emoji">
+                  {/* Graduation cap */}
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="18,6 34,14 18,22 2,14" fill={vloga === "ucenec" ? C.cyan : C.muted} stroke={C.ink} strokeWidth="2" strokeLinejoin="round"/>
+                    <path d="M8 17v8c0 0 4 5 10 5s10-5 10-5v-8" fill={vloga === "ucenec" ? C.cyanLt : C.paper} stroke={C.ink} strokeWidth="2" strokeLinejoin="round"/>
+                    <line x1="34" y1="14" x2="34" y2="22" stroke={C.ink} strokeWidth="2" strokeLinecap="round"/>
+                    <circle cx="34" cy="23" r="2" fill={vloga === "ucenec" ? C.cyan : C.muted} stroke={C.ink} strokeWidth="1.5"/>
+                  </svg>
+                </div>
                 <div className="register-role-label">STUDENT</div>
               </ComicBox>
 
@@ -162,7 +169,18 @@ export function RegisterPage() {
                 borderColor={vloga === "ucitelj" ? C.purple : C.ink}
                 style={{ flex: 1, cursor: "pointer", textAlign: "center" }}
               >
-                <div className="register-role-emoji"><IconBox size={24} /></div>
+                <div className="register-role-emoji">
+                  {/* Chalkboard with person */}
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="4" width="28" height="18" rx="2" fill={vloga === "ucitelj" ? C.purple : C.muted} stroke={C.ink} strokeWidth="2"/>
+                    <line x1="6" y1="10" x2="18" y2="10" stroke={C.paper} strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="6" y1="15" x2="14" y2="15" stroke={C.paper} strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="15" y1="22" x2="15" y2="26" stroke={C.ink} strokeWidth="2" strokeLinecap="round"/>
+                    <line x1="9" y1="26" x2="21" y2="26" stroke={C.ink} strokeWidth="2" strokeLinecap="round"/>
+                    <circle cx="27" cy="10" r="4" fill={vloga === "ucitelj" ? C.purpleLt : C.paper} stroke={C.ink} strokeWidth="2"/>
+                    <path d="M21 27c0-3.3 2.7-6 6-6s6 2.7 6 6" fill={vloga === "ucitelj" ? C.purpleLt : C.paper} stroke={C.ink} strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <div className="register-role-label">TEACHER</div>
               </ComicBox>
             </div>

@@ -5,7 +5,7 @@ import { ProfHero } from '../../components/professor/ProfHero'
 import { ActivityPanel, type ActivityItem } from '../../components/professor/ActivityPanel'
 import { Topbar } from '../../components/ui/Topbar'
 import { C } from '../../styles/tokens'
-import { getModuliUcitelj, getStilMix, getKviziUcitelja, type QuizDTO } from '../modules/moduleApi'
+import { getModuliUcitelj, getStilMix, getKviziUcitelja, getAnalyticsStats, type QuizDTO, type AnalyticsStats } from '../modules/moduleApi'
 import { getProfActivity, type ProfActivityItem } from '../analytics/profesorStatsApi'
 import '../../styles/profile.css'
 
@@ -32,6 +32,7 @@ export function ProfessorProfile() {
   const [moduli, setModuli] = useState<BackendModul[]>([])
   const [stilMix, setStilMix] = useState<Record<string, number> | null>(null)
   const [kvizi, setKvizi] = useState<QuizDTO[] | null>(null)
+  const [analyticsStats, setAnalyticsStats] = useState<AnalyticsStats | null>(null)
   const [activity, setActivity] = useState<ActivityItem[]>([])
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export function ProfessorProfile() {
     getModuliUcitelj(token).then((data: BackendModul[]) => setModuli(data))
     getStilMix(token).then(setStilMix).catch(() => {})
     getKviziUcitelja(token).then(setKvizi).catch(() => setKvizi([]))
+    getAnalyticsStats(token).then(setAnalyticsStats).catch(() => {})
 
     getProfActivity(token)
       .then((data: ProfActivityItem[]) => {
@@ -103,8 +105,8 @@ export function ProfessorProfile() {
           />
           <StatCard
             label="AVG SCORE"
-            value={kvizi === null ? '…' : kvizi.length === 0 ? '—' : '78%'}
-            sub={kvizi === null ? '' : kvizi.length === 0 ? 'no quizzes taken yet' : `across ${kvizi.length} quiz${kvizi.length !== 1 ? 'zes' : ''}`}
+            value={analyticsStats === null ? '…' : analyticsStats.avgScore === 0 ? '—' : `${analyticsStats.avgScore}%`}
+            sub={analyticsStats === null ? '' : analyticsStats.avgScore === 0 ? 'no quizzes taken yet' : `across ${kvizi?.length ?? 0} quiz${(kvizi?.length ?? 0) !== 1 ? 'zes' : ''}`}
             bg={C.purpleLt}
           />
         </div>

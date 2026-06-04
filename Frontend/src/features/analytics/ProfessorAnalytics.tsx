@@ -259,7 +259,7 @@ export function ProfessorAnalytics() {
               {loadingWeekly && <Tag label="..." bg={C.mutedLt} />}
               {!isMobile && (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />)}
             </div>}>
-            <div style={{ padding: 0 }}>
+            <div style={{ padding: 0, marginTop: 'auto' }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
                 {weeklyData.map(d => {
                   const dayIdx   = DAY_ORDER.indexOf(d.day)
@@ -267,27 +267,21 @@ export function ProfessorAnalytics() {
                   const isToday  = dayIdx === today
                   const barH     = isFuture || d.xpSum === 0 ? 4 : Math.round((d.xpSum / maxXp) * 130)
                   return (
-                    <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1], opacity: isFuture ? 0.35 : 1 }}>
+                    <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1] }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>
                         {isFuture ? '·' : d.xpSum > 0 ? `+${d.xpSum}` : '—'}
                       </span>
                       <div style={{
                         width: '100%', height: barH,
-                        background: isFuture ? C.cream : d.xpSum === 0 ? C.cream : activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow,
-                        border: `${BW.base} solid ${isFuture ? C.divider : C.ink}`,
+                        background: isFuture ? C.muted : d.xpSum === 0 ? C.cream : activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow,
+                        border: `${BW.base} solid ${isFuture ? C.muted : C.ink}`,
                         borderRadius: `${R.sm} ${R.sm} 0 0`,
                         boxShadow: isFuture || d.xpSum === 0 ? 'none' : mkShadow(),
                       }} />
-                      <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        {isToday && (
-                          <div style={{ position: 'absolute', top: -2, left: '50%', transform: 'translateX(-50%)', width: 6, height: 6, borderRadius: '50%', background: C.orange, border: `${BW.base} solid ${C.ink}` }} />
-                        )}
-                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isToday ? C.orange : isFuture ? C.divider : C.muted, letterSpacing: 0.5, marginTop: isToday ? S[2] : 0 }}>
-                          {d.day}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isToday ? C.orange : C.muted, letterSpacing: 0.5 }}>
+                          {isToday ? 'TODAY' : d.day}
                         </span>
-                        {isToday && (
-                          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.orange, letterSpacing: 0.3 }}>TODAY</span>
-                        )}
                       </div>
                     </div>
                   )
@@ -340,12 +334,14 @@ export function ProfessorAnalytics() {
                 const isFuture = dayIdx > today
                 const isToday  = dayIdx === today
                 return (
-                  <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: S[3], opacity: isFuture ? 0.35 : 1 }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isToday ? C.orange : isFuture ? C.divider : C.muted, letterSpacing: 0.5, width: 28, flexShrink: 0, textDecoration: isToday ? 'underline' : 'none' }}>{d.day}</span>
+                  <div key={d.day} style={{ display: 'flex', alignItems: 'center', gap: S[3], opacity: isFuture ? 0.45 : 1 }}>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: isToday ? C.orange : C.muted, letterSpacing: 0.5, width: 28, flexShrink: 0, textDecoration: isToday ? 'underline' : 'none' }}>{d.day}</span>
                     <div style={{ flex: 1 }}>
-                      <Bar value={isFuture ? 0 : d.avgScore} color={isFuture ? C.divider : d.avgScore === 0 ? C.divider : d.avgScore >= 80 ? C.green : d.avgScore >= 70 ? C.yellow : C.red} height={12} shadow={!isFuture && d.avgScore > 0} />
+                      <Bar value={isFuture ? 0 : d.avgScore} color={isFuture ? C.mutedLt : d.avgScore === 0 ? C.mutedLt : d.avgScore >= 80 ? C.green : d.avgScore >= 70 ? C.yellow : C.red} height={12} shadow={!isFuture} />
                     </div>
-                    <Tag label={isFuture ? '·' : d.avgScore === 0 ? '—' : `${d.avgScore}%`} bg={isToday && d.avgScore > 0 ? C.orangeLt : isFuture ? C.mutedLt : d.avgScore === 0 ? C.mutedLt : d.avgScore >= 80 ? C.greenLt : d.avgScore >= 70 ? C.yellowLt : C.redLt} />
+                    <div style={{ width: 52, display: 'flex', justifyContent: 'flex-end' }}>
+                      <Tag label={isFuture ? '·' : d.avgScore === 0 ? '—' : `${d.avgScore}%`} bg={isToday && d.avgScore > 0 ? C.orangeLt : isFuture ? C.mutedLt : d.avgScore === 0 ? C.mutedLt : d.avgScore >= 80 ? C.greenLt : d.avgScore >= 70 ? C.yellowLt : C.redLt} />
+                    </div>
                   </div>
                 )
               })}
@@ -363,7 +359,7 @@ export function ProfessorAnalytics() {
               ))}
               {!loadingPerformance && activePerf && (() => {
                 const idx = modulePerformance.indexOf(activePerf)
-                return <ModuleDetailView m={activePerf} color={PERF_COLORS[idx % PERF_COLORS.length]} colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]} isMobile={isMobile} />
+                return <ModuleDetailView m={activePerf} color={PERF_COLORS[idx % PERF_COLORS.length]} colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]} isMobile={bp !== 'desktop'} />
               })()}
             </div>
           </Panel>
