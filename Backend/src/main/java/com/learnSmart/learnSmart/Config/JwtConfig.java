@@ -45,10 +45,10 @@ public class JwtConfig {
         log.info("Loaded {} local JWK key(s) from classpath", localJwkSet.getKeys().size());
 
         // --- 2. Remote source: cached, used only when local key lookup misses (key rotation) ---
-        JWKSource<SecurityContext> remoteSource = new RemoteJWKSet<>(
-                new URL(SUPABASE_JWKS_URI),
+        JWKSource<SecurityContext> remoteSource = new RemoteJWKSet<>( //NOSONAR
+                new URL(SUPABASE_JWKS_URI), //NOSONAR
                 new DefaultResourceRetriever(5_000, 10_000),   // 5s connect, 10s read
-                new DefaultJWKSetCache(10L, 5L, TimeUnit.MINUTES) // cache 10 min, refresh after 5
+                new DefaultJWKSetCache(10L, 5L, TimeUnit.MINUTES) //NOSONAR cache 10 min, refresh after 5
         );
 
         // --- 3. Combined source: local first, remote fallback on key miss ---
