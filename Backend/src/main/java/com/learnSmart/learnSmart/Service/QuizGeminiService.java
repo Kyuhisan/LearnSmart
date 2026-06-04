@@ -25,7 +25,7 @@ public class QuizGeminiService {
     private final String openAiApiKey;
     private final RestTemplate restTemplate;
 
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
     private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
     public QuizGeminiService(GeminiService geminiService,
