@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
-import { BitMascot } from '../../components/ui/BitMascot'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Bar } from '../../components/ui/Bar'
 import { Panel } from '../../components/ui/Panel'
-import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { useNavigate } from 'react-router-dom'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
@@ -69,28 +67,17 @@ export function ProfessorDashboard() {
     <div className="dashboard-main">
 
       <Topbar
-        title="HOME BASE — PROF"
+        title="DASHBOARD"
         subtitle={(() => {
           const now = new Date()
           const day = now.toLocaleDateString('en-GB', { weekday: 'long' })
           const date = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
           return `${day} · ${date}`
         })()}
-        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>3 NEW</ComicBtn>}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> 3 NEW</ComicBtn>}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
-
-        {/* BIT greeting */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: S[3] }}>
-          <BitMascot size={70} mood="wink" float />
-          <SpeechBubble color={C.cyan} style={{ flex: 1, maxWidth: 480 }}>
-            <div style={{ fontSize: FS.xs, fontFamily: "'Archivo Black', sans-serif", letterSpacing: 1 }}>BIT SAYS:</div>
-            <div style={{ fontSize: FS.lg, fontWeight: 700, marginTop: S[1], lineHeight: 1.4 }}>
-              Hi Prof! <strong>3 AI-generated quizzes</strong> are waiting for your review. 134 students online today.
-            </div>
-          </SpeechBubble>
-        </div>
 
         {/* Stat cells */}
         {(() => {

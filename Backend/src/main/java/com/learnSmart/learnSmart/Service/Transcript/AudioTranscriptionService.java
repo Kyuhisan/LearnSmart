@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service.Transcript;
 
 import com.learnSmart.learnSmart.Service.SupaBaseConnectionService;
+import com.learnSmart.learnSmart.Util.RetryUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -29,32 +30,35 @@ public class AudioTranscriptionService {
 
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public String transcribeAudio(Path tmpFile) throws IOException {
-        RestTemplate restTemplate = new RestTemplate();
+    public String transcribeAudio(Path tmpFile) {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.setBearerAuth(openaiApiKey);
+        return RetryUtil.executeWithRetry(() -> {
+            RestTemplate restTemplate = new RestTemplate();
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new FileSystemResource(tmpFile.toFile()));
-        body.add("model", "whisper-1");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(openaiApiKey);
 
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", new FileSystemResource(tmpFile.toFile()));
+            body.add("model", "whisper-1");
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                "https://api.openai.com/v1/audio/transcriptions",
-                request,
-                Map.class
-        );
+            HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(body, headers);
 
-        Map<String, Object> responseBody = response.getBody();
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    "https://api.openai.com/v1/audio/transcriptions",
+                    request,
+                    Map.class
+            );
 
-        if (responseBody == null || !responseBody.containsKey("text")) {
-            throw new IOException("Invalid transcription response");
-        }
+            Map<String, Object> responseBody = response.getBody();
 
-        return (String) responseBody.get("text");
+            if (responseBody == null || !responseBody.containsKey("text")) {
+                throw new IOException("Invalid transcription response");
+            }
+
+            return (String) responseBody.get("text");
+        }, "Audio transcripion.", 5);
     }
 
 

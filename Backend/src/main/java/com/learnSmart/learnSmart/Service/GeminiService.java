@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.LearningStyleResponse;
+import com.learnSmart.learnSmart.Util.RetryUtil;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,51 @@ public class GeminiService {
     private static final String GEMINI_CLASSIFY_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=";
     private static final String GEMINI_CONTENT_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
     private final RestTemplate restTemplate = buildRestTemplate();
+    private static final String CONTENT_PROMPT_TEMPLATE = """
+        You are an educational content generator. Based on the provided transcript, generate learning content for 3 different learning styles.
+
+        Return ONLY a valid JSON object with no additional text, markdown, or code blocks. The JSON must have exactly these 3 keys:
+
+        {
+          "reading": {
+            "definition": "A clear definition of the main topic",
+            "summary": "A concise summary of the content",
+            "structured_notes": ["key point 1", "key point 2", "key point 3"],
+            "glossary": [
+              {
+                "term": "term",
+                "definition": "definition"
+              }
+            ],
+            "key_concepts": ["concept 1", "concept 2"]
+          },
+          "kinesthetic": {
+            "questions": [
+              {
+                "question": "question text",
+                "options": [
+                  "A) option",
+                  "B) option",
+                  "C) option",
+                  "D) option"
+                ],
+                "correct_answer": "A"
+              }
+            ]
+          },
+          "auditory": {
+            "narration_script": "A natural spoken narrative of the entire content, written as if spoken aloud by a teacher. Should be comprehensive and cover all key points."
+          }
+        }
+
+        Generate between 10 and 15 multiple choice questions based on the transcript.
+        Each question must have exactly 4 options (A, B, C, D) and one correct answer.
+
+        All generated content must be written entirely in English.
+
+        Transcript:
+        %s
+        """;
 
     public ResponseEntity<Map> callGeminiPublic(String prompt, String baseUrl) {
         Map<String, Object> body = Map.of(
@@ -97,61 +143,15 @@ public class GeminiService {
     }
 
     public String generateContentPacks(String combinedTranscript) {
-        try {
-            String prompt = """
-                                You are an educational content generator. Based on the provided transcript, generate learning content for 3 different learning styles.
-                        
-                                Return ONLY a valid JSON object with no additional text, markdown, or code blocks. The JSON must have exactly these 3 keys:
-                        
-                                {
-                                  "reading": {
-                                    "definition": "A clear definition of the main topic",
-                                    "summary": "A concise summary of the content",
-                                    "structured_notes": ["key point 1", "key point 2", "key point 3"],
-                                    "glossary": [
-                                      {
-                                        "term": "term",
-                                        "definition": "definition"
-                                      }
-                                    ],
-                                    "key_concepts": ["concept 1", "concept 2"]
-                                  },
-                                  "kinesthetic": {
-                                    "questions": [
-                                      {
-                                        "question": "question text",
-                                        "options": [
-                                          "A) option",
-                                          "B) option",
-                                          "C) option",
-                                          "D) option"
-                                        ],
-                                        "correct_answer": "A"
-                                      }
-                                    ]
-                                  },
-                                  "auditory": {
-                                    "narration_script": "A natural spoken narrative of the entire content, written as if spoken aloud by a teacher. Should be comprehensive and cover all key points."
-                                  }
-                                }
-                        
-                                Generate between 10 and 15 multiple choice questions based on the transcript.
-                                Each question must have exactly 4 options (A, B, C, D) and one correct answer.
-                        
-                                All generated content must be written entirely in English.
-                        
-                                Transcript:
-                                %s
-            """.formatted(combinedTranscript);
 
-            String url = GEMINI_CONTENT_URL + apiKey;
-            ResponseEntity<Map> response = callGeminiPublic(prompt, url);
+        return RetryUtil.executeWithRetry(() -> {
+                String prompt = CONTENT_PROMPT_TEMPLATE.formatted(combinedTranscript);
 
-            return extractText(response.getBody());
+                                String url = GEMINI_CONTENT_URL + apiKey;
+                                ResponseEntity<Map> response = callGeminiPublic(prompt, url);
 
-        } catch (Exception e) {
-            log.warn("Gemini content generation failed: {}", e.getMessage());
-            return null;
-        }
+                                return extractText(response.getBody());
+
+        }, "Gemini content generator.", 3);
     }
 }

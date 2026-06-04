@@ -12,6 +12,16 @@ export async function getModuliJavni() {
   return res.json()
 }
 
+export async function checkKodaVpisa(token: string, koda: string, excludeId?: string): Promise<boolean> {
+  const params = new URLSearchParams({ koda })
+  if (excludeId) params.set('excludeId', excludeId)
+  const res = await fetch(`${API}/moduli/check-koda?${params}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  const data = await res.json()
+  return data.taken as boolean
+}
+
 export async function ustvariModul(token: string, data: object) {
   const res = await fetch(`${API}/moduli`, {
     method: 'POST',
@@ -101,6 +111,8 @@ export async function getStilMix(token: string): Promise<Record<string, number>>
 export interface StudentSummary {
   ucenecId: string
   imePriimek: string
+  username: string | null
+  email: string | null
   ucniTip: string | null
   avgScore: number
   steviloModulov: number
@@ -175,6 +187,50 @@ export async function getAnalyticsStats(token: string): Promise<AnalyticsStats> 
 
 export async function getAnalyticsStatsByModule(token: string, predmetId: string): Promise<AnalyticsStats> {
   const res = await fetch(`${API}/kvizi/ucitelj/analyticsStats/${predmetId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+// Student quiz results za ucitelja
+export interface StudentQuizResult {
+  id: string
+  kvizId: string
+  kvizNaziv: string
+  tocke: number
+  skupajVprasanj: number
+  odstotek: number
+  oddanoOb: string
+}
+
+export async function getStudentRezultati(token: string, ucenecId: string): Promise<StudentQuizResult[]> {
+  const res = await fetch(`${API}/kvizi/ucitelj/student/${ucenecId}/rezultati`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  return res.json()
+}
+
+// Module performance za ucitelja
+export interface QuizPerformance {
+  kvizId: string
+  naziv: string
+  avgScore: number
+  submissions: number
+  passRate: number
+}
+
+export interface ModulePerformance {
+  predmetId: string
+  naziv: string
+  totalStudents: number
+  avgScore: number
+  avgCompletion: number
+  passRate: number
+  kvizi: QuizPerformance[]
+}
+
+export async function getModulePerformance(token: string): Promise<ModulePerformance[]> {
+  const res = await fetch(`${API}/kvizi/ucitelj/modulePerformance`, {
     headers: { Authorization: `Bearer ${token}` }
   })
   return res.json()

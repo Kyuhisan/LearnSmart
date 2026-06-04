@@ -2,6 +2,7 @@ package com.learnSmart.learnSmart.Controller;
 
 import com.learnSmart.learnSmart.Model.Profil;
 import com.learnSmart.learnSmart.Repository.ProfilRepository;
+import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Service.PredmetService;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetRequestDTO;
 import com.learnSmart.learnSmart.DTO.Predmet.PredmetResponseDTO;
@@ -13,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,6 +24,7 @@ public class PredmetController {
 
     private final PredmetService predmetService;
     private final ProfilRepository profilRepository;
+    private final PredmetRepository predmetRepository;
 
     private static final String VLOGA_UCITELJ = "ucitelj";
     private static final String DOSTOP_ZAVRNJEN = "Dostop zavrnjen";
@@ -30,6 +33,16 @@ public class PredmetController {
         return profilRepository.findById(userId)
                 .map(Profil::getVloga)
                 .orElse("");
+    }
+
+    @GetMapping("/check-koda")
+    public ResponseEntity<Map<String, Boolean>> checkKoda(
+            @RequestParam String koda,
+            @RequestParam(required = false) UUID excludeId) {
+        boolean taken = predmetRepository.findByKodaVpisa(koda)
+                .map(p -> excludeId == null || !p.getId().equals(excludeId))
+                .orElse(false);
+        return ResponseEntity.ok(Map.of("taken", taken));
     }
 
     @GetMapping

@@ -7,38 +7,34 @@ import com.learnSmart.learnSmart.Model.Predmet;
 import com.learnSmart.learnSmart.Model.IzvornaDatoteka;
 import com.learnSmart.learnSmart.Repository.PredmetRepository;
 import com.learnSmart.learnSmart.Repository.IzvornaDatotekaRepository;
+import com.learnSmart.learnSmart.Service.IzvornaDatotekaService;
 import com.learnSmart.learnSmart.Service.StorageService;
 import com.learnSmart.learnSmart.Service.Transcript.TranscriptService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
 import java.util.*;
 
 
+@SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "Spring dependency injection.")
 @RestController
 @RequestMapping("/content")
-public class IzvornaDatotekaController   {
+@RequiredArgsConstructor
+public class IzvornaDatotekaController {
     private final StorageService storageService;
     private final PredmetRepository predmetRepository;
     private final IzvornaDatotekaRepository izvornaDatotekaRepository;
     private final TranscriptService transcriptService;
+    private final IzvornaDatotekaService izvornaDatotekaService;
 
-    public IzvornaDatotekaController(StorageService storageService, PredmetRepository predmetRepository, IzvornaDatotekaRepository izvornaDatotekaRepository, TranscriptService transcriptService) {
-        this.storageService = storageService;
-        this.predmetRepository = predmetRepository;
-        this.izvornaDatotekaRepository = izvornaDatotekaRepository;
-        this.transcriptService = transcriptService;
-    }
 
     private String determineType(MultipartFile file) {
         String mimeType = file.getContentType();
@@ -66,6 +62,7 @@ public class IzvornaDatotekaController   {
         izvornaDatoteka.setProcessingStatus(req.getProcessingStatus());
         izvornaDatoteka.setUstvarjenOb(req.getUstvarjenOb());
         izvornaDatoteka.setManjsiTranscript(req.getManjsiTranscript());
+        izvornaDatoteka.setHash(req.getHash());
 
         return izvornaDatotekaRepository.save(izvornaDatoteka);
     }
@@ -107,6 +104,12 @@ public class IzvornaDatotekaController   {
             List<Map<String, Object>> uploadedFiles = new ArrayList<>();
 
             for (MultipartFile file : files) {
+                String hash = izvornaDatotekaService.calculateHash(file);
+
+                if (izvornaDatotekaRepository.findByPredmetIdAndHash(predmetId, hash).isPresent()) {
+                    throw new IllegalArgumentException("File already exists.");
+                }
+
                 String imeDatoteke = file.getOriginalFilename();
                 String url = storageService.upload(file, predmetId);
                 String tip = determineType(file);
@@ -121,6 +124,7 @@ public class IzvornaDatotekaController   {
                 req.setProcessingStatus("pending");
                 req.setUstvarjenOb(OffsetDateTime.now());
                 req.setManjsiTranscript(null);
+                req.setHash(hash);
                 IzvornaDatoteka izvornaDatoteka = buildVsebina(req);
 
                 transcriptService.processTranscript(izvornaDatoteka.getId(), url, tip);
@@ -136,6 +140,42 @@ public class IzvornaDatotekaController   {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UploadResponseDTO.error(e.getMessage()));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(UploadResponseDTO.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/predmet/{predmetId}/visual")
+    public ResponseEntity<List<IzvornaDatotekaResponseDTO>> getVisualContent(@PathVariable UUID predmetId) {
+        List<IzvornaDatotekaResponseDTO> result = izvornaDatotekaRepository
+                .findByPredmetId(predmetId)
+                .stream()
+                .filter(d ->
+                        "IMG".equals(d.getTip()) ||
+                        "VIDEO".equals(d.getTip())
+                )
+                .map(d -> new IzvornaDatotekaResponseDTO(
+                        d.getId(),
+                        d.getImeDatoteke(),
+                        d.getUrl(),
+                        d.getTip(),
+                        d.getVelikostBytes(),
+                        d.getProcessingStatus(),
+                        d.getUstvarjenOb(),
+                        d.getPredmet().getId(),
+                        d.getPredmet().getNaziv()
+                )).toList();
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{fileId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID fileId, @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+
+        try {
+            izvornaDatotekaService.deleteFile(fileId, uciteljId);
+
+            return ResponseEntity.noContent().build();
+        } catch(Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

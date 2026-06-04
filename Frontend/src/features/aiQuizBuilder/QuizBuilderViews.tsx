@@ -8,7 +8,7 @@ import type { QuestionState, BankaQuestion, KvizQuestion, Kviz, Modul, AIDifficu
 import { GeneratedQuestionCard, BankaQuestionCard, KvizQuestionCard, Dropdown, StepperField } from './QuizBuilderCards'
 
 // ── GENERATE VIEW ──
-export function GenerateView({ isMobile, module, difficulty, setDifficulty, count, setCount, generating, generatingMore, questions, approvedCount, rejectedCount, pendingCount, savedToBank, savingToBank, difficultyColor, onGenerate, onGenerateMore, onApproval, onSaveToBank }: {
+export function GenerateView({ isMobile, module, difficulty, setDifficulty, count, setCount, generating, generatingMore, questions, approvedCount, rejectedCount, pendingCount, savedToBank, savingToBank, difficultyColor, onGenerate, onGenerateMore, onApproval, onSaveToBank, onGoUpload }: {
   isMobile: boolean; module: Modul | null
   difficulty: AIDifficulty; setDifficulty: (d: AIDifficulty) => void
   count: number; setCount: (fn: (v: number) => number) => void
@@ -20,11 +20,14 @@ export function GenerateView({ isMobile, module, difficulty, setDifficulty, coun
   onGenerate: () => void; onGenerateMore: () => void
   onApproval: (id: number, value: boolean | null) => void
   onSaveToBank: () => void
+  onGoUpload: () => void
 }) {
+  const noTranscript = module !== null && !module.hasTranscript
+
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
+    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'stretch' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
-        <Panel title="GENERATE QUESTIONS" accent={C.yellow} p={S[4]} action={<Tag label="STEP 1" bg={C.yellowLt} />} overflow="visible">
+        <Panel title="GENERATE QUESTIONS" accent={C.yellow} p={S[4]} overflow="visible">
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
             <div>
               <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, letterSpacing: 1, marginBottom: S[2] }}>DIFFICULTY</div>
@@ -35,14 +38,21 @@ export function GenerateView({ isMobile, module, difficulty, setDifficulty, coun
               </div>
             </div>
             <StepperField label="QUESTION COUNT" value={count} onChange={setCount} min={1} max={15} />
-            <ComicBtn color={C.yellow} onClick={onGenerate} disabled={generating || !module}>
+            {noTranscript && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: S[2], padding: S[3], background: C.yellowLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm }}>
+                <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>NO CONTENT UPLOADED YET</span>
+                <span style={{ fontSize: FS.xs, color: C.muted }}>Upload a PDF, video or audio to this module first so AI can generate questions from it.</span>
+                <ComicBtn sm color={C.yellow} onClick={onGoUpload}>GO TO UPLOAD →</ComicBtn>
+              </div>
+            )}
+            <ComicBtn color={C.yellow} onClick={onGenerate} disabled={generating || !module || noTranscript}>
               {generating ? 'GENERATING...' : ' GENERATE QUESTIONS'}
             </ComicBtn>
           </div>
         </Panel>
 
         {questions && (
-          <Panel title="REVIEW STATUS" accent={C.cyan} p={S[4]} action={<Tag label="STEP 2" bg={C.cyanLt} />}>
+          <Panel title="REVIEW STATUS" accent={C.cyan} p={S[4]}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
               {([
                 { label: 'PENDING',  value: pendingCount,  bg: C.mutedLt },
@@ -68,15 +78,15 @@ export function GenerateView({ isMobile, module, difficulty, setDifficulty, coun
         )}
       </div>
 
-      <Panel title="REVIEW QUESTIONS" accent={C.purple} p={S[4]} action={<Tag label="STEP 2" bg={C.purpleLt} />}>
+      <Panel title="REVIEW QUESTIONS" accent={C.purple} p={S[4]} style={{ height: '100%' }}>
         {!questions && !generating && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3], padding: `${S[6]} 0` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[3], flex: 1 }}>
             <BitMascot size={64} mood="happy" float />
             <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.muted }}>SELECT A MODULE AND HIT GENERATE</div>
           </div>
         )}
         {generating && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[3], padding: `${S[6]} 0` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[3], flex: 1 }}>
             <BitMascot size={64} mood="thinking" float />
             <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>GEMINI IS THINKING...</div>
           </div>

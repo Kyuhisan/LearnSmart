@@ -7,21 +7,57 @@ import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Tag } from '../../components/ui/Tag'
 import { Bar } from '../../components/ui/Bar'
 import { Panel } from '../../components/ui/Panel'
-import { SpeechBubble } from '../../components/ui/SpeechBubble'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow, STYLE_INFO } from '../../styles/tokens'
 import { getMojiRezultati, getMojiKvizi } from '../quiz/quizStudentApi'
 import { getLeaderboard, type LeaderboardEntry } from '../leaderboard/leaderboardApi'
 import { getModuliJavni, getMojiVpisi } from '../modules/moduleApi'
+import { getMojeZnacke, type BadgeResponse } from '../progress/badgesApi'
 import { IconBox } from '../../components/ui/IconBox'
 import {
   STUDENT_STATS,
   STUDENT_DAILY_QUESTS,
-  STUDENT_BADGES,
   VARK_PROFILES,
 } from './mockData'
 
 const MODULE_COLORS = [C.yellow, C.purple, C.cyan, C.green, C.pink, C.orange, C.red]
+
+const BADGE_DEFINITIONS = {
+  FIRST_QUIZ: {
+    label: 'FIRST QUIZ',
+    description: 'Complete your first quiz',
+    color: C.green,
+    colorLt: C.greenLt,
+  },
+
+  STREAK_3: {
+    label: 'STREAK 3',
+    description: 'Maintain a 3-day streak',
+    color: C.orange,
+    colorLt: C.orangeLt,
+  },
+
+  PERFECT_SCORE: {
+    label: 'PERFECT SCORE',
+    description: 'Score 100% on any quiz',
+    color: C.cyan,
+    colorLt: C.cyanLt,
+  },
+
+  MODULE_COMPLETE: {
+    label: 'COMPLETIONIST',
+    description: 'Complete a module',
+    color: C.purple,
+    colorLt: C.purpleLt,
+  },
+
+  QUIZ_MASTER: {
+    label: 'QUIZ MASTER',
+    description: 'Completed 10 quizes.',
+    color: C.purple,
+    colorLt: C.purpleLt
+  }
+}
 
 export function LearningTypeIcon({ type, size = 20 }: { type: string; size?: number }) {
   switch (type) {
@@ -139,7 +175,6 @@ export function StudentDashboard() {
   const navigate = useNavigate()
   const { profil, session } = useAuth()
   const bp = useBreakpoint()
-  const isTablet = bp === 'tablet'
   const isMobile = bp === 'mobile'
   const [quests, setQuests] = useState(() => STUDENT_DAILY_QUESTS.map(q => ({ ...q })))
   const doneCount = quests.filter(q => q.done).length
@@ -154,9 +189,13 @@ export function StudentDashboard() {
   const [moduleMap, setModuleMap] = useState<Record<string, string>>({})
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null)
   const [bitPicks, setBitPicks] = useState<DashboardModule[]>([])
+  const [earnedBadges, setEarnedBadges] = useState<BadgeResponse[]>([])
 
   useEffect(() => {
     if (!session?.access_token) return
+
+    getMojeZnacke(session.access_token).then(setEarnedBadges).catch(console.error)
+    
     getMojiRezultati(session.access_token).then((data: { kvizId: string; odstotek: number }[]) => {
       if (!Array.isArray(data) || data.length === 0) {
         setQuizCount(0)
@@ -206,6 +245,7 @@ export function StudentDashboard() {
   const styleKey = profil?.ucniTip && VARK_PROFILES[profil.ucniTip] ? profil.ucniTip : null
   const styleProfile = styleKey ? VARK_PROFILES[styleKey] : null
   const info = styleKey ? STYLE_INFO[styleKey as keyof typeof STYLE_INFO] : STYLE_INFO.visual
+  const earnedTypes = new Set(earnedBadges.map(b => b.type))
 
   function toggleQuest(id: string) {
     setQuests(prev => prev.map(q => q.id === id ? { ...q, done: !q.done } : q))
@@ -214,37 +254,12 @@ export function StudentDashboard() {
   return (
     <div className="dashboard-main">
       <Topbar
-        title="HOME BASE"
-        subtitle={`Day ${STUDENT_STATS.streak} streak · Keep it going!`}
-        actions={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}>2 NEW</ComicBtn></div>}
+        title="DASHBOARD"
+        subtitle={`Level ${profil?.nivo ?? 1} · ${(profil?.xp ?? 0).toLocaleString()} XP earned`}
+        actions={<ComicBtn sm color={C.cyan} onClick={() => navigate('/notifications')}><svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> 2 NEW</ComicBtn>}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
-
-        {/* BIT greeting */}
-        {(() => {
-          const hasQuizzes = quizCount !== null && quizCount > 0
-          const goodAvg = hasQuizzes && (quizAvg ?? 0) >= 50
-          const topRank = myRank !== null && myRank <= 3
-          const mood = topRank ? 'wink' : goodAvg ? 'happy' : hasQuizzes ? 'thinking' : 'happy'
-          const bubbleColor = topRank ? C.yellow : goodAvg ? C.cyan : hasQuizzes ? C.orange : C.cyan
-          const message = !hasQuizzes
-            ? <>You're enrolled in <strong>{recentModules.length} module{recentModules.length !== 1 ? 's' : ''}</strong>. Complete your first quiz to start earning XP!</>
-            : topRank
-            ? <>You're ranked <strong>#{myRank} on the leaderboard</strong> with {(profil?.xp ?? 0).toLocaleString()} XP. Incredible work!</>
-            : goodAvg
-            ? <>You've completed <strong>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</strong> with a {quizAvg}% average. {myRank ? `You're ranked #${myRank}.` : ''} Keep it up!</>
-            : <>You've done <strong>{quizCount} quiz{quizCount !== 1 ? 'zes' : ''}</strong> with a {quizAvg}% average. Review the material and push that score up!</>
-          return (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: S[3] }}>
-              <BitMascot size={70} mood={mood} float />
-              <SpeechBubble color={bubbleColor} style={{ flex: 1, maxWidth: 480 }}>
-                <div style={{ fontSize: FS.xs, fontFamily: "'Archivo Black', sans-serif", letterSpacing: 1 }}>BIT SAYS:</div>
-                <div style={{ fontSize: FS.lg, fontWeight: 700, marginTop: S[1], lineHeight: 1.4 }}>{message}</div>
-              </SpeechBubble>
-            </div>
-          )
-        })()}
 
         {/* YOUR STATISTICS */}
         <Panel title="YOUR STATISTICS" accent={C.yellow} p={0}>
@@ -496,16 +511,88 @@ export function StudentDashboard() {
         </div>
 
         {/* Badges — full width */}
-        <Panel title="BADGES" accent={C.orange} p={S[4]}
-          action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${STUDENT_BADGES.length} EARNED`} bg={C.orangeLt} /></div>}>
+        <Panel 
+          title="BADGES" 
+          accent={C.orange} p={S[4]}
+          action={
+            <div 
+              style={{ 
+                display: 'flex', 
+                gap: S[1.5] 
+              }}
+            >
+              <Tag 
+                label="WIP" 
+                bg={C.mutedLt} 
+              />
+              
+              <Tag 
+                label={`${earnedBadges.length} EARNED`} 
+                bg={C.orangeLt} 
+              />
+            </div>
+          }
+        >
           <div className="badge-grid">
-            {(isTablet ? STUDENT_BADGES.slice(0, 4) : STUDENT_BADGES).map((badge) => (
-              <div key={badge.id} className="badge-grid-item" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: S[1], padding: S[3], background: badge.bg, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), textAlign: 'center' }}>
-                <IconBox size={24} />
-                <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS['2xs'], color: C.ink, lineHeight: 1.3 }}>{badge.label}</div>
-                <div style={{ fontSize: FS['2xs'], color: C.ink, opacity: 0.6 }}>{badge.earned}</div>
-              </div>
-            ))}
+            {Object.entries(BADGE_DEFINITIONS).map(([badgeType, def]) => {
+              const unlocked = earnedTypes.has(badgeType)
+
+              return (
+                <div
+                  key={badgeType}
+                  className="badge-grid-item"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: S[1],
+                    padding: S[3],
+
+                    background: unlocked
+                      ? def.colorLt
+                      : C.cream,
+
+                    opacity: unlocked ? 1 : 0.45,
+
+                    border: `${BW.base} solid ${C.ink}`,
+                    borderRadius: R.sm,
+                    boxShadow: mkShadow(),
+                    textAlign: 'center',
+                  }}
+                >
+                  <IconBox size={24} />
+
+                  <div
+                    style={{
+                      fontFamily: "'Archivo Black', sans-serif",
+                      fontSize: FS['2xs'],
+                      color: C.ink,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {def.label}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: FS['2xs'],
+                      color: C.ink,
+                      opacity: 0.6,
+                    }}
+                  >
+                    {def.description}
+                  </div>
+
+                  {!unlocked && (
+                    <Tag
+                      label="LOCKED"
+                      bg={C.mutedLt}
+                    />
+                  )}
+                </div>
+              )
+            })}
           </div>
         </Panel>
 

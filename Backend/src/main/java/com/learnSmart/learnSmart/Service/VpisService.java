@@ -165,6 +165,8 @@ public class VpisService {
                     return new StudentSummaryDTO(
                             e.getKey(),
                             p != null ? p.getImePriimek() : e.getKey().toString(),
+                            p != null ? p.getUsername() : null,
+                            p != null ? p.getEmail() : null,
                             p != null ? p.getUcniTip() : null,
                             avgScore.getOrDefault(e.getKey(), 0),
                             e.getValue().intValue()
@@ -202,6 +204,8 @@ public class VpisService {
                                 return new StudentSummaryDTO(
                                         id,
                                         p != null ? p.getImePriimek() : id.toString(),
+                                        p != null ? p.getUsername() : null,
+                                        p != null ? p.getEmail() : null,
                                         p != null ? p.getUcniTip() : null,
                                         avgScore.getOrDefault(id, 0),
                                         1

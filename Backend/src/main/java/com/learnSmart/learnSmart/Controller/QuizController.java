@@ -180,10 +180,44 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getAnalyticsStatsZaPredmet(predmetId));
     }
 
-@GetMapping("/ucitelj/topStudents")
+    @GetMapping("/ucitelj/student/{ucenecId}/rezultati")
+    public ResponseEntity<List<QuizResultResponseDTO>> getRezultatiZaStudenta(
+            @PathVariable UUID ucenecId, @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getRezultatiZaStudenta(ucenecId, 5));
+    }
+
+    @GetMapping("/ucitelj/modulePerformance")
+    public ResponseEntity<List<ModulePerformanceDTO>> getModulePerformance(@AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getModulePerformanceZaUcitelja(uciteljId));
+    }
+
+    @GetMapping("/ucitelj/topStudents")
     public ResponseEntity<List<TopStudentDTO>> getTopStudents(@AuthenticationPrincipal Jwt jwt) {
         UUID uciteljId = UUID.fromString(jwt.getSubject());
         if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
         return ResponseEntity.ok(quizService.getTopStudentsZaUcitelja(uciteljId));
+    }
+    @GetMapping("/progress-stats")
+    public ResponseEntity<ProgressStatsDTO> getProgressStats(@AuthenticationPrincipal Jwt jwt) {
+        UUID ucenecId = UUID.fromString(jwt.getSubject());
+        return ResponseEntity.ok(quizService.getProgressStatsZaUcenca(ucenecId));
+    }
+    @GetMapping("/profesor/weekly-stats")
+    public ResponseEntity<WeeklyStatsDTO> getWeeklyStats(
+            @RequestParam(required = false) UUID predmetId,
+            @AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getWeeklyStatsZaProfesoria(uciteljId, predmetId));
+    }
+    @GetMapping("/profesor/activity")
+    public ResponseEntity<List<ActivityItemDTO>> getProfActivity(@AuthenticationPrincipal Jwt jwt) {
+        UUID uciteljId = UUID.fromString(jwt.getSubject());
+        if (!getVloga(uciteljId).equals(VLOGA_UCITELJ)) return ResponseEntity.status(403).build();
+        return ResponseEntity.ok(quizService.getActivityZaProfesoria(uciteljId));
     }
 }

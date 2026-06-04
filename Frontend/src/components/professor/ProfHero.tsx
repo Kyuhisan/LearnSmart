@@ -1,24 +1,29 @@
+import { useState } from 'react'
 import { ComicBox } from '../ui/ComicBox'
 import { ComicBtn } from '../ui/ComicBtn'
 import { Tag } from '../ui/Tag'
+import { Bar } from '../ui/Bar'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 
 interface ProfHeroProps {
   readonly username: string
   readonly isTeacher: boolean
-  readonly onSettings?: () => void
   readonly level?: number
+  readonly xp?: number
   readonly learningType?: string
   readonly streak?: number
   readonly onRetakeVark?: () => void
   readonly moduleCount?: number | null
   readonly email?: string
+  readonly onDeleteAccount?: () => Promise<void>
 }
 
 
-export function ProfHero({ username, isTeacher, onSettings, level, learningType, streak, onRetakeVark, moduleCount, email }: ProfHeroProps) {
+export function ProfHero({ username, isTeacher, level, xp, learningType, streak, onRetakeVark, moduleCount, email, onDeleteAccount }: ProfHeroProps) {
   const mobile = useBreakpoint() === 'mobile'
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const avatar = (
     <div style={{
@@ -74,11 +79,34 @@ export function ProfHero({ username, isTeacher, onSettings, level, learningType,
     </div>
   ) : null
 
+  const levelBar = !isTeacher && level !== undefined && xp !== undefined ? (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: S[1] }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.ink }}>LEVEL {level}</span>
+        <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{xp % 200} / 200 XP</span>
+      </div>
+      <Bar value={xp % 200} max={200} color={C.yellow} shadow />
+      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS.xs, color: C.muted }}>{200 - (xp % 200)} XP TO LEVEL {level + 1}</span>
+    </div>
+  ) : null
+
   const buttons = (
-    <div style={{ display: 'flex', gap: S[2], flexWrap: 'nowrap' }}>
-      <ComicBtn sm color={C.yellow} onClick={onSettings}>SETTINGS · WIP</ComicBtn>
+    <div style={{ display: 'flex', gap: S[2], flexWrap: 'wrap', alignItems: 'center' }}>
       {!isTeacher && onRetakeVark && (
         <ComicBtn sm color={C.yellow} onClick={onRetakeVark}>RETAKE VARK</ComicBtn>
+      )}
+      {onDeleteAccount && !confirmDelete && (
+        <ComicBtn sm color={C.red} onClick={() => setConfirmDelete(true)}>DELETE ACCOUNT</ComicBtn>
+      )}
+      {onDeleteAccount && confirmDelete && (
+        <>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.red }}>ARE YOU SURE?</span>
+          <ComicBtn sm color={C.paper} onClick={() => setConfirmDelete(false)}>CANCEL</ComicBtn>
+          <ComicBtn sm color={C.red} onClick={async () => {
+            setDeleting(true)
+            await onDeleteAccount()
+          }}>{deleting ? '…' : 'CONFIRM'}</ComicBtn>
+        </>
       )}
     </div>
   )
@@ -112,15 +140,18 @@ export function ProfHero({ username, isTeacher, onSettings, level, learningType,
           </div>
           {/* Row 3: buttons */}
           {buttons}
+          {/* Row 4: level bar */}
+          {levelBar}
         </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', gap: S[5], position: 'relative', zIndex: 1 }}>
           {avatar}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: S[1.5], flex: 1 }}>
             {tags}
             {name}
             {affiliation}
             <div style={{ marginTop: S[1] }}>{buttons}</div>
+            {levelBar && <div style={{ marginTop: S[0.5] }}>{levelBar}</div>}
           </div>
         </div>
       )}

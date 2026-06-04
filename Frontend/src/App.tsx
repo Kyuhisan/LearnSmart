@@ -22,7 +22,6 @@ import { QuizPage } from "./pages/QuizPage";
 import { LeaderboardPage } from "./pages/LeaderboardPage";
 import { ProgressPage } from "./pages/ProgressPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
-import { SettingsPage } from "./pages/SettingsPage";
 import { StudentDetailPage } from "./pages/StudentDetailPage";
 import { StudentsPage } from "./pages/StudentsPage";
 import { UploadPage } from "./pages/UploadPage";
@@ -132,15 +131,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            }
-          />
-
           {/* ── Professor only ── */}
           <Route
             path="/students"

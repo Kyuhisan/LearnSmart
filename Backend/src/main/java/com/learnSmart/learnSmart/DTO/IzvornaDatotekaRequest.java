@@ -26,4 +26,5 @@ public class IzvornaDatotekaRequest {
     private String processingStatus;
     private OffsetDateTime ustvarjenOb;
     private String manjsiTranscript;
+    private String hash;
 }

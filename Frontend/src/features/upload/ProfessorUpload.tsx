@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react'
 import { ComicBox } from '../../components/ui/ComicBox'
 import { ComicBtn } from '../../components/ui/ComicBtn'
 import { Panel } from '../../components/ui/Panel'
@@ -33,6 +33,19 @@ async function getMojeUploade(token: string): Promise<UploadedFileReal[]> {
   return res.json()
 }
 
+async function deleteUpload(fileId: string, token: string): Promise<void> {
+  const res = await fetch(`${API}/content/${fileId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+
+  if (!res.ok) {
+    throw new Error("Delete failed")
+  }
+}
+
 type StagedFileType = 'pdf' | 'video' | 'audio' | 'image' | 'doc'
 
 const TYPE_COLOR: Record<StagedFileType, string> = {
@@ -47,6 +60,42 @@ const TYPE_LABEL: Record<StagedFileType, string> = {
   pdf: 'PDF', video: 'VIDEO', audio: 'AUDIO', image: 'IMG', doc: 'DOC',
 }
 
+
+function ConfirmModal({ fileName, onConfirm, onCancel }: { fileName: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: S[4] }}>
+      <div style={{ background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow('lg'), padding: S[5], width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: S[4] }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.ink }}>DELETE FILE</span>
+          <div onClick={onCancel} style={{ cursor: 'pointer', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.lg, color: C.muted, lineHeight: 1 }}>✕</div>
+        </div>
+        <div style={{ fontFamily: "'Manrope', sans-serif", fontSize: FS.sm, color: C.ink, lineHeight: 1.5 }}>
+          Are you sure you want to delete <strong>{fileName}</strong>? This cannot be undone.
+        </div>
+        <div style={{ display: 'flex', gap: S[2], justifyContent: 'flex-end' }}>
+          <ComicBtn sm color={C.paper} onClick={onCancel}>CANCEL</ComicBtn>
+          <ComicBtn sm color={C.red} onClick={onConfirm}>DELETE</ComicBtn>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+  useLayoutEffect(() => {
+    const t = setTimeout(onDismiss, 4000)
+    return () => clearTimeout(t)
+  }, [onDismiss])
+
+  return (
+    <div style={{ position: 'fixed', bottom: S[6], left: '50%', transform: 'translateX(-50%)', zIndex: 1001, minWidth: 280, maxWidth: '90vw' }}>
+      <div style={{ background: C.redLt, border: `${BW.base} solid ${C.ink}`, borderRadius: R.base, boxShadow: mkShadow('lg'), padding: `${S[2.5]} ${S[4]}`, display: 'flex', alignItems: 'center', gap: S[3] }}>
+        <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.ink, flex: 1 }}>{message}</span>
+        <div onClick={onDismiss} style={{ cursor: 'pointer', fontFamily: "'Archivo Black', sans-serif", fontSize: FS.md, color: C.muted, lineHeight: 1, flexShrink: 0 }}>✕</div>
+      </div>
+    </div>
+  )
+}
 
 function getFileType(file: File): StagedFileType {
   if (file.type === 'application/pdf') return 'pdf'
@@ -168,7 +217,10 @@ const PROCESSING_STATUS: Record<string, { label: string; bg: string }> = {
   failed:   { label: 'ERROR',      bg: C.red    },
 }
 
-function RecentFileRow({ file }: { file: UploadedFileReal }) {
+function RecentFileRow({ file, onDelete }: { 
+  file: UploadedFileReal 
+  onDelete: (id: string) => void 
+}) {
   const isMobile = useBreakpoint() === 'mobile'
   const type = tipToStagedType(file.tip)
   const status = PROCESSING_STATUS[file.processingStatus] ?? { label: file.processingStatus.toUpperCase(), bg: C.mutedLt }
@@ -194,11 +246,33 @@ function RecentFileRow({ file }: { file: UploadedFileReal }) {
             {file.predmetNaziv} · {formatSize(file.velikostBytes)} · {date}
           </div>
         </div>
-        {!isMobile && <Tag label={status.label} bg={status.bg} />}
+        {!isMobile && (
+          <>
+            <Tag label={status.label} bg={status.bg} />
+
+            <ComicBtn
+              sm
+              color = {C.red}
+              onClick = {() => onDelete(file.id)}
+            >
+              DELETE
+            </ComicBtn>
+          </>
+        )}
       </div>
       {isMobile && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Tag label={status.label} bg={status.bg} />
+
+            <ComicBtn
+              sm
+              color = {C.red}
+              style = {{}}
+              onClick = {() => onDelete(file.id)}
+            >
+              DELETE
+            </ComicBtn>
+
         </div>
       )}
     </ComicBox>
@@ -231,7 +305,7 @@ function DropZonePanel({ dragOver, setDragOver, stagedFiles, onFiles, onRemove }
     <Panel
       title="DROP FILES HERE"
       accent={C.yellow}
-      action={<Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} />}
+      action={<div style={{ display: 'flex', gap: S[1] }}><Tag label="STEP 1" bg={C.yellow} /><Tag label={`${ACCEPTED_FILE_TYPES.length} TYPES`} bg={C.yellowLt} /></div>}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <input
@@ -294,7 +368,7 @@ function AssignModulePanel({ selectedModule, setSelectedModule, modules, loading
   const canUpload = !!selectedModule && stagedFiles.length > 0 && !uploading
 
   return (
-    <Panel title="ASSIGN TO MODULE" accent={C.cyan} action={<Tag label="SELECT" bg={C.cyanLt} />} overflow="visible">
+    <Panel title="ASSIGN TO MODULE" accent={C.cyan} action={<div style={{ display: 'flex', gap: S[1] }}><Tag label="STEP 2" bg={C.yellow} /><Tag label="SELECT" bg={C.cyanLt} /></div>} overflow="visible">
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <ModuleSelect value={selectedModule} options={modules} onChange={setSelectedModule} loading={loadingModules} />
         <ComicBtn color={C.yellow} style={{ width: '100%', justifyContent: 'center' }} disabled={!canUpload} onClick={onUpload}>
@@ -305,12 +379,16 @@ function AssignModulePanel({ selectedModule, setSelectedModule, modules, loading
   )
 }
 
-function RecentUploadsPanel({ files, loading }: { files: UploadedFileReal[]; loading: boolean }) {
+function RecentUploadsPanel({ files, loading, onDelete }: { 
+  files: UploadedFileReal[]
+  loading: boolean
+  onDelete: (id: string) => void 
+}) {
   return (
     <Panel
       title="RECENT UPLOADS"
       accent={C.purple}
-      action={<Tag label={loading ? '…' : `${files.length} FILES`} bg={C.purpleLt} />}
+      action={<div style={{ display: 'flex', gap: S[1] }}><Tag label="STEP 3" bg={C.yellow} /><Tag label={loading ? '…' : `${files.length} FILES`} bg={C.purpleLt} /></div>}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
         {loading
@@ -328,7 +406,7 @@ function RecentUploadsPanel({ files, loading }: { files: UploadedFileReal[]; loa
             ))
           : files.length === 0
           ? <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted, textAlign: 'center', padding: S[4] }}>NO UPLOADS YET</div>
-          : files.map(file => <RecentFileRow key={file.id} file={file} />)
+          : files.map(file => <RecentFileRow key={file.id} file={file} onDelete = {onDelete} />)
         }
       </div>
     </Panel>
@@ -345,6 +423,8 @@ export function ProfessorUpload() {
   const [uploading, setUploading] = useState(false)
   const [recentFiles, setRecentFiles] = useState<UploadedFileReal[]>([])
   const [loadingRecent, setLoadingRecent] = useState(true)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const isTablet = useBreakpoint() === 'tablet'
 
   const fetchRecent = useCallback(async () => {
@@ -393,17 +473,42 @@ export function ProfessorUpload() {
         setStagedFiles([])
         fetchRecent()
       } else {
-        alert(result.error ?? 'Upload failed')
+        setToast(result.error ?? 'Upload failed')
       }
     } catch {
-      alert('Upload failed — check your connection')
+      setToast('Upload failed — check your connection')
     } finally {
       setUploading(false)
     }
   }
 
+  const handleDelete = (fileId: string) => {
+    setConfirmDeleteId(fileId)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!session || !confirmDeleteId) return
+    setConfirmDeleteId(null)
+    try {
+      await deleteUpload(confirmDeleteId, session.access_token)
+      await fetchRecent()
+    } catch {
+      setToast('Delete failed — please try again.')
+    }
+  }
+
+  const confirmFile = confirmDeleteId ? recentFiles.find(f => f.id === confirmDeleteId) : null
+
   return (
     <div className="dashboard-main">
+      {confirmFile && (
+        <ConfirmModal
+          fileName={confirmFile.imeDatoteke}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       <Topbar
         title="UPLOAD"
         subtitle={loadingRecent ? 'Loading…' : `${recentFiles.length} files uploaded · add PDFs, videos or audio to your modules`}
@@ -420,7 +525,7 @@ export function ProfessorUpload() {
             dragOver={dragOver} setDragOver={setDragOver}
             stagedFiles={stagedFiles} onFiles={handleFiles} onRemove={handleRemove}
           />
-          <RecentUploadsPanel files={recentFiles} loading={loadingRecent} />
+          <RecentUploadsPanel files={recentFiles} loading={loadingRecent} onDelete = {handleDelete} />
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: S[4], alignItems: 'start' }}>
@@ -436,7 +541,7 @@ export function ProfessorUpload() {
             />
           </div>
           <div style={{ minWidth: 0 }}>
-            <RecentUploadsPanel files={recentFiles} loading={loadingRecent} />
+            <RecentUploadsPanel files={recentFiles} loading={loadingRecent} onDelete = {handleDelete} />
           </div>
         </div>
       )}

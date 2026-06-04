@@ -1,6 +1,7 @@
 package com.learnSmart.learnSmart.Service;
 
 import com.learnSmart.learnSmart.DTO.Quiz.*;
+import com.learnSmart.learnSmart.Enum.BadgeType;
 import com.learnSmart.learnSmart.Model.*;
 import com.learnSmart.learnSmart.Repository.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -11,7 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.Comparator;
 import java.util.stream.Collectors;
+
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Locale;
 
 @Service
 @Slf4j
@@ -27,8 +33,35 @@ public class QuizService {
     private final QuizResultRepository quizResultRepository;
     private final ProfilRepository profilRepository;
     private final ObvestiloService obvestiloService;
+    private final ZnackaService znackaService;
 
     private static final String PREDMET_NE_OBSTAJA = "Module does not exist";
+
+    private void checkBadges (UUID ucenecId, long totalAttempts, int odstotek) {
+        if (totalAttempts == 0) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.FIRST_QUIZ,
+                    "Completed first quiz."
+            );
+        }
+
+        if (odstotek == 100) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.PERFECT_SCORE,
+                    "Achieved a perfect quiz score."
+            );
+        }
+
+        if (totalAttempts == 9) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.QUIZ_MASTER,
+                    "Completed 10 quizzes."
+            );
+        }
+    }
 
     public List<QuizGeminiService.GeneratedQuestion> generirajVprasanja(
             UUID predmetId, int steviloVprasanj, String tezavnost) {
@@ -212,6 +245,7 @@ public class QuizService {
 
         // Count prior attempts BEFORE saving this result
         long priorAttempts = quizResultRepository.countByQuiz_IdAndUporabnikId(kvizId, ucenecId);
+        long totalAttempts = quizResultRepository.countByUporabnikId(ucenecId);
 
         // Weighted accuracy
         int weightedCorrect = 0, weightedTotal = 0;
@@ -245,6 +279,9 @@ public class QuizService {
         rezultat.setCasResevanjaS(dto.getCasResevanjaS());
         rezultat.setXpZasluzen(xpZasluzen);
         QuizResult shranjen = quizResultRepository.save(rezultat);
+
+        checkBadges(ucenecId, totalAttempts, odstotek);
+
 
         // Update profil XP and nivo
         Profil profil = profilRepository.findById(ucenecId)
@@ -353,7 +390,21 @@ public class QuizService {
         return result;
     }
 
-public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
+    public List<QuizResultResponseDTO> getRezultatiZaStudenta(UUID ucenecId, int limit) {
+        return quizResultRepository.findByUporabnikId(ucenecId).stream()
+                .sorted(Comparator.comparing(QuizResult::getOddanoOb).reversed())
+                .limit(limit)
+                .map(r -> {
+                    int odstotek = r.getSkupajVprasanj() > 0
+                            ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
+                    return new QuizResultResponseDTO(r.getId(), r.getQuiz().getId(), r.getQuiz().getNaziv(),
+                            r.getTocke(), r.getSkupajVprasanj(), odstotek, r.getCasResevanjaS(),
+                            r.getOddanoOb(), r.getOdgovori(), r.getXpZasluzen(), null, null);
+                })
+                .toList();
+    }
+
+    public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         return quizResultRepository.findByUporabnikId(ucenecId).stream()
                 .map(r -> {
                     int odstotek = r.getSkupajVprasanj() > 0
@@ -411,6 +462,74 @@ public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
         return computeStats(List.of(predmetId));
     }
 
+    @Transactional(readOnly = true)
+    public List<ModulePerformanceDTO> getModulePerformanceZaUcitelja(UUID uciteljId) {
+        List<Predmet> predmeti = predmetRepository.findByUciteljId(uciteljId);
+        if (predmeti.isEmpty()) return List.of();
+
+        List<UUID> predmetIds = predmeti.stream().map(Predmet::getId).toList();
+
+        // Group enrollments by predmet
+        Map<UUID, Long> enrolledByPredmet = vpisRepository.findByPredmetIdInAndJeAktivenTrue(predmetIds)
+                .stream().collect(Collectors.groupingBy(v -> v.getPredmet().getId(), Collectors.counting()));
+
+        // Group quizzes by predmet
+        Map<UUID, List<Quiz>> kviziByPredmet = quizRepository.findByPredmetIdIn(predmetIds)
+                .stream().collect(Collectors.groupingBy(q -> q.getPredmet().getId()));
+
+        // Collect all quiz IDs and fetch results
+        List<UUID> allKvizIds = kviziByPredmet.values().stream()
+                .flatMap(List::stream).map(Quiz::getId).toList();
+        Map<UUID, List<QuizResult>> resultsByKviz = allKvizIds.isEmpty()
+                ? Map.of()
+                : quizResultRepository.findByQuizIdIn(allKvizIds)
+                        .stream().collect(Collectors.groupingBy(r -> r.getQuiz().getId()));
+
+        List<ModulePerformanceDTO> result = new ArrayList<>();
+        for (Predmet p : predmeti) {
+            int totalStudents = enrolledByPredmet.getOrDefault(p.getId(), 0L).intValue();
+            List<Quiz> kvizi = kviziByPredmet.getOrDefault(p.getId(), List.of());
+
+            List<QuizPerformanceDTO> quizDTOs = new ArrayList<>();
+            for (Quiz q : kvizi) {
+                List<QuizResult> results = resultsByKviz.getOrDefault(q.getId(), List.of());
+                int submissions = results.size();
+                int avgScore = submissions == 0 ? 0
+                        : (int) Math.round(results.stream()
+                                .mapToDouble(r -> r.getSkupajVprasanj() > 0 ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                                .average().orElse(0));
+                long passed = results.stream()
+                        .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                        .count();
+                int passRate = submissions == 0 ? 0 : (int) Math.round((double) passed / submissions * 100);
+                quizDTOs.add(new QuizPerformanceDTO(q.getId(), q.getNaziv(), avgScore, submissions, passRate));
+            }
+
+            // Module aggregates
+            List<QuizResult> allModuleResults = kvizi.stream()
+                    .flatMap(q -> resultsByKviz.getOrDefault(q.getId(), List.of()).stream()).toList();
+            int totalSubmissions = allModuleResults.size();
+            int moduleAvgScore = totalSubmissions == 0 ? 0
+                    : (int) Math.round(allModuleResults.stream()
+                            .mapToDouble(r -> r.getSkupajVprasanj() > 0 ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                            .average().orElse(0));
+            long modulePassed = allModuleResults.stream()
+                    .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                    .count();
+            int modulePassRate = totalSubmissions == 0 ? 0
+                    : (int) Math.round((double) modulePassed / totalSubmissions * 100);
+            Set<UUID> studentsWithPass = allModuleResults.stream()
+                    .filter(r -> r.getSkupajVprasanj() > 0 && (double) r.getTocke() / r.getSkupajVprasanj() >= 0.5)
+                    .map(QuizResult::getUporabnikId).collect(Collectors.toSet());
+            int avgCompletion = totalStudents == 0 ? 0
+                    : (int) Math.round((double) studentsWithPass.size() / totalStudents * 100);
+
+            result.add(new ModulePerformanceDTO(p.getId(), p.getNaziv(),
+                    totalStudents, moduleAvgScore, avgCompletion, modulePassRate, quizDTOs));
+        }
+        return result;
+    }
+
     public List<TopStudentDTO> getTopStudentsZaUcitelja(UUID uciteljId) {
         List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
                 .stream().map(Predmet::getId).toList();
@@ -447,6 +566,185 @@ public List<QuizResultResponseDTO> getMojiRezultati(UUID ucenecId) {
                     String ucniTip = p != null ? p.getUcniTip() : null;
                     return new TopStudentDTO(e.getKey(), ime, ucniTip, (int) Math.round(e.getValue()));
                 })
+                .toList();
+    }
+    @Transactional(readOnly = true)
+    public ProgressStatsDTO getProgressStatsZaUcenca(UUID ucenecId) {
+        List<QuizResult> vsiRezultati = quizResultRepository.findByUporabnikId(ucenecId);
+
+        LocalDate danes = LocalDate.now(ZoneOffset.UTC);
+
+        // ── BIWEEKLY XP (14 dni nazaj) ──
+        LocalDate start14 = danes.minusDays(13);
+        Map<LocalDate, Integer> xpPoDateumu = vsiRezultati.stream()
+                .filter(r -> r.getOddanoOb() != null)
+                .collect(Collectors.groupingBy(
+                        r -> r.getOddanoOb().atZoneSameInstant(ZoneOffset.UTC).toLocalDate(),
+                        Collectors.summingInt(r -> r.getXpZasluzen() != null ? r.getXpZasluzen() : 0)
+                ));
+
+        List<ProgressStatsDTO.DailyXpDTO> biweekly = new ArrayList<>();
+        for (int i = 0; i < 14; i++) {
+            LocalDate dan = start14.plusDays(i);
+            int xp = xpPoDateumu.getOrDefault(dan, 0);
+            String label = dan.getMonth().getDisplayName(java.time.format.TextStyle.SHORT, Locale.ENGLISH)
+                    + " " + dan.getDayOfMonth();
+            biweekly.add(new ProgressStatsDTO.DailyXpDTO(label, xp));
+        }
+
+        // ── CALENDAR DAYS (35 dni — 5 tednov, začne prejšnji ponedeljek) ──
+        LocalDate ponedeljek = danes.with(java.time.DayOfWeek.MONDAY).minusWeeks(4);
+        List<ProgressStatsDTO.CalendarDayDTO> calendar = new ArrayList<>();
+        for (int i = 0; i < 35; i++) {
+            LocalDate dan = ponedeljek.plusDays(i);
+            boolean future = dan.isAfter(danes);
+            int xp = future ? 0 : xpPoDateumu.getOrDefault(dan, 0);
+            calendar.add(new ProgressStatsDTO.CalendarDayDTO(dan.toString(), xp, future));
+        }
+
+        // ── STREAK ──
+        int streak = 0;
+        LocalDate check = danes;
+        while (true) {
+            int xp = xpPoDateumu.getOrDefault(check, 0);
+            if (xp > 0) { streak++; check = check.minusDays(1); }
+            else break;
+        }
+
+        if (streak >= 3) {
+            znackaService.awardBadge(
+                    ucenecId,
+                    BadgeType.STREAK_3,
+                    "Maintained a 3-day learning streak."
+            );
+        }
+
+        int streakBest = 0, current = 0;
+        LocalDate oldest = vsiRezultati.stream()
+                .filter(r -> r.getOddanoOb() != null)
+                .map(r -> r.getOddanoOb().atZoneSameInstant(ZoneOffset.UTC).toLocalDate())
+                .min(Comparator.naturalOrder()).orElse(danes);
+        for (LocalDate d = oldest; !d.isAfter(danes); d = d.plusDays(1)) {
+            if (xpPoDateumu.getOrDefault(d, 0) > 0) {
+                current++;
+                streakBest = Math.max(streakBest, current);
+            } else {
+                current = 0;
+            }
+        }
+
+        return new ProgressStatsDTO(biweekly, calendar, streak, streakBest);
+    }
+    @Transactional(readOnly = true)
+    public WeeklyStatsDTO getWeeklyStatsZaProfesoria(UUID uciteljId, UUID predmetId) {
+        // Pridobi predmete profesorja
+        List<UUID> predmetIds;
+        if (predmetId != null) {
+            predmetIds = List.of(predmetId);
+        } else {
+            predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                    .stream().map(Predmet::getId).toList();
+        }
+        if (predmetIds.isEmpty()) return new WeeklyStatsDTO(buildEmptyWeek());
+
+        // Pridobi vse kvize za te predmete
+        List<UUID> kvizIds = quizRepository.findByPredmetIdIn(predmetIds)
+                .stream().map(Quiz::getId).toList();
+        if (kvizIds.isEmpty()) return new WeeklyStatsDTO(buildEmptyWeek());
+
+        // Zadnjih 7 dni (pon–ned tega tedna)
+        LocalDate danes = LocalDate.now(ZoneOffset.UTC);
+        LocalDate ponedeljek = danes.with(java.time.DayOfWeek.MONDAY);
+
+        // Pridobi rezultate tega tedna
+        OffsetDateTime odKdaj = ponedeljek.atStartOfDay().atOffset(ZoneOffset.UTC);
+        List<QuizResult> rezultati = quizResultRepository.findByQuizIdIn(kvizIds).stream()
+                .filter(r -> r.getOddanoOb() != null && !r.getOddanoOb().isBefore(odKdaj))
+                .toList();
+
+        // Grupiraj po dnevu
+        String[] dayNames = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+        List<WeeklyStatsDTO.DayStatsDTO> days = new ArrayList<>();
+
+        for (int i = 0; i < 7; i++) {
+            LocalDate dan = ponedeljek.plusDays(i);
+            final LocalDate finalDan = dan;
+            List<QuizResult> danResults = rezultati.stream()
+                    .filter(r -> r.getOddanoOb().atZoneSameInstant(ZoneOffset.UTC)
+                            .toLocalDate().equals(finalDan))
+                    .toList();
+
+            int xpSum = danResults.stream()
+                    .mapToInt(r -> r.getXpZasluzen() != null ? r.getXpZasluzen() : 0)
+                    .sum();
+
+            int avgScore = danResults.isEmpty() ? 0
+                    : (int) Math.round(danResults.stream()
+                    .mapToDouble(r -> r.getSkupajVprasanj() != null && r.getSkupajVprasanj() > 0
+                            ? (double) r.getTocke() / r.getSkupajVprasanj() * 100 : 0)
+                    .average().orElse(0));
+
+            days.add(new WeeklyStatsDTO.DayStatsDTO(dayNames[i], xpSum, avgScore));
+        }
+
+        return new WeeklyStatsDTO(days);
+    }
+
+    private List<WeeklyStatsDTO.DayStatsDTO> buildEmptyWeek() {
+        String[] dayNames = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+        List<WeeklyStatsDTO.DayStatsDTO> days = new ArrayList<>();
+        for (String d : dayNames) days.add(new WeeklyStatsDTO.DayStatsDTO(d, 0, 0));
+        return days;
+    }
+    @Transactional(readOnly = true)
+    public List<ActivityItemDTO> getActivityZaProfesoria(UUID uciteljId) {
+        List<UUID> predmetIds = predmetRepository.findByUciteljId(uciteljId)
+                .stream().map(Predmet::getId).toList();
+        if (predmetIds.isEmpty()) return List.of();
+
+        List<Quiz> kvizi = quizRepository.findByPredmetIdIn(predmetIds);
+        List<UUID> kvizIds = kvizi.stream().map(Quiz::getId).toList();
+
+        List<ActivityItemDTO> items = new ArrayList<>();
+
+        // Objavljeni kvizi
+        kvizi.stream()
+                .filter(q -> "PUBLISHED".equals(q.getStatus()) && q.getUstvarjenOb() != null)
+                .forEach(q -> items.add(new ActivityItemDTO(
+                        "QUIZ_PUBLISHED",
+                        "Published quiz: " + q.getNaziv(),
+                        "PUBLISHED",
+                        q.getUstvarjenOb()
+                )));
+
+        // Rezultati učencev
+        if (!kvizIds.isEmpty()) {
+            Map<UUID, String> kvizNazivi = kvizi.stream()
+                    .collect(Collectors.toMap(Quiz::getId, Quiz::getNaziv));
+            Map<UUID, String> profilImena = new HashMap<>();
+
+            quizResultRepository.findByQuizIdIn(kvizIds).forEach(r -> {
+                if (r.getOddanoOb() == null) return;
+                String ime = profilImena.computeIfAbsent(r.getUporabnikId(), id ->
+                        profilRepository.findById(id)
+                                .map(p -> p.getImePriimek() != null ? p.getImePriimek() : p.getUsername())
+                                .orElse("Student")
+                );
+                int odstotek = r.getSkupajVprasanj() != null && r.getSkupajVprasanj() > 0
+                        ? Math.round((float) r.getTocke() / r.getSkupajVprasanj() * 100) : 0;
+                String naziv = kvizNazivi.getOrDefault(r.getQuiz().getId(), "Quiz");
+                items.add(new ActivityItemDTO(
+                        "QUIZ_RESULT",
+                        ime + " completed: " + naziv,
+                        odstotek + "%",
+                        r.getOddanoOb()
+                ));
+            });
+        }
+
+        return items.stream()
+                .sorted(Comparator.comparing(ActivityItemDTO::getDate).reversed())
+                .limit(10)
                 .toList();
     }
 }

@@ -22,4 +22,5 @@ public class PredmetResponseDTO {
     private String uciteljImePriimek;
     private java.util.List<String> kategorije;
     private long steviloVpisanih;
+    private boolean hasTranscript;
 }

@@ -18,6 +18,7 @@ public class PredmetRequestDTO {
     private String opis;
 
     @NotBlank(message = "The login code cannot be empty")
+    @Pattern(regexp = "^[A-Z]{3}-\\d{3}$", message = "Course code must follow the format ABC-000")
     private String kodaVpisa;
 
     private Boolean jeObjavljen = false;
