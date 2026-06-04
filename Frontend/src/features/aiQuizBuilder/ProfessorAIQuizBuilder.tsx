@@ -260,7 +260,7 @@ export function ProfessorAIQuizBuilder() {
         </Panel>
 
         <Panel title="SELECT MODULE" accent={C.yellow} action={<Tag label="STEP 2" bg={C.yellow} />} overflow="visible">
-          <Dropdown value={module} options={modules} onChange={m => { setModule(m); setSelectedKviz(null) }} loading={loadingModules} placeholder="Select a module" />
+          <Dropdown value={module} options={modules} onChange={m => { setModule(m); setSelectedKviz(null); setQuestions(null); setSavedToBank(false) }} loading={loadingModules} placeholder="Select a module" />
         </Panel>
       </div>
 

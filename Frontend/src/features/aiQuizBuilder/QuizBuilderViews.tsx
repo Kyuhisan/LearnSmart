@@ -25,7 +25,7 @@ export function GenerateView({ isMobile, module, difficulty, setDifficulty, coun
   const noTranscript = module !== null && !module.hasTranscript
 
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'stretch' }}>
+    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', ...(isMobile ? {} : { gridTemplateColumns: '1fr 1.5fr' }), gap: S[4], alignItems: 'stretch' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <Panel title="GENERATE QUESTIONS" accent={C.yellow} p={S[4]} overflow="visible">
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
@@ -149,7 +149,7 @@ export function NewQuizView({ isMobile, banka, newKvizNaziv, setNewKvizNaziv, ne
   creatingKviz: boolean; onCreate: () => void; onGoGenerate: () => void
 }) {
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
+    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', ...(isMobile ? {} : { gridTemplateColumns: '1fr 1.5fr' }), gap: S[4], alignItems: isMobile ? 'stretch' : 'start' }}>
       <Panel title="NEW QUIZ" accent={C.green} p={S[4]}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
           <div>
@@ -219,7 +219,7 @@ export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelec
       </div>
 
       {selectedKviz && (
-        <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
+        <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', ...(isMobile ? {} : { gridTemplateColumns: '1fr 1.5fr' }), gap: S[4], alignItems: isMobile ? 'stretch' : 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
             <Panel title="QUIZ INFO" accent={C.orange} p={S[4]}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>
@@ -249,13 +249,15 @@ export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelec
                 ) : banka.length === 0 ? (
                   <div style={{ padding: S[3], textAlign: 'center', color: C.muted, fontSize: FS.xs }}>Bank is empty</div>
                 ) : banka.map((q, i) => (
-                  <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: S[2], padding: `${S[2]} ${S[3]}`, background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, flexShrink: 0 }}>Q{i + 1}</span>
-                    {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
-                    <span style={{ fontSize: FS.xs, color: C.ink, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q.besediloVprasanja}</span>
-                    <ComicBtn sm color={C.green} onClick={() => onAdd(q.id)} disabled={addingToKvizId === q.id}>
-                      {addingToKvizId === q.id ? '...' : '+ ADD'}
-                    </ComicBtn>
+                  <div key={q.id} style={{ display: 'flex', flexDirection: 'column', gap: S[1], padding: `${S[2]} ${S[3]}`, background: C.paper, border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow() }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: S[2] }}>
+                      <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.xs, color: C.muted, flexShrink: 0 }}>Q{i + 1}</span>
+                      {q.tezavnost && <Tag label={q.tezavnost} bg={DIFFICULTY_COLOR[q.tezavnost as keyof typeof DIFFICULTY_COLOR] ?? C.mutedLt} />}
+                      <ComicBtn sm color={C.green} onClick={() => onAdd(q.id)} disabled={addingToKvizId === q.id} style={{ marginLeft: 'auto' }}>
+                        {addingToKvizId === q.id ? '...' : '+ ADD'}
+                      </ComicBtn>
+                    </div>
+                    <span style={{ fontSize: FS.xs, color: C.ink }}>{q.besediloVprasanja}</span>
                   </div>
                 ))}
               </div>
