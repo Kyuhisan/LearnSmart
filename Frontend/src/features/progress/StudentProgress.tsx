@@ -7,11 +7,12 @@ import { Bar } from '../../components/ui/Bar'
 import { Tag } from '../../components/ui/Tag'
 import { Topbar } from '../../components/ui/Topbar'
 import { C, S, FS, BW, R, mkShadow } from '../../styles/tokens'
-import { BADGES, BIWEEKLY_XP, CALENDAR_DAYS, PROGRESS_STATS, type ProgressModule } from './mockData'
+import { BIWEEKLY_XP, CALENDAR_DAYS, PROGRESS_STATS, type ProgressModule } from './mockData'
 import { useAuth } from '../../context/AuthContext'
 import { getMojiVpisi, getModuliJavni } from '../modules/moduleApi'
 import { getModuleCompletion, getMojiRezultati, type ModuleCompletion } from '../quiz/quizStudentApi'
 import { getProgressStats, type ProgressStats } from './progressStatsApi'
+import { getMojeZnacke , type BadgeResponse } from './badgesApi'
 
 const DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
@@ -25,6 +26,43 @@ const MODULE_COLORS = [
   { color: C.orange, colorLt: C.orangeLt },
   { color: C.red,    colorLt: C.redLt    },
 ]
+
+const BADGE_DEFINITIONS = {
+  FIRST_QUIZ: {
+    label: 'FIRST QUIZ',
+    description: 'Complete your first quiz',
+    color: C.green,
+    colorLt: C.greenLt,
+  },
+
+  STREAK_3: {
+    label: 'STREAK 3',
+    description: 'Maintain a 3-day streak',
+    color: C.orange,
+    colorLt: C.orangeLt,
+  },
+
+  PERFECT_SCORE: {
+    label: 'PERFECT SCORE',
+    description: 'Score 100% on any quiz',
+    color: C.cyan,
+    colorLt: C.cyanLt,
+  },
+
+  MODULE_COMPLETE: {
+    label: 'COMPLETIONIST',
+    description: 'Complete a module',
+    color: C.purple,
+    colorLt: C.purpleLt,
+  },
+
+  QUIZ_MASTER: {
+    label: 'QUIZ MASTER',
+    description: 'Completed 10 quizes.',
+    color: C.purple,
+    colorLt: C.purpleLt
+  }
+}
 
 function xpToColor(xp: number, future?: boolean): string {
   if (future) return C.paper
@@ -169,10 +207,55 @@ function StreakCalendarPanelMobile({ calendarDays, streak }: { calendarDays: typ
   )
 }
 
-function BadgesPanel({ limit, cols, useClass }: { limit?: number; cols: number; useClass?: boolean }) {
-  const badges = limit ? BADGES.slice(0, limit) : BADGES
+function BadgesPanel({ 
+  limit, 
+  cols, 
+  useClass,
+  earnedBadges 
+}: { 
+  limit?: number
+  cols: number
+  useClass?: boolean
+  earnedBadges: BadgeResponse[] 
+}) {
+  const badges = Object.entries(BADGE_DEFINITIONS)
+  .map(([type, def]) => {
+    const earnedBadge = earnedBadges.find(
+      b => b.type === type
+    )
+
+    return {
+      id: type,
+      type,
+      label: def.label,
+      description: def.description,
+      color: def.color,
+      colorLt: def.colorLt,
+      earned: !!earnedBadge,
+      earnedDate: earnedBadge?.pridobljenOb
+    }
+  })
+  .slice(0, limit ?? 999)
+
   return (
-    <Panel title="BADGES" accent={C.purple} action={<div style={{ display: 'flex', gap: S[1.5] }}><Tag label="WIP" bg={C.mutedLt} /><Tag label={`${PROGRESS_STATS.totalBadges} EARNED`} bg={C.purpleLt} /></div>}>
+    <Panel 
+      title="BADGES" 
+      accent={C.purple} 
+      action={
+        <div 
+          style={{ 
+            display: 'flex', 
+            gap: S[1.5] 
+          }}
+        > 
+          <Tag 
+            label={`${earnedBadges.length} EARNED`} 
+            bg={C.purpleLt} 
+          />
+        </div>
+      }
+    >
+
       <div className={useClass ? 'badge-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: useClass ? undefined : `repeat(${cols}, 1fr)`, gap: S[3], padding: 0 }}>
         {badges.map(b => (
           <div key={b.id} style={{
@@ -248,10 +331,13 @@ export function StudentProgress() {
   const [progressModules, setProgressModules] = useState<ProgressModule[] | null>(null)
   const [weeklyXp, setWeeklyXp] = useState<number | null>(null)
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null)
+  const [earnedBadges, setEarnedBadges] = useState<BadgeResponse[]>([])
 
   useEffect(() => {
     if (!session?.access_token) return
     const token = session.access_token
+
+    getMojeZnacke(token).then(setEarnedBadges).catch(console.error)
 
     // Weekly XP — independent fetch so failures don't block module data
     getMojiRezultati(token).then((rezultati: { oddanoOb: string; xpZasluzen: number }[]) => {
@@ -328,10 +414,14 @@ export function StudentProgress() {
 
         {/* Stat cards */}
         <div className="quiz-stat-grid">
-          <StatCard label="TOTAL XP"    value={xp.toLocaleString()}                                                                                                               sub={`LVL ${nivo} · ${xpToNext} XP to next`}                                                                                         bg={C.yellowLt} />
-          <StatCard label="STREAK"      value={`${streak}d`}                                                                                                                      sub={`best: ${streakBest} days`}                                                                                                      bg={C.redLt}    />
+          <StatCard label="TOTAL XP"    value={xp.toLocaleString()} sub={`LVL ${nivo} · ${xpToNext} XP to next`} bg={C.yellowLt} />
+          <StatCard label="STREAK" value={`${streak}d`} sub={`best: ${streakBest} days`} bg={C.redLt} />
           <StatCard label="MODULES"     value={modulesTotal === null ? '…' : `${modulesCompleted} / ${modulesTotal}`} sub={modulesTotal === null ? '' : `${(modulesTotal ?? 0) - (modulesCompleted ?? 0)} in progress`}  bg={C.cyanLt}   />
-          <StatCard label="BADGES · WIP" value={`${PROGRESS_STATS.totalBadges} / ${PROGRESS_STATS.badgesTotal}`}     sub={`${PROGRESS_STATS.badgesTotal - PROGRESS_STATS.totalBadges} remaining`}                       bg={C.purpleLt} />
+          <StatCard 
+            label="BADGES" 
+            value={`${earnedBadges.length} / ${Object.keys(BADGE_DEFINITIONS).length}`}     
+            sub={`${Object.keys(BADGE_DEFINITIONS).length - earnedBadges.length} remaining`}                       
+            bg={C.purpleLt} />
         </div>
 
         {/* XP chart */}
@@ -404,14 +494,14 @@ export function StudentProgress() {
           <>
             <StreakCalendarPanelMobile calendarDays={calendarData} streak={streak} />
             <ModuleProgressPanel navigate={navigate} isMobile modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
-            <BadgesPanel cols={1} />
+            <BadgesPanel cols={1} earnedBadges = {earnedBadges} />
           </>
         ) : isTablet ? (
           <>
             <ModuleProgressPanel navigate={navigate} modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: S[4], alignItems: 'stretch' }}>
               <StreakCalendarPanel calendarDays={calendarData} streak={streak} />
-              <BadgesPanel limit={4} cols={2} />
+              <BadgesPanel limit={4} cols={2} earnedBadges = {earnedBadges} />
             </div>
           </>
         ) : (
@@ -420,7 +510,7 @@ export function StudentProgress() {
               <StreakCalendarPanel calendarDays={calendarData} streak={streak} />
               <ModuleProgressPanel navigate={navigate} modules={progressModules} completed={modulesCompleted} total={modulesTotal} />
             </div>
-            <BadgesPanel cols={4} />
+            <BadgesPanel cols={4} earnedBadges = {earnedBadges} />
           </>
         )}
 

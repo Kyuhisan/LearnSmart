@@ -371,4 +371,76 @@ class QuizControllerTest {
 
         assertEquals(403, response.getStatusCode().value());
     }
+    // ── getProgressStats ──────────────────────────────────────────────────────
+
+    @Test
+    void getProgressStats_studentGets200() {
+        when(jwt.getSubject()).thenReturn(ucenecId.toString());
+        ProgressStatsDTO dto = new ProgressStatsDTO(List.of(), List.of(), 0, 0);
+        when(quizService.getProgressStatsZaUcenca(ucenecId)).thenReturn(dto);
+
+        ResponseEntity<ProgressStatsDTO> response = quizController.getProgressStats(jwt);
+
+        assertEquals(200, response.getStatusCode().value());
+    }
+
+// ── getWeeklyStats ────────────────────────────────────────────────────────
+
+    @Test
+    void getWeeklyStats_teacherGets200() {
+        when(jwt.getSubject()).thenReturn(uciteljId.toString());
+        when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(ucitelj));
+        WeeklyStatsDTO dto = new WeeklyStatsDTO(List.of());
+        when(quizService.getWeeklyStatsZaProfesoria(uciteljId, null)).thenReturn(dto);
+
+        ResponseEntity<WeeklyStatsDTO> response = quizController.getWeeklyStats(null, jwt);
+
+        assertEquals(200, response.getStatusCode().value());
+    }
+
+    @Test
+    void getWeeklyStats_studentGets403() {
+        when(jwt.getSubject()).thenReturn(ucenecId.toString());
+        when(profilRepository.findById(ucenecId)).thenReturn(Optional.of(ucenec));
+
+        ResponseEntity<WeeklyStatsDTO> response = quizController.getWeeklyStats(null, jwt);
+
+        assertEquals(403, response.getStatusCode().value());
+    }
+
+    @Test
+    void getWeeklyStats_teacherFiltersByModule() {
+        when(jwt.getSubject()).thenReturn(uciteljId.toString());
+        when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(ucitelj));
+        WeeklyStatsDTO dto = new WeeklyStatsDTO(List.of());
+        when(quizService.getWeeklyStatsZaProfesoria(uciteljId, predmetId)).thenReturn(dto);
+
+        ResponseEntity<WeeklyStatsDTO> response = quizController.getWeeklyStats(predmetId, jwt);
+
+        assertEquals(200, response.getStatusCode().value());
+        verify(quizService).getWeeklyStatsZaProfesoria(uciteljId, predmetId);
+    }
+
+// ── getProfActivity ───────────────────────────────────────────────────────
+
+    @Test
+    void getProfActivity_teacherGets200() {
+        when(jwt.getSubject()).thenReturn(uciteljId.toString());
+        when(profilRepository.findById(uciteljId)).thenReturn(Optional.of(ucitelj));
+        when(quizService.getActivityZaProfesoria(uciteljId)).thenReturn(List.of());
+
+        ResponseEntity<List<ActivityItemDTO>> response = quizController.getProfActivity(jwt);
+
+        assertEquals(200, response.getStatusCode().value());
+    }
+
+    @Test
+    void getProfActivity_studentGets403() {
+        when(jwt.getSubject()).thenReturn(ucenecId.toString());
+        when(profilRepository.findById(ucenecId)).thenReturn(Optional.of(ucenec));
+
+        ResponseEntity<List<ActivityItemDTO>> response = quizController.getProfActivity(jwt);
+
+        assertEquals(403, response.getStatusCode().value());
+    }
 }
