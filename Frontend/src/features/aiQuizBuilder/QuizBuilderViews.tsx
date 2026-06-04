@@ -25,7 +25,7 @@ export function GenerateView({ isMobile, module, difficulty, setDifficulty, coun
   const noTranscript = module !== null && !module.hasTranscript
 
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'stretch' }}>
+    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', ...(isMobile ? {} : { gridTemplateColumns: '1fr 1.5fr' }), gap: S[4], alignItems: 'stretch' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
         <Panel title="GENERATE QUESTIONS" accent={C.yellow} p={S[4]} overflow="visible">
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
@@ -149,7 +149,7 @@ export function NewQuizView({ isMobile, banka, newKvizNaziv, setNewKvizNaziv, ne
   creatingKviz: boolean; onCreate: () => void; onGoGenerate: () => void
 }) {
   return (
-    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
+    <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', ...(isMobile ? {} : { gridTemplateColumns: '1fr 1.5fr' }), gap: S[4], alignItems: isMobile ? 'stretch' : 'start' }}>
       <Panel title="NEW QUIZ" accent={C.green} p={S[4]}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: S[4] }}>
           <div>
@@ -219,7 +219,7 @@ export function KvizView({ isMobile, kvizi, loadingKvizi, selectedKviz, setSelec
       </div>
 
       {selectedKviz && (
-        <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gridTemplateColumns: '1fr 1.5fr', gap: S[4], alignItems: 'start' }}>
+        <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', ...(isMobile ? {} : { gridTemplateColumns: '1fr 1.5fr' }), gap: S[4], alignItems: isMobile ? 'stretch' : 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S[3] }}>
             <Panel title="QUIZ INFO" accent={C.orange} p={S[4]}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: S[2] }}>

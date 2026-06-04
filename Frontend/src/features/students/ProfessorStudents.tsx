@@ -250,7 +250,7 @@ export function ProfessorStudents() {
                     />
                   </div>
                   {/* Students in this module */}
-                  <div style={{ padding: mod.studenti.length === 0 ? `${S[3]} ${S[3]}` : `${S[2]} ${S[3]}`, background: C.paper, display: 'flex', flexDirection: 'column', gap: S[1.5] }}>
+                  <div style={{ padding: S[3], background: C.paper, display: 'flex', flexDirection: 'column', gap: S[2] }}>
                     {mod.studenti.length === 0 ? (
                       <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: FS.sm, color: C.muted }}>
                         NO STUDENTS ENROLLED
