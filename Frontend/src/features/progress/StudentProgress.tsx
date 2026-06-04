@@ -458,7 +458,7 @@ export function StudentProgress() {
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[1.5], height: 140 }}>
                 {biweeklyData.map((d, i) => {
                   const maxXp = Math.max(...biweeklyData.map(d => d.xp), 1)
-                  const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * 110)
+                  const barH = d.xp === 0 ? 4 : Math.round((d.xp / maxXp) * (isTablet ? 80 : 110))
                   const isNewWeek = i === 7
                   return (
                     <div key={d.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1], borderLeft: isNewWeek ? `${BW.base} dashed ${C.divider}` : 'none', paddingLeft: isNewWeek ? S[1] : 0 }}>

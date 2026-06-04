@@ -22,7 +22,7 @@ function todayIndex(): number {
 }
 
 function ModuleOverviewRow({ m, color, colorLt, onDetails }: { m: ModulePerformance; color: string; colorLt: string; onDetails: () => void }) {
-  const isMobile = useBreakpoint() === 'mobile'
+  const isMobile = useBreakpoint() !== 'desktop'
   return (
     <div style={{ border: `${BW.base} solid ${C.ink}`, borderRadius: R.sm, boxShadow: mkShadow(), overflow: 'hidden' }}>
       <div style={{ display: 'flex', flexDirection: 'column', background: colorLt, borderBottom: `${BW.base} solid ${C.ink}` }}>
@@ -259,7 +259,7 @@ export function ProfessorAnalytics() {
               {loadingWeekly && <Tag label="..." bg={C.mutedLt} />}
               {!isMobile && (selectedModuleName ? <Tag label={selectedModuleName} bg={C.yellowLt} /> : <Tag label="ALL MODULES" bg={C.yellowLt} />)}
             </div>}>
-            <div style={{ padding: 0 }}>
+            <div style={{ padding: 0, marginTop: 'auto' }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: S[2], height: 160 }}>
                 {weeklyData.map(d => {
                   const dayIdx   = DAY_ORDER.indexOf(d.day)
@@ -267,13 +267,13 @@ export function ProfessorAnalytics() {
                   const isToday  = dayIdx === today
                   const barH     = isFuture || d.xpSum === 0 ? 4 : Math.round((d.xpSum / maxXp) * 130)
                   return (
-                    <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1], opacity: isFuture ? 0.45 : 1 }}>
+                    <div key={d.day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S[1] }}>
                       <span style={{ fontFamily: "'Space Mono', monospace", fontSize: FS['2xs'], color: C.muted }}>
                         {isFuture ? '·' : d.xpSum > 0 ? `+${d.xpSum}` : '—'}
                       </span>
                       <div style={{
                         width: '100%', height: barH,
-                        background: isFuture ? C.mutedLt : d.xpSum === 0 ? C.cream : activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow,
+                        background: isFuture ? C.muted : d.xpSum === 0 ? C.cream : activePerf ? PERF_COLORS[modulePerformance.indexOf(activePerf) % PERF_COLORS.length] : C.yellow,
                         border: `${BW.base} solid ${isFuture ? C.muted : C.ink}`,
                         borderRadius: `${R.sm} ${R.sm} 0 0`,
                         boxShadow: isFuture || d.xpSum === 0 ? 'none' : mkShadow(),
@@ -359,7 +359,7 @@ export function ProfessorAnalytics() {
               ))}
               {!loadingPerformance && activePerf && (() => {
                 const idx = modulePerformance.indexOf(activePerf)
-                return <ModuleDetailView m={activePerf} color={PERF_COLORS[idx % PERF_COLORS.length]} colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]} isMobile={isMobile} />
+                return <ModuleDetailView m={activePerf} color={PERF_COLORS[idx % PERF_COLORS.length]} colorLt={PERF_COLORS_LT[idx % PERF_COLORS_LT.length]} isMobile={bp !== 'desktop'} />
               })()}
             </div>
           </Panel>

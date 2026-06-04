@@ -393,7 +393,7 @@ export function StudentDashboard() {
                 action={(() => {
                   const passed = done.filter(q => (completedScores[q.id] ?? 0) >= 50).length
                   const failed = done.length - passed
-                  return loading ? <Tag label="…" bg={C.redLt} /> : isMobile ? (
+                  return loading ? <Tag label="…" bg={C.redLt} /> : bp !== 'desktop' ? (
                     <Tag label={`${due.length} DUE · ${passed} PASSED`} bg={C.redLt} />
                   ) : (
                     <div style={{ display: 'flex', gap: S[1] }}>
