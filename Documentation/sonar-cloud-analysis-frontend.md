@@ -1,110 +1,110 @@
-# SonarCloud Analysis Report – Frontend
+# Poročilo SonarCloud analize – Frontend
 
-## Overview
+## Pregled
 
-The frontend component of LearnSmart was analyzed using SonarCloud to evaluate code quality, maintainability, reliability, security, and test coverage. The analysis was performed on the React and TypeScript frontend application.
+Frontend komponenta sistema LearnSmart je bila analizirana z uporabo orodja SonarCloud za ocenjevanje kakovosti kode, vzdrževanosti, zanesljivosti, varnosti in pokritosti s testi. Analiza je bila izvedena na frontend aplikaciji, razviti z uporabo React in TypeScript tehnologij.
 
 ---
 
-## Quality Gate Status
+## Stanje Quality Gate
 
-The SonarCloud Quality Gate is currently marked as failed.
+Quality Gate v orodju SonarCloud je trenutno označen kot neuspešen.
 
-Three quality conditions were not satisfied:
+Tri kakovostni pogoji niso bili izpolnjeni:
 
-- Reliability Rating below the required threshold
-- Test Coverage below the required threshold
-- Duplicated Lines percentage above the allowed threshold
+- Ocena zanesljivosti je pod zahtevanim pragom.
+- Pokritost kode s testi je pod zahtevanim pragom.
+- Delež podvojene kode presega dovoljeno mejo.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Quality Gate | Failed |
-| Failed Conditions | 3 |
+| Quality Gate | Neuspešen |
+| Število neizpolnjenih pogojev | 3 |
 
-Despite these issues, the frontend maintains strong maintainability characteristics and contains no unresolved security hotspots.
+Kljub navedenim težavam frontend ohranja visoko stopnjo vzdrževanosti in ne vsebuje nerešenih varnostnih opozoril.
 
 ---
 
-## Security Analysis
+## Analiza varnosti
 
-The frontend achieved a Security Rating of B.
+Frontend je dosegel varnostno oceno B.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Security Rating | B |
-| Security Issues | 2 |
-| Security Hotspots | 0 |
+| Varnostna ocena | B |
+| Varnostne težave | 2 |
+| Varnostna opozorila (Hotspots) | 0 |
 
-The analysis identified two low-severity security issues. No unresolved security hotspots requiring manual review were detected.
+Analiza je zaznala dve varnostni težavi nizke stopnje resnosti. Prav tako niso bila zaznana nobena nerešena varnostna opozorila, ki bi zahtevala ročni pregled.
 
 ---
 
-## Reliability Analysis
+## Analiza zanesljivosti
 
-The frontend received a Reliability Rating of C.
+Frontend je dosegel oceno zanesljivosti C.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Reliability Rating | C |
-| Reliability Issues | 117 |
+| Ocena zanesljivosti | C |
+| Težave z zanesljivostjo | 117 |
 
-The identified reliability issues consist primarily of low- and medium-severity findings related to accessibility, user interaction handling, and React best practices. Examples include missing keyboard event support for clickable elements and the use of non-native interactive elements without appropriate accessibility attributes.
+Ugotovljene težave z zanesljivostjo so večinoma povezane z dostopnostjo, obravnavo uporabniških interakcij in upoštevanjem najboljših praks pri razvoju React aplikacij. Primeri vključujejo manjkajočo podporo za dogodke tipkovnice pri elementih, ki jih je mogoče klikniti, ter uporabo nenativnih interaktivnih elementov brez ustreznih atributov za dostopnost.
 
-While these issues do not represent critical application failures, addressing them would improve usability, accessibility compliance, and overall frontend reliability.
+Čeprav te težave ne povzročajo kritičnih napak v delovanju aplikacije, bi njihova odprava izboljšala uporabniško izkušnjo, skladnost z dostopnostnimi smernicami in splošno zanesljivost frontend aplikacije.
 
-Improving reliability remains one of the primary areas for future development.
+Izboljšanje zanesljivosti ostaja eno izmed pomembnejših področij za nadaljnji razvoj.
 
 ---
 
-## Maintainability Analysis
+## Analiza vzdrževanosti
 
-The frontend achieved the highest maintainability rating.
+Frontend je dosegel najvišjo oceno vzdrževanosti.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Maintainability Rating | A |
-| Maintainability Issues | 396 |
+| Ocena vzdrževanosti | A |
+| Težave z vzdrževanostjo | 396 |
 
-Most reported maintainability findings correspond to code quality recommendations and React/TypeScript best-practice improvements. Common examples include:
+Večina ugotovljenih težav z vzdrževanostjo predstavlja priporočila za izboljšanje kakovosti kode ter upoštevanje najboljših praks pri razvoju aplikacij React in TypeScript. Med najpogostejšimi primeri so:
 
-- reducing cognitive complexity in large functions
-- improving readability of conditional expressions
-- avoiding the use of array indices as React keys
-- marking component properties as read-only where applicable
-- simplifying component implementations and improving code consistency
+- zmanjševanje kognitivne kompleksnosti obsežnih funkcij,
+- izboljšanje berljivosti pogojnih izrazov,
+- izogibanje uporabi indeksov tabel kot React ključev,
+- označevanje lastnosti komponent kot nespremenljivih (readonly),
+- poenostavitev implementacije komponent in izboljšanje konsistentnosti kode.
 
-Although a relatively large number of maintainability recommendations were identified, they are primarily code-smell findings rather than critical defects. As a result, the frontend still achieved the highest maintainability rating (A).
+Čeprav je bilo zaznanih relativno veliko priporočil za izboljšave, gre večinoma za opozorila tipa »code smell« in ne za kritične napake. Zaradi tega je frontend kljub temu dosegel najvišjo oceno vzdrževanosti (A).
 
 ---
 
-## Code Duplication
+## Podvajanje kode
 
-The analysis detected duplicated code segments within the frontend codebase.
+Analiza je zaznala podvojene dele kode znotraj frontend aplikacije.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Duplications | 4.6% |
+| Podvojena koda | 4,6 % |
 
-The duplication percentage exceeds the configured quality threshold of 3.0%, contributing to the Quality Gate failure.
+Delež podvojene kode presega nastavljeno mejo kakovosti 3,0 %, kar prispeva k neuspešnemu rezultatu Quality Gate.
 
 ---
 
-## Test Coverage
+## Pokritost s testi
 
-SonarCloud reports a coverage value of 0.0%.
+SonarCloud poroča o 0,0 % pokritosti kode s testi.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Coverage | 0.0% |
+| Pokritost s testi | 0,0 % |
 
-Although frontend test reports exist within the project, coverage information is currently not reflected in SonarCloud. This indicates that coverage data was not successfully imported during the analysis process.
+Čeprav projekt vsebuje poročila o izvedenih frontend testih, podatki o pokritosti kode trenutno niso prikazani v SonarCloud analizi. To nakazuje, da podatki o pokritosti med postopkom analize niso bili uspešno uvoženi.
 
-Proper integration of coverage reporting tools with SonarCloud would enable accurate coverage measurement and improve Quality Gate evaluation.
+Pravilna integracija orodij za merjenje pokritosti kode s SonarCloud bi omogočila natančnejše merjenje pokritosti in izboljšala ocenjevanje v okviru Quality Gate.
 
 ---
 
-## Summary
+## Povzetek
 
-The SonarCloud analysis shows that the LearnSmart frontend achieves excellent maintainability and generally good security characteristics, with no unresolved security hotspots detected.
+Analiza SonarCloud kaže, da frontend aplikacija LearnSmart dosega odlično stopnjo vzdrževanosti in na splošno dobro raven varnosti, brez zaznanih nerešenih varnostnih opozoril.
 
-Future improvements should focus on reducing duplicated code, addressing reliability issues, and integrating test coverage reporting into SonarCloud to provide a more accurate assessment of frontend quality.
+Prihodnje izboljšave naj se osredotočijo na zmanjšanje podvojene kode, odpravljanje težav z zanesljivostjo ter integracijo poročil o pokritosti kode s testi v SonarCloud, kar bo omogočilo natančnejšo oceno kakovosti frontend aplikacije.

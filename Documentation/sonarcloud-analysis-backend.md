@@ -1,105 +1,106 @@
-# SonarCloud Analysis Report – Backend
+# Poročilo SonarCloud analize – Backend
 
-## Overview
+## Pregled
 
-The backend component of LearnSmart was analyzed using SonarCloud to evaluate code quality, maintainability, reliability, and security. The analysis was performed on the Spring Boot backend application implemented in Java 21.
+Backend komponenta sistema LearnSmart je bila analizirana z uporabo orodja SonarCloud za ocenjevanje kakovosti kode, vzdrževanosti, zanesljivosti in varnosti. Analiza je bila izvedena na Spring Boot backend aplikaciji, razviti v programskem jeziku Java 21.
 
 ---
 
-## Quality Gate Status
+## Stanje Quality Gate
 
-The SonarCloud Quality Gate is currently marked as failed. The failure is associated with the reported code coverage metric, which is shown as 0.0% despite SonarCloud detecting 206 successfully executed unit tests. Security, reliability, and maintainability categories all achieved the highest rating (A), indicating that the failure is related to coverage reporting rather than code quality concerns.
+Quality Gate v orodju SonarCloud je trenutno označen kot neuspešen. Neuspešen rezultat je povezan z metriko pokritosti kode, ki je prikazana kot 0,0 %, kljub temu da je SonarCloud zaznal 206 uspešno izvedenih enotnih testov. Kategorije varnosti, zanesljivosti in vzdrževanosti so dosegle najvišjo oceno (A), kar nakazuje, da je razlog za neuspešen rezultat povezan s poročanjem pokritosti kode in ne s kakovostjo same implementacije.
 
-The backend received:
+Backend je dosegel naslednje rezultate:
 
-- Security Rating: A
-- Reliability Rating: A
-- Maintainability Rating: A
-- Duplications: 0.0%
+- Varnostna ocena: A
+- Ocena zanesljivosti: A
+- Ocena vzdrževanosti: A
+- Podvojena koda: 0,0 %
 
-The quality gate failure highlights the need for additional automated tests rather than issues in the implementation itself.
+Neuspešen rezultat Quality Gate poudarja potrebo po ustrezni integraciji poročil o pokritosti kode in ne težav v sami implementaciji.
+
 ---
 
-## Security Analysis
+## Analiza varnosti
 
-The backend received the highest possible security rating.
+Backend je dosegel najvišjo možno varnostno oceno.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Security Rating | A |
-| Security Issues | 0 |
-| Security Hotspots | 0 |
+| Varnostna ocena | A |
+| Varnostne težave | 0 |
+| Varnostna opozorila (Hotspots) | 0 |
 
-No security vulnerabilities were identified during the analysis. Additionally, no security hotspots requiring manual review were detected.
+Med analizo niso bile zaznane nobene varnostne ranljivosti. Prav tako niso bila zaznana nobena varnostna opozorila, ki bi zahtevala ročni pregled.
 
 ---
 
-## Reliability Analysis
+## Analiza zanesljivosti
 
-The backend achieved a reliability rating of A.
+Backend je dosegel oceno zanesljivosti A.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Reliability Rating | A |
-| Reliability Issues | 35 |
+| Ocena zanesljivosti | A |
+| Težave z zanesljivostjo | 35 |
 
-All detected reliability issues were classified as informational and do not represent critical defects that could significantly impact application execution.
+Vse zaznane težave z zanesljivostjo so bile klasificirane kot informativne in ne predstavljajo kritičnih napak, ki bi lahko pomembno vplivale na delovanje aplikacije.
 
-The results indicate that the backend implementation is generally stable and reliable.
+Rezultati kažejo, da je backend implementacija na splošno stabilna in zanesljiva.
 
 ---
 
-## Maintainability Analysis
+## Analiza vzdrževanosti
 
-The backend achieved a maintainability rating of A.
+Backend je dosegel oceno vzdrževanosti A.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Maintainability Rating | A |
-| Maintainability Issues | 192 |
+| Ocena vzdrževanosti | A |
+| Težave z vzdrževanostjo | 192 |
 
-Most maintainability findings correspond to code quality recommendations such as:
+Večina ugotovitev na področju vzdrževanosti predstavlja priporočila za izboljšanje kakovosti kode, kot so:
 
-- improving readability
-- reducing code complexity
-- refactoring duplicated logic
-- simplifying method implementations
-- improving naming consistency
+- izboljšanje berljivosti kode,
+- zmanjševanje kompleksnosti kode,
+- refaktoriranje podvojene logike,
+- poenostavljanje implementacij metod,
+- izboljšanje doslednosti poimenovanja.
 
-Despite the relatively high number of recommendations, the overall maintainability remains within the highest rating category.
+Kljub relativno velikemu številu priporočil ostaja vzdrževanost sistema v najvišji ocenjevalni kategoriji.
 
 ---
 
-## Code Duplication
+## Podvajanje kode
 
-The analysis reported no duplicated code.
+Analiza ni zaznala podvojene kode.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Duplications | 0.0% |
+| Podvojena koda | 0,0 % |
 
-This result indicates that the backend codebase avoids unnecessary code repetition and follows good reuse practices.
+Rezultat kaže, da backend koda uspešno preprečuje nepotrebno podvajanje in sledi dobrim praksam ponovne uporabe kode.
 
 ---
 
-## Test Coverage
+## Pokritost s testi
 
-SonarCloud reports a coverage value of 0.0% despite detecting 206 successfully executed unit tests.
+SonarCloud poroča o 0,0 % pokritosti kode s testi, kljub temu da je zaznal 206 uspešno izvedenih enotnih testov.
 
-| Metric | Value |
+| Metrika | Vrednost |
 |----------|----------|
-| Unit Tests | 206 |
-| Test Success Rate | 100% |
-| Coverage | 0.0% |
+| Enotni testi | 206 |
+| Uspešnost testov | 100 % |
+| Pokritost s testi | 0,0 % |
 
-The discrepancy indicates that code coverage information was not successfully imported into SonarCloud during the analysis process. While test execution data is available, coverage reports were not provided to the platform, preventing SonarCloud from calculating the actual percentage of covered code.
+Razlika med številom zaznanih testov in prikazano pokritostjo nakazuje, da podatki o pokritosti kode med postopkom analize niso bili uspešno uvoženi v SonarCloud. Čeprav so podatki o izvedbi testov na voljo, platforma ni prejela ustreznih poročil o pokritosti, zato dejanskega odstotka pokrite kode ni mogla izračunati.
 
-Future improvements should include proper integration of JaCoCo coverage reports with SonarCloud to enable accurate coverage measurement and quality gate evaluation.
+Prihodnje izboljšave bi morale vključevati pravilno integracijo poročil JaCoCo s SonarCloud, kar bi omogočilo natančno merjenje pokritosti kode in pravilno ocenjevanje Quality Gate.
 
 ---
 
-## Summary
+## Povzetek
 
-The SonarCloud analysis demonstrates that the LearnSmart backend maintains a high standard of security, reliability, and maintainability. No security vulnerabilities or code duplications were detected, and all quality categories achieved the highest rating (A).
+Analiza SonarCloud kaže, da backend sistema LearnSmart dosega visoko raven varnosti, zanesljivosti in vzdrževanosti. Analiza ni zaznala nobenih varnostnih ranljivosti ali podvojene kode, vse glavne kategorije kakovosti pa so dosegle najvišjo oceno (A).
 
-The primary area for improvement is the integration of code coverage reporting with SonarCloud. Although the backend contains 206 successfully executed unit tests, coverage information is currently not reflected in the analysis results. Resolving this integration issue would provide more accurate quality metrics and improve Quality Gate evaluation.
+Glavno področje za izboljšave predstavlja integracija poročil o pokritosti kode s SonarCloud. Čeprav backend vsebuje 206 uspešno izvedenih enotnih testov, se podatki o pokritosti trenutno ne odražajo v rezultatih analize. Odprava te težave bi omogočila natančnejše meritve kakovosti in izboljšala ocenjevanje v okviru Quality Gate.

@@ -1,181 +1,181 @@
-# Scope of Features and Dependencies
+# Obseg funkcionalnosti in odvisnosti
 
-## Scope of Features
+## Obseg funkcionalnosti
 
-### User Authentication and Authorization
+### Avtentikacija in avtorizacija uporabnikov
 
-The system supports secure user authentication using Google OAuth through Supabase Authentication.
+Sistem omogoča varno avtentikacijo uporabnikov z uporabo Google OAuth preko storitve Supabase Authentication.
 
-Features include:
+Funkcionalnosti vključujejo:
 
-- User registration and login using Google accounts
-- JWT-based authentication
-- Session management
-- Role-based access control
-- Secure API access
-
----
-
-### Course Management
-
-Teachers can create and manage learning subjects and educational resources.
-
-Features include:
-
-- Subject creation and management
-- Learning material organization
-- File upload functionality
-- Resource categorization
+- Registracijo in prijavo uporabnikov z Google računom
+- Avtentikacijo na osnovi JWT žetonov
+- Upravljanje uporabniških sej
+- Nadzor dostopa na podlagi vlog
+- Varen dostop do API-ja
 
 ---
 
-### File Processing and Content Extraction
+### Upravljanje učnih predmetov
 
-The system accepts multiple file formats and extracts educational content automatically.
+Učitelji lahko ustvarjajo in upravljajo učne predmete ter izobraževalne vire.
 
-Supported file types:
+Funkcionalnosti vključujejo:
 
-- PDF documents
-- Audio recordings
-- Video recordings
-
-Features include:
-
-- PDF text extraction
-- Audio transcription
-- Video audio extraction
-- Speech-to-text conversion
-- Combined transcript generation
+- Ustvarjanje in upravljanje predmetov
+- Organizacijo učnih gradiv
+- Nalaganje datotek
+- Kategorizacijo virov
 
 ---
 
-### AI-Based Learning Material Generation
+### Obdelava datotek in pridobivanje vsebine
 
-LearnSmart uses artificial intelligence to transform uploaded educational materials into personalized learning resources.
+Sistem podpira več formatov datotek in samodejno pridobiva izobraževalno vsebino.
 
-Features include:
+Podprte vrste datotek:
 
-- Learning content generation
-- Personalized content adaptation
-- Automatic summarization
-- Content restructuring
-- Learning pack creation
+- PDF dokumenti
+- Zvočni posnetki
+- Video posnetki
 
----
+Funkcionalnosti vključujejo:
 
-### Learning Material Management
-
-Teachers can review and modify generated learning materials before they are presented to students.
-
-Features include:
-
-- Reviewing generated learning content
-- Editing reading-based learning materials
-- Editing kinesthetic learning materials
-- Regenerating learning content when necessary
-- Managing learning resources after generation
+- Izvleček besedila iz PDF dokumentov
+- Transkripcijo zvočnih posnetkov
+- Izločanje zvoka iz video posnetkov
+- Pretvorbo govora v besedilo
+- Generiranje združenega prepisa
 
 ---
 
-### VARK Learning Style Support
+### Generiranje učnih gradiv s pomočjo umetne inteligence
 
-The system generates learning materials according to the VARK learning model.
+LearnSmart uporablja umetno inteligenco za pretvorbo naloženih učnih gradiv v prilagojene učne vire.
 
-Supported learning styles:
+Funkcionalnosti vključujejo:
 
-- Visual
-- Auditory
-- Read/Write
-- Kinesthetic
-
-Generated content is adapted to improve learning effectiveness for each user.
-
----
-
-### Quiz and Assessment Generation
-
-The platform automatically generates assessment materials from educational content.
-
-Features include:
-
-- Interactive quizzes
-- Knowledge validation
-- Automated question generation
-- Learning progress support
+- Generiranje učnih vsebin
+- Prilagajanje vsebin posameznemu uporabniku
+- Samodejno povzemanje vsebine
+- Prestrukturiranje vsebine
+- Ustvarjanje učnih paketov
 
 ---
 
-### Gamification System
+### Upravljanje učnih gradiv
 
-The platform incorporates gamification elements to increase learner engagement and motivation.
+Učitelji lahko pregledajo in urejajo generirana učna gradiva, preden so predstavljena študentom.
 
-Features include:
+Funkcionalnosti vključujejo:
 
-- Experience point (XP) rewards for completed quizzes
-- Achievement badge system
-- Learning streak tracking
-- Three-day streak rewards
-- Recognition of learning accomplishments
-
----
-
-### Auditory Content Generation
-
-The system can generate audio-based learning materials.
-
-Features include:
-
-- Narration script generation
-- Text-to-speech conversion
-- Audio file generation
-- Audio content storage
+- Pregled generiranih učnih vsebin
+- Urejanje gradiv za bralni način učenja
+- Urejanje gradiv za kinestetični način učenja
+- Ponovno generiranje učnih vsebin po potrebi
+- Upravljanje učnih virov po generiranju
 
 ---
 
-### Cloud Storage Integration
+### Podpora učnim stilom VARK
 
-Educational resources and generated content are stored using cloud infrastructure.
+Sistem generira učna gradiva v skladu z modelom VARK.
 
-Features include:
+Podprti učni stili:
 
-- File storage
-- Audio storage
-- Resource retrieval
-- Secure access control
+- Vizualni
+- Avditivni
+- Bralno-pisalni
+- Kinestetični
+
+Generirana vsebina je prilagojena za izboljšanje učinkovitosti učenja posameznega uporabnika.
 
 ---
 
-## External Dependencies
+### Generiranje kvizov in preverjanja znanja
 
-### Core Technologies
+Platforma samodejno ustvarja gradiva za preverjanje znanja na podlagi učnih vsebin.
 
-| Component | Technology |
+Funkcionalnosti vključujejo:
+
+- Interaktivne kvize
+- Preverjanje znanja
+- Samodejno generiranje vprašanj
+- Podporo spremljanju učnega napredka
+
+---
+
+### Sistem igrifikacije
+
+Platforma vključuje elemente igrifikacije za povečanje motivacije in angažiranosti uporabnikov.
+
+Funkcionalnosti vključujejo:
+
+- Nagrajevanje z izkustvenimi točkami (XP) za rešene kvize
+- Sistem dosežkov in značk
+- Spremljanje učnih nizov (streakov)
+- Nagrade za tridnevne učne nize
+- Prepoznavanje učnih dosežkov
+
+---
+
+### Generiranje zvočnih učnih gradiv
+
+Sistem omogoča ustvarjanje zvočnih učnih gradiv.
+
+Funkcionalnosti vključujejo:
+
+- Generiranje pripovednih scenarijev
+- Pretvorbo besedila v govor
+- Generiranje zvočnih datotek
+- Shranjevanje zvočnih vsebin
+
+---
+
+### Integracija oblačne shrambe
+
+Izobraževalni viri in generirana vsebina se shranjujejo v oblačno infrastrukturo.
+
+Funkcionalnosti vključujejo:
+
+- Shranjevanje datotek
+- Shranjevanje zvočnih vsebin
+- Pridobivanje virov
+- Varen nadzor dostopa
+
+---
+
+## Zunanje odvisnosti
+
+### Osnovne tehnologije
+
+| Komponenta | Tehnologija |
 |------------|------------|
 | Frontend | React 19 |
-| Programming Language | TypeScript |
-| Build Tool | Vite |
+| Programski jezik | TypeScript |
+| Orodje za gradnjo | Vite |
 | Backend | Spring Boot 4 |
-| Programming Language | Java 21 |
-| Database | PostgreSQL |
+| Programski jezik | Java 21 |
+| Podatkovna baza | PostgreSQL |
 
 ---
 
-### Authentication Services
+### Storitve za avtentikacijo
 
 #### Supabase Authentication
 
-Used for:
+Uporablja se za:
 
-- Google OAuth login
-- JWT generation
-- Session management
-- User authentication
+- Prijavo z Google OAuth
+- Generiranje JWT žetonov
+- Upravljanje uporabniških sej
+- Avtentikacijo uporabnikov
 
 ---
 
-### Artificial Intelligence Services
+### Storitve umetne inteligence
 
-The application relies on external AI services for content generation, speech transcription and audio synthesis.
+Aplikacija uporablja zunanje storitve umetne inteligence za generiranje vsebin, prepis govora in sintezo zvoka.
 
 - Google Gemini API
 - OpenAI Whisper API
@@ -183,38 +183,38 @@ The application relies on external AI services for content generation, speech tr
 
 ---
 
-### Multimedia Processing Tools
+### Orodja za obdelavo večpredstavnostnih vsebin
 
-#### FFmpeg and FFprobe
+#### FFmpeg in FFprobe
 
-Used for:
+Uporabljata se za:
 
-- Video processing
-- Audio extraction
-- Media conversion
-- Media inspection
-- Audio stream detection
+- Obdelavo video posnetkov
+- Izločanje zvoka
+- Pretvorbo medijskih formatov
+- Analizo medijskih datotek
+- Zaznavanje zvočnih tokov
 
 ---
 
-### Storage Services
+### Storitve shranjevanja
 
 #### Supabase Storage
 
-Used for:
+Uporablja se za:
 
-- File storage
-- Audio storage
-- Resource management
+- Shranjevanje datotek
+- Shranjevanje zvočnih vsebin
+- Upravljanje virov
 
 ---
 
-## Constraints and Limitations
+## Omejitve in pomanjkljivosti
 
-The current implementation has the following limitations:
+Trenutna implementacija ima naslednje omejitve:
 
-- Internet connectivity is required for AI functionality.
-- AI-generated content quality depends on source material quality.
-- External API availability may affect processing times.
-- Supported input formats are currently limited to PDF, audio, and video files.
-- AI service usage may incur operational costs.
+- Za delovanje funkcionalnosti umetne inteligence je potrebna internetna povezava.
+- Kakovost vsebin, generiranih z umetno inteligenco, je odvisna od kakovosti vhodnih gradiv.
+- Razpoložljivost zunanjih API storitev lahko vpliva na čas obdelave.
+- Trenutno so podprti le formati PDF, zvočne in video datoteke.
+- Uporaba storitev umetne inteligence lahko povzroča dodatne stroške delovanja sistema.

@@ -1,18 +1,18 @@
-# Installation and Deployment
+# Namestitev in nameščanje sistema
 
-## System Requirements
+## Sistemske zahteve
 
-The LearnSmart application follows a client-server architecture consisting of a React frontend and a Spring Boot backend. To deploy and run the system, the following software components are required:
+Aplikacija LearnSmart uporablja arhitekturo odjemalec–strežnik, ki jo sestavljata React frontend in Spring Boot backend. Za namestitev in zagon sistema so potrebne naslednje programske komponente:
 
 - Java Development Kit (JDK) 21
-- Node.js 20 or newer
-- npm package manager
-- PostgreSQL database
-- Git version control system
-- FFmpeg and FFprobe multimedia tools
-- Internet access for communication with external AI services
+- Node.js 20 ali novejši
+- Upravitelj paketov npm
+- Podatkovna baza PostgreSQL
+- Sistem za nadzor različic Git
+- Večpredstavnostni orodji FFmpeg in FFprobe
+- Dostop do interneta za komunikacijo z zunanjimi storitvami umetne inteligence
 
-The application also requires access to several external cloud services:
+Aplikacija potrebuje tudi dostop do naslednjih zunanjih oblačnih storitev:
 
 - Supabase Authentication
 - Supabase Storage
@@ -20,57 +20,57 @@ The application also requires access to several external cloud services:
 - OpenAI Whisper API
 - Google Text-to-Speech API
 
-## Backend Installation
+## Namestitev zalednega dela (Backend)
 
-The backend component is implemented using Spring Boot and Java 21.
+Zaledni del sistema je implementiran z uporabo ogrodja Spring Boot in programskega jezika Java 21.
 
-The source code is obtained by cloning the project repository:
+Izvorno kodo pridobimo s kloniranjem repozitorija projekta:
 
 ```bash
 git clone https://github.com/Kyuhisan/LearnSmart.git
 cd LearnSmart/Backend
 ```
 
-The backend configuration is stored in the file:
+Konfiguracija zalednega dela je shranjena v datoteki:
 
 ```text
 src/main/resources/application-local.properties
 ```
 
-The following configuration parameters must be provided:
+Potrebno je nastaviti naslednje konfiguracijske parametre:
 
-- PostgreSQL database URL
-- PostgreSQL username
-- PostgreSQL password
-- Supabase project URL
-- Supabase service key
-- Supabase anonymous key
-- Supabase JWT JWK endpoint
-- Google Gemini API key
-- OpenAI API key
-- Google Text-to-Speech API key
-- Frontend application URL
-- SMTP email configuration
+- URL povezave do podatkovne baze PostgreSQL
+- Uporabniško ime za PostgreSQL
+- Geslo za PostgreSQL
+- URL projekta Supabase
+- Servisni ključ Supabase
+- Anonimni ključ Supabase
+- Supabase JWT JWK končna točka
+- API ključ Google Gemini
+- API ključ OpenAI
+- API ključ Google Text-to-Speech
+- URL frontend aplikacije
+- SMTP konfiguracija za elektronsko pošto
 
-After configuration, the backend can be started using Maven:
+Po nastavitvi konfiguracije lahko zaledni del zaženemo z Mavenom:
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-The REST API becomes available on port 8081.
+REST API bo dostopen na vratih 8081.
 
-## Frontend Installation
+## Namestitev čelnega dela (Frontend)
 
-The frontend is implemented using React, TypeScript and Vite.
+Čelni del sistema je implementiran z uporabo React, TypeScript in Vite.
 
-Navigate to the frontend directory:
+Premaknemo se v mapo frontend aplikacije:
 
 ```bash
 cd LearnSmart/Frontend
 ```
 
-Create the environment configuration file and provide the required variables:
+Ustvarimo konfiguracijsko datoteko okolja in nastavimo potrebne spremenljivke:
 
 ```env
 VITE_SUPABASE_URL=
@@ -78,80 +78,80 @@ VITE_SUPABASE_ANON_KEY=
 VITE_API_URL=
 ```
 
-Install project dependencies:
+Namestimo odvisnosti projekta:
 
 ```bash
 npm install
 ```
 
-Run the development server:
+Zaženemo razvojni strežnik:
 
 ```bash
 npm run dev
 ```
 
-The frontend application becomes available on port 5173.
+Frontend aplikacija bo dostopna na vratih 5173.
 
-## Database Configuration
+## Konfiguracija podatkovne baze
 
-LearnSmart uses PostgreSQL as the primary relational database.
+LearnSmart uporablja PostgreSQL kot primarno relacijsko podatkovno bazo.
 
-Before running the application, a PostgreSQL database instance must be created. The backend connects to the database through the JDBC connection string defined in the application configuration.
+Pred zagonom aplikacije je potrebno ustvariti instanco podatkovne baze PostgreSQL. Zaledni del se povezuje na podatkovno bazo preko JDBC povezovalnega niza, ki je definiran v konfiguraciji aplikacije.
 
-Database schema generation is handled automatically by the Spring Boot application during startup.
+Generiranje podatkovne sheme se ob zagonu aplikacije izvaja samodejno preko Spring Boot ogrodja.
 
-## External Service Configuration
+## Konfiguracija zunanjih storitev
 
-Several external services are integrated into the application.
+Aplikacija uporablja več zunanjih storitev.
 
 ### Supabase
 
-Supabase provides:
+Supabase zagotavlja:
 
-- Google OAuth authentication
-- JWT token generation
-- User session management
-- Cloud file storage
+- Avtentikacijo z Google OAuth
+- Generiranje JWT žetonov
+- Upravljanje uporabniških sej
+- Oblačno shranjevanje datotek
 
-The backend validates JWT tokens using the Supabase JWK endpoint.
+Zaledni del preverja JWT žetone preko Supabase JWK končne točke.
 
 ### Google Gemini API
 
-Gemini is used to generate personalized learning materials based on uploaded educational content and the learner's preferred VARK learning style.
+Gemini se uporablja za generiranje prilagojenih učnih gradiv na podlagi naloženih izobraževalnih vsebin in uporabnikovega VARK učnega stila.
 
 ### OpenAI Whisper API
 
-Whisper is used for automatic speech-to-text transcription of uploaded audio and video files.
+Whisper se uporablja za samodejno pretvorbo govora v besedilo pri obdelavi zvočnih in video datotek.
 
 ### Google Text-to-Speech API
 
-Google TTS converts generated narration scripts into audio recordings used in auditory learning packs.
+Google TTS pretvarja generirane pripovedne scenarije v zvočne posnetke, ki se uporabljajo v avditivnih učnih paketih.
 
 ### FFmpeg
 
-FFmpeg and FFprobe are used to process uploaded video files. Audio tracks are extracted from videos before transcription is performed through Whisper.
+FFmpeg in FFprobe se uporabljata za obdelavo video datotek. Iz video posnetkov se najprej izloči zvočni zapis, ki se nato obdela s storitvijo Whisper.
 
-## Deployment Architecture
+## Arhitektura nameščanja
 
-The production deployment consists of the following components:
+Produkcijsko okolje sestavljajo naslednje komponente:
 
-- Frontend hosted on Vercel
-- Backend hosted on Render
-- PostgreSQL database
-- Supabase Authentication and Storage services
-- External AI services (Gemini, Whisper, Google TTS)
+- Frontend gostovan na Vercel
+- Backend gostovan na Render
+- Podatkovna baza PostgreSQL
+- Storitvi Supabase Authentication in Supabase Storage
+- Zunanje storitve umetne inteligence (Gemini, Whisper in Google TTS)
 
-The frontend communicates with the backend through REST APIs secured using JWT authentication. The backend interacts with the database, cloud storage and AI services to generate adaptive educational content.
+Frontend komunicira z backendom preko REST API-jev, zaščitenih z JWT avtentikacijo. Backend komunicira s podatkovno bazo, oblačno shrambo in storitvami umetne inteligence za generiranje prilagojenih učnih vsebin.
 
-## Verification
+## Preverjanje delovanja
 
-After deployment, the following checks should be performed:
+Po namestitvi sistema je priporočljivo izvesti naslednja preverjanja:
 
-1. Verify successful user authentication through Google OAuth.
-2. Upload a PDF, audio or video file.
-3. Confirm successful transcript generation.
-4. Confirm generation of personalized learning materials.
-5. Verify generation of auditory content and audio playback.
-6. Verify correct storage of generated content within the database.
+1. Preveriti uspešno prijavo uporabnika preko Google OAuth.
+2. Naložiti PDF, zvočno ali video datoteko.
+3. Potrditi uspešno generiranje prepisa vsebine.
+4. Potrditi uspešno generiranje prilagojenih učnih gradiv.
+5. Preveriti generiranje avditivnih vsebin in predvajanje zvoka.
+6. Preveriti pravilno shranjevanje generiranih vsebin v podatkovni bazi.
 
-Successful completion of these tests confirms that the deployment has been completed correctly.
+Uspešna izvedba vseh preverjanj potrjuje pravilno nameščen in delujoč sistem.
